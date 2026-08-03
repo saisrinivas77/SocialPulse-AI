@@ -9,6 +9,9 @@ const nextConfig = {
   reactStrictMode: true,
   devIndicators: false,
   outputFileTracingRoot: __dirname,
+  experimental: {
+    optimizePackageImports: [],
+  },
   images: {
     remotePatterns: [
       {
