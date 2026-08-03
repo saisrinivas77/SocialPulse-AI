@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAppStore } from "@/store/useAppStore";
 import { useTheme } from "next-themes";
+import { useRouter } from "next/navigation";
+import { useAppStore } from "@/store/useAppStore";
+
 import {
   Search,
   Bell,
@@ -32,6 +34,7 @@ export const TopNavbar: React.FC = () => {
     markAllAsRead,
     setCurrentView,
   } = useAppStore();
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
 
   const [showNotifications, setShowNotifications] = useState(false);
@@ -233,9 +236,12 @@ export const TopNavbar: React.FC = () => {
 
               <button
                 onClick={() => {
-                  setCurrentView("landing");
-                  setShowProfileMenu(false);
-                  toast.info("Logged out from SocialPulse AI workspace");
+                  // Clear auth token
+                  if (typeof window !== "undefined") {
+                    localStorage.removeItem("sp_access_token");
+                  }
+                  // Navigate to login page
+                  router.push("/login");
                 }}
                 className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-red-500 hover:bg-red-500/10"
               >
