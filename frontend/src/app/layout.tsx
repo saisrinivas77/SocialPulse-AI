@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-
 import "./globals.css";
 
 const inter = Inter({
@@ -11,20 +10,26 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "SocialPulse AI",
+    default: "SocialPulse AI — Enterprise Social Media Intelligence",
     template: "%s | SocialPulse AI",
   },
   description:
-    "Premium AI-powered social media analytics, insights, automation, and growth orchestration.",
+    "The operating system for social media intelligence. Create, analyze, schedule and optimize every social platform using enterprise AI.",
   applicationName: "SocialPulse AI",
-  metadataBase: new URL("http://localhost:3000"),
+  metadataBase: new URL("https://socialpulse.ai"),
   keywords: [
     "social media analytics",
     "AI dashboard",
     "social growth",
     "content intelligence",
     "marketing insights",
+    "enterprise social media",
   ],
+  openGraph: {
+    title: "SocialPulse AI — Enterprise Social Media Intelligence",
+    description: "The operating system for social media intelligence.",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -34,10 +39,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} sp-app`}>
+      <body className={`${inter.variable} font-sans antialiased`}>
         <div className="sp-noise" aria-hidden="true" />
         {children}
       </body>
     </html>
   );
-}
+}
