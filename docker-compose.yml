@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - POSTGRES_SERVER=db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres_secure_pw
+      - POSTGRES_DB=socialpulse_db
+      - REDIS_HOST=redis
+      - SECRET_KEY=super-secret-production-key-1234567890
+      - ENCRYPTION_KEY=c3Ryb25nLWJhc2U2NC1zZWNyZXQta2V5LXRlc3QtMTIzNDU=
+      - AWS_ACCESS_KEY_ID=mock_access_key
+      - AWS_SECRET_ACCESS_KEY=mock_secret_key
+    depends_on:
+      - db
+      - redis
+
+  celery_worker:
+    build: .
+    command: celery -A app.tasks.celery_app.celery_app worker --loglevel=info
+    environment:
+      - POSTGRES_SERVER=db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres_secure_pw
+      - POSTGRES_DB=socialpulse_db
+      - REDIS_HOST=redis
+      - SECRET_KEY=super-secret-production-key-1234567890
+      - ENCRYPTION_KEY=c3Ryb25nLWJhc2U2NC1zZWNyZXQta2V5LXRlc3QtMTIzNDU=
+    depends_on:
+      - db
+      - redis
+
+  celery_beat:
+    build: .
+    command: celery -A app.tasks.celery_app.celery_app beat --loglevel=info
+    environment:
+      - POSTGRES_SERVER=db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres_secure_pw
+      - POSTGRES_DB=socialpulse_db
+      - REDIS_HOST=redis
+      - SECRET_KEY=super-secret-production-key-1234567890
+      - ENCRYPTION_KEY=c3Ryb25nLWJhc2U2NC1zZWNyZXQta2V5LXRlc3QtMTIzNDU=
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_secure_pw
+      POSTGRES_DB: socialpulse_db
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"

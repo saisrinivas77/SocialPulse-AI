@@ -1,0 +1,323 @@
+"use client";
+
+import React, { useRef, useMemo } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Html, Float, Sphere, Box, MeshDistortMaterial } from "@react-three/drei";
+import * as THREE from "three";
+
+// Custom SVG Social Icons for maximum visual perfection
+const InstagramIcon: React.FC<{ className?: string }> = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+  </svg>
+);
+
+const LinkedinIcon: React.FC<{ className?: string }> = () => (
+  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.25V10.9H6.46M7.86 6.74a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2z" />
+  </svg>
+);
+
+const FacebookIcon: React.FC<{ className?: string }> = () => (
+  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.99 3.66 9.12 8.44 9.88v-6.99H7.9v-2.89h2.54V9.8c0-2.51 1.49-3.89 3.78-3.89 1.09 0 2.23.19 2.23.19v2.47h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.44 2.89h-2.34v6.99C18.34 21.12 22 16.99 22 12z" />
+  </svg>
+);
+
+const ThreadsIcon: React.FC<{ className?: string }> = () => (
+  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 21.5c-5.2 0-9.5-4.3-9.5-9.5S6.8 2.5 12 2.5s9.5 4.3 9.5 9.5c0 3.5-1.9 6.6-4.8 8.2l-.9-1.5c2.4-1.3 3.9-3.9 3.9-6.7 0-4.3-3.5-7.8-7.7-7.8S4.3 7.7 4.3 12s3.5 7.8 7.7 7.8c1.8 0 3.5-.6 4.9-1.8l1.2 1.2c-1.7 1.4-3.9 2.3-6.1 2.3z" />
+  </svg>
+);
+
+const TiktokIcon: React.FC<{ className?: string }> = () => (
+  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 1 1-5.2-1.74 2.89 2.89 0 0 1 2.31-2.85V7.6a6.34 6.34 0 0 0-5.11 6.16 6.34 6.34 0 1 0 11.45-3.83 8.33 8.33 0 0 0 4.77 1.49V7.98a4.85 4.85 0 0 1-1-.29z" />
+  </svg>
+);
+
+const YoutubeIcon: React.FC<{ className?: string }> = () => (
+  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+  </svg>
+);
+
+const PinterestIcon: React.FC<{ className?: string }> = () => (
+  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.08 3.16 9.42 7.63 11.17-.11-.95-.2-2.41.04-3.45.22-.94 1.42-6 1.42-6s-.36-.72-.36-1.78c0-1.67.97-2.92 2.17-2.92 1.02 0 1.51.77 1.51 1.69 0 1.03-.66 2.56-1 3.98-.28 1.19.6 2.16 1.77 2.16 2.13 0 3.77-2.25 3.77-5.49 0-2.87-2.06-4.88-5.01-4.88-3.41 0-5.42 2.56-5.42 5.2 0 1.03.4 2.13.9 2.74.1.12.11.23.08.35l-.34 1.42c-.05.23-.19.28-.43.17-1.57-.73-2.55-3.03-2.55-4.87 0-3.97 2.89-7.62 8.32-7.62 4.37 0 7.76 3.11 7.76 7.27 0 4.34-2.73 7.84-6.53 7.84-1.28 0-2.48-.66-2.89-1.45l-.79 3.01c-.28 1.1-1.05 2.48-1.56 3.32C9.57 23.82 10.76 24 12 24c6.63 0 12-5.37 12-12S18.63 0 12 0z" />
+  </svg>
+);
+
+const XIcon: React.FC<{ className?: string }> = () => (
+  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
+
+// Floating 3D Glass Cube
+const FloatingGlassCube: React.FC<{ position: [number, number, number]; scale?: number }> = ({ position, scale = 0.5 }) => {
+  const meshRef = useRef<THREE.Mesh>(null);
+  useFrame(({ clock }) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.x = clock.getElapsedTime() * 0.4;
+      meshRef.current.rotation.y = clock.getElapsedTime() * 0.6;
+    }
+  });
+
+  return (
+    <Float speed={2} rotationIntensity={1} floatIntensity={1}>
+      <Box ref={meshRef} args={[scale, scale, scale]} position={position}>
+        <meshPhysicalMaterial
+          color="#FFD700"
+          transparent
+          opacity={0.4}
+          roughness={0.1}
+          metalness={0.8}
+          transmission={0.6}
+          thickness={0.5}
+        />
+      </Box>
+    </Float>
+  );
+};
+
+// Floating Gold Metallic Sphere
+const FloatingGoldSphere: React.FC<{ position: [number, number, number]; scale?: number }> = ({ position, scale = 0.4 }) => {
+  const sphereRef = useRef<THREE.Mesh>(null);
+  useFrame(({ clock }) => {
+    if (sphereRef.current) {
+      sphereRef.current.rotation.y = clock.getElapsedTime() * 0.5;
+    }
+  });
+
+  return (
+    <Float speed={2.5} rotationIntensity={0.8} floatIntensity={1.2}>
+      <Sphere ref={sphereRef} args={[scale, 32, 32]} position={position}>
+        <meshStandardMaterial
+          color="#FFD700"
+          metalness={0.95}
+          roughness={0.15}
+          emissive="#F6C453"
+          emissiveIntensity={0.2}
+        />
+      </Sphere>
+    </Float>
+  );
+};
+
+// Orbiting Social Media Badge Component
+interface OrbitIconProps {
+  radius: number;
+  speed: number;
+  offset: number;
+  tiltAngle: number;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+}
+
+const OrbitingSocialIcon: React.FC<OrbitIconProps> = ({
+  radius,
+  speed,
+  offset,
+  tiltAngle,
+  label,
+  icon: IconComp,
+  color,
+}) => {
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame(({ clock }) => {
+    if (groupRef.current) {
+      const t = clock.getElapsedTime() * speed + offset;
+      const x = Math.cos(t) * radius;
+      const z = Math.sin(t) * radius;
+      const y = Math.sin(t * 1.5) * (radius * 0.25);
+
+      groupRef.current.position.set(x, y, z);
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      <Html center distanceFactor={12}>
+        <div
+          className="group relative flex items-center justify-center p-3 rounded-2xl glass-card transition-all duration-300 hover:scale-125 cursor-pointer shadow-2xl"
+          style={{
+            background: "rgba(15, 17, 21, 0.9)",
+            borderColor: color,
+            boxShadow: `0 0 25px ${color}45`,
+          }}
+        >
+          <div
+            className="w-8 h-8 flex items-center justify-center rounded-xl text-white font-bold"
+            style={{ color: color }}
+          >
+            <IconComp className="w-5 h-5" />
+          </div>
+          <span className="absolute -bottom-7 opacity-0 group-hover:opacity-100 transition-opacity bg-black/90 text-amber-400 text-xs font-semibold px-2 py-0.5 rounded-md whitespace-nowrap border border-amber-500/30">
+            {label}
+          </span>
+        </div>
+      </Html>
+    </group>
+  );
+};
+
+// Golden Connecting Particle Rings
+const GoldenParticleRings = () => {
+  const pointsRef = useRef<THREE.Points>(null);
+
+  const [positions, colors] = useMemo(() => {
+    const count = 900;
+    const pos = new Float32Array(count * 3);
+    const col = new Float32Array(count * 3);
+    const goldColor = new THREE.Color("#FFD700");
+    const accentColor = new THREE.Color("#F6C453");
+
+    for (let i = 0; i < count; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(Math.random() * 2 - 1);
+      const r = 2.4 + Math.random() * 0.9;
+
+      pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      pos[i * 3 + 2] = r * Math.cos(phi);
+
+      const mixedColor = Math.random() > 0.4 ? goldColor : accentColor;
+      col[i * 3] = mixedColor.r;
+      col[i * 3 + 1] = mixedColor.g;
+      col[i * 3 + 2] = mixedColor.b;
+    }
+    return [pos, col];
+  }, []);
+
+  useFrame(({ clock }) => {
+    if (pointsRef.current) {
+      pointsRef.current.rotation.y = clock.getElapsedTime() * 0.08;
+      pointsRef.current.rotation.x = Math.sin(clock.getElapsedTime() * 0.04) * 0.1;
+    }
+  });
+
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.035}
+        vertexColors
+        transparent
+        opacity={0.85}
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
+  );
+};
+
+// Main 3D Scene Component
+const GlobeMesh = () => {
+  const sphereRef = useRef<THREE.Mesh>(null);
+  const atmosphereRef = useRef<THREE.Mesh>(null);
+
+  useFrame(({ clock }) => {
+    if (sphereRef.current) {
+      sphereRef.current.rotation.y = clock.getElapsedTime() * 0.12;
+    }
+    if (atmosphereRef.current) {
+      atmosphereRef.current.rotation.y = -clock.getElapsedTime() * 0.06;
+    }
+  });
+
+  const socialPlatforms = [
+    { label: "Instagram", icon: InstagramIcon, color: "#E1306C", radius: 3.2, speed: 0.35, offset: 0, tilt: 0.2 },
+    { label: "LinkedIn", icon: LinkedinIcon, color: "#0A66C2", radius: 3.5, speed: 0.28, offset: 0.8, tilt: -0.3 },
+    { label: "Facebook", icon: FacebookIcon, color: "#1877F2", radius: 3.1, speed: 0.42, offset: 1.6, tilt: 0.15 },
+    { label: "Threads", icon: ThreadsIcon, color: "#FFFFFF", radius: 3.4, speed: 0.32, offset: 2.4, tilt: -0.2 },
+    { label: "TikTok", icon: TiktokIcon, color: "#00F2FE", radius: 3.6, speed: 0.38, offset: 3.2, tilt: 0.35 },
+    { label: "YouTube", icon: YoutubeIcon, color: "#FF0000", radius: 3.3, speed: 0.25, offset: 4.0, tilt: -0.15 },
+    { label: "Pinterest", icon: PinterestIcon, color: "#E60023", radius: 3.0, speed: 0.45, offset: 4.8, tilt: 0.25 },
+    { label: "X / Twitter", icon: XIcon, color: "#1DA1F2", radius: 3.7, speed: 0.3, offset: 5.5, tilt: -0.4 },
+  ];
+
+  return (
+    <group>
+      <ambientLight intensity={0.7} />
+      <directionalLight position={[10, 10, 5]} intensity={1.8} color="#FFD700" />
+      <pointLight position={[-10, -10, -10]} intensity={1.2} color="#C89B3C" />
+
+      {/* Interactive Wireframe Globe */}
+      <Float speed={1.5} rotationIntensity={0.5} floatIntensity={0.5}>
+        <Sphere ref={sphereRef} args={[2.0, 64, 64]}>
+          <MeshDistortMaterial
+            color="#0f1115"
+            attach="material"
+            distort={0.25}
+            speed={1.8}
+            roughness={0.2}
+            metalness={0.95}
+            wireframe={true}
+            emissive="#FFD700"
+            emissiveIntensity={0.2}
+          />
+        </Sphere>
+      </Float>
+
+      {/* Glowing Inner Core */}
+      <Sphere args={[1.75, 32, 32]}>
+        <meshStandardMaterial
+          color="#FFD700"
+          emissive="#FFD700"
+          emissiveIntensity={0.45}
+          roughness={0.4}
+          transparent
+          opacity={0.35}
+        />
+      </Sphere>
+
+      {/* Outer Atmosphere Glow */}
+      <Sphere ref={atmosphereRef} args={[2.3, 32, 32]}>
+        <meshStandardMaterial color="#F6C453" wireframe transparent opacity={0.15} />
+      </Sphere>
+
+      {/* Floating 3D Objects in Scene */}
+      <FloatingGlassCube position={[-3.2, 1.8, -1.5]} scale={0.6} />
+      <FloatingGlassCube position={[3.5, -2.0, 1.2]} scale={0.5} />
+      <FloatingGoldSphere position={[3.8, 2.2, -2.0]} scale={0.45} />
+      <FloatingGoldSphere position={[-3.6, -1.8, 1.5]} scale={0.35} />
+
+      <GoldenParticleRings />
+
+      {socialPlatforms.map((sp) => (
+        <OrbitingSocialIcon
+          key={sp.label}
+          radius={sp.radius}
+          speed={sp.speed}
+          offset={sp.offset}
+          tiltAngle={sp.tilt}
+          label={sp.label}
+          icon={sp.icon}
+          color={sp.color}
+        />
+      ))}
+    </group>
+  );
+};
+
+export const Globe3D: React.FC = () => {
+  return (
+    <div className="w-full h-[540px] lg:h-[700px] relative flex items-center justify-center">
+      <div className="absolute inset-0 bg-radial from-amber-500/20 via-amber-500/5 to-transparent blur-3xl rounded-full pointer-events-none" />
+      <Canvas
+        camera={{ position: [0, 0, 8.5], fov: 45 }}
+        gl={{ antialias: true, alpha: true }}
+        className="z-10"
+      >
+        <GlobeMesh />
+      </Canvas>
+    </div>
+  );
+};

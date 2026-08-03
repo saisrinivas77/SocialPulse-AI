@@ -1,0 +1,48 @@
+"use client";
+
+import React from "react";
+import { motion } from "framer-motion";
+
+const companies = [
+  { name: "Google", logo: "Google" },
+  { name: "Meta", logo: "∞ Meta" },
+  { name: "Spotify", logo: "Spotify" },
+  { name: "Netflix", logo: "NETFLIX" },
+  { name: "Airbnb", logo: "airbnb" },
+  { name: "TikTok", logo: "TikTok" },
+  { name: "Stripe", logo: "stripe" },
+  { name: "Apple", logo: " Apple" },
+];
+
+export const TrustedCompanies: React.FC = () => {
+  return (
+    <section id="trusted-companies" className="py-12 border-y border-amber-500/10 bg-black/40 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
+        <p className="text-xs uppercase tracking-widest text-amber-400/80 font-bold">
+          Trusted by high-growth social & marketing teams at scale
+        </p>
+
+        {/* Marquee Container */}
+        <div className="overflow-hidden relative w-full flex items-center">
+          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none" />
+
+          <motion.div
+            animate={{ x: ["0%", "-50%"] }}
+            transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+            className="flex items-center gap-16 whitespace-nowrap min-w-full"
+          >
+            {[...companies, ...companies].map((item, idx) => (
+              <div
+                key={idx}
+                className="text-xl sm:text-2xl font-bold tracking-tight text-gray-500 hover:text-amber-300 transition-colors duration-300 cursor-pointer"
+              >
+                {item.logo}
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+};
