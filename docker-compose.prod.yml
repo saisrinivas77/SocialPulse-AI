@@ -26,7 +26,7 @@ services:
       - POSTGRES_DB=socialpulse_prod
       - REDIS_HOST=redis
       - SECRET_KEY=super-secret-production-key-1234567890
-      - ENCRYPTION_KEY=c3Ryb25nLWJhc2U2NC1zZWNyZXQta2V5LXRlc3QtMTIzNDU=
+      - ENCRYPTION_KEY=Og5Bz9Qj_SMzJFYR_pd1Ogn7SXZ8CQGvoww0FsZQT30=
     depends_on:
       - db
       - redis

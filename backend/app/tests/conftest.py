@@ -7,7 +7,7 @@ from typing import AsyncGenerator
 
 os.environ["POSTGRES_PASSWORD"] = "postgres"
 os.environ["SECRET_KEY"] = "test-secret-key-1234567890-test-secret-key"
-os.environ["ENCRYPTION_KEY"] = "c3Ryb25nLWJhc2U2NC1zZWNyZXQta2V5LXRlc3QtMTIzNDU="
+os.environ["ENCRYPTION_KEY"] = "Og5Bz9Qj_SMzJFYR_pd1Ogn7SXZ8CQGvoww0FsZQT30="
 os.environ["AWS_ACCESS_KEY_ID"] = "mock_access_key"
 os.environ["AWS_SECRET_ACCESS_KEY"] = "mock_secret_key"
 
