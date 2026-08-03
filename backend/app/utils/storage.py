@@ -1,8 +1,9 @@
 # app/utils/storage.py
-"""Async S3-compatible file storage utility using aioboto3."""
+"""Storage utility supporting both local disk and async S3-compatible file storage."""
 
 import logging
-
+import os
+import aiofiles
 import aioboto3
 from fastapi import UploadFile
 from app.config import settings
@@ -11,13 +12,24 @@ logger = logging.getLogger(__name__)
 
 
 class StorageService:
-    """S3 storage handler for media uploads."""
+    """Storage handler for media uploads (Local or S3)."""
 
     def __init__(self) -> None:
         self.session = aioboto3.Session()
 
     async def upload_file(self, file: UploadFile, key: str) -> str:
-        """Upload stream to S3 and return public or signed media URL."""
+        """Upload stream to local storage or S3 and return media URL."""
+        if settings.STORAGE_TYPE == "local" or not settings.AWS_ACCESS_KEY_ID:
+            upload_dir = os.path.dirname(os.path.join(settings.UPLOAD_DIR, key))
+            os.makedirs(upload_dir, exist_ok=True)
+            file_path = os.path.join(settings.UPLOAD_DIR, key)
+            
+            content = await file.read()
+            async with aiofiles.open(file_path, "wb") as out_file:
+                await out_file.write(content)
+            
+            return f"/uploads/{key}"
+
         client_kwargs = {
             "aws_access_key_id": settings.AWS_ACCESS_KEY_ID,
             "aws_secret_access_key": settings.AWS_SECRET_ACCESS_KEY,

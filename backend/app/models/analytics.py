@@ -25,10 +25,6 @@ class Analytics(Base):
             "recorded_at",
         ),
         Index(
-            "ix_analytics_social_account_id",
-            "social_account_id",
-        ),
-        Index(
             "ix_analytics_platform_recorded_at",
             "platform",
             "recorded_at",
