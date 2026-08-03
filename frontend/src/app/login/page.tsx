@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
+import { toast, Toaster } from "sonner";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -77,17 +78,18 @@ function AuroraBackground({ mouseX, mouseY }: { mouseX: number; mouseY: number }
 }
 
 // ─── Social OAuth button ─────────────────────────────────────────────────────
-function OAuthButton({ icon, label, href }: { icon: React.ReactNode; label: string; href: string }) {
+function OAuthButton({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
   return (
-    <motion.a
-      href={href}
+    <motion.button
+      type="button"
+      onClick={onClick}
       whileHover={{ scale: 1.02, y: -1 }}
       whileTap={{ scale: 0.98 }}
       className="flex items-center justify-center gap-2.5 w-full py-2.5 px-4 rounded-xl border border-[#ECECEC] bg-white text-[#333] text-[13px] font-medium shadow-sm hover:border-[#C8A14A] hover:shadow-md transition-all"
     >
       {icon}
       {label}
-    </motion.a>
+    </motion.button>
   );
 }
 
@@ -237,16 +239,26 @@ export default function LoginPage() {
     }
   };
 
+  const handleOAuth = (provider: string) => {
+    toast.info(`${provider} sign-in coming soon`, {
+      description: "Social login is being configured. Please use email and password for now.",
+      duration: 4000,
+    });
+  };
+
   const OAUTH_BUTTONS = [
-    { icon: <GoogleIcon />, label: "Continue with Google", href: `${API_URL}/api/v1/auth/google` },
-    { icon: <GitHubIcon />, label: "Continue with GitHub", href: `${API_URL}/api/v1/auth/github` },
-    { icon: <MicrosoftIcon />, label: "Continue with Microsoft", href: `${API_URL}/api/v1/auth/microsoft` },
-    { icon: <LinkedInIcon />, label: "Continue with LinkedIn", href: `${API_URL}/api/v1/auth/linkedin` },
-    { icon: <AppleIcon />, label: "Continue with Apple", href: `${API_URL}/api/v1/auth/apple` },
+    { icon: <GoogleIcon />, label: "Continue with Google", onClick: () => handleOAuth("Google") },
+    { icon: <GitHubIcon />, label: "Continue with GitHub", onClick: () => handleOAuth("GitHub") },
+    { icon: <MicrosoftIcon />, label: "Continue with Microsoft", onClick: () => handleOAuth("Microsoft") },
+    { icon: <LinkedInIcon />, label: "Continue with LinkedIn", onClick: () => handleOAuth("LinkedIn") },
+    { icon: <AppleIcon />, label: "Continue with Apple", onClick: () => handleOAuth("Apple") },
   ];
 
   return (
     <div className="min-h-screen flex items-center justify-center relative font-sans overflow-hidden">
+      {/* Toaster for notifications */}
+      <Toaster position="top-center" richColors />
+
       {/* Reactive aurora bg */}
       <AuroraBackground mouseX={mouse.x} mouseY={mouse.y} />
 
