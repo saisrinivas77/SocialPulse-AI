@@ -1,9 +1,21 @@
 """Phase 1 Verification Pytest Suite for all 11 production API endpoints."""
 
+import socket
 import pytest
 from httpx import ASGITransport, AsyncClient
 from app.main import app
+from app.config import settings
 
+def is_db_available() -> bool:
+    """Check if target database server is reachable."""
+    try:
+        sock = socket.create_connection((settings.DB_HOST, settings.DB_PORT), timeout=1)
+        sock.close()
+        return True
+    except (OSError, Exception):
+        return False
+
+@pytest.mark.skipif(not is_db_available(), reason=f"Database server at {settings.DB_HOST}:{settings.DB_PORT} is not available")
 @pytest.mark.asyncio(loop_scope="session")
 async def test_phase1_all_11_endpoints():
     print("\n" + "=" * 60)
