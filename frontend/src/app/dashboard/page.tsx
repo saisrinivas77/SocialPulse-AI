@@ -33,6 +33,7 @@ import { NotificationsView } from "@/components/dashboard/views/NotificationsVie
 import { ProfileView } from "@/components/dashboard/views/ProfileView";
 import { AdminView } from "@/components/dashboard/views/AdminView";
 import { MediaLibraryView } from "@/components/dashboard/views/MediaLibraryView";
+import { SecurityCenterView } from "@/components/dashboard/views/SecurityCenterView";
 
 // ─── Auth guard ────────────────────────────────────────────────────────────────
 function useAuthGuard() {
@@ -86,6 +87,7 @@ export default function DashboardPage() {
       case "settings": return <SettingsView />;
       case "notifications": return <NotificationsView />;
       case "profile": return <ProfileView />;
+      case "security-center": return <SecurityCenterView />;
       case "admin": return <AdminView />;
       case "media-library": return <MediaLibraryView />;
       default: return <OverviewView />;

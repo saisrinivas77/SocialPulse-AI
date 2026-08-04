@@ -75,8 +75,15 @@ async def get_active_workspace_id(
     return x_workspace_id
 
 
+from app.repositories.session_repository import SessionRepository
+
+
 def get_auth_service(session: AsyncSession = Depends(get_db)) -> AuthService:
-    return AuthService(UserRepository(session), WorkspaceRepository(session))
+    return AuthService(
+        user_repo=UserRepository(session),
+        workspace_repo=WorkspaceRepository(session),
+        session_repo=SessionRepository(session),
+    )
 
 
 def get_post_service(session: AsyncSession = Depends(get_db)) -> PostService:

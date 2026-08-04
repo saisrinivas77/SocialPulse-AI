@@ -30,7 +30,15 @@ class SocialAccountResponse(BaseModel):
     account_name: str
     account_handle: str
     external_account_id: str
+    follower_count: int = 0
+    reach_count: int = 0
+    posts_count: int = 0
+    engagement_rate: float = 0.0
+    avatar_url: Optional[str] = None
+    sync_health: int = 100
+    status: str = "CONNECTED"
     token_expires_at: Optional[datetime] = None
+    last_synced_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
 

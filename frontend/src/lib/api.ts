@@ -3,6 +3,26 @@ import { toast } from "sonner";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
+export const setAuthTokens = (accessToken: string, refreshToken?: string) => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("sp_access_token", accessToken);
+    document.cookie = `sp_access_token=${accessToken}; path=/; max-age=86400; SameSite=Lax`;
+    if (refreshToken) {
+      localStorage.setItem("sp_refresh_token", refreshToken);
+      document.cookie = `sp_refresh_token=${refreshToken}; path=/; max-age=2592000; SameSite=Lax`;
+    }
+  }
+};
+
+export const clearAuthTokens = () => {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("sp_access_token");
+    localStorage.removeItem("sp_refresh_token");
+    document.cookie = "sp_access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    document.cookie = "sp_refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  }
+};
+
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -25,21 +45,88 @@ apiClient.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error)
 );
 
-// Response Interceptor: Handle errors & token expiry gracefully
+// Response Interceptor: Handle errors & token expiry with refresh rotation
+let isRefreshing = false;
+let failedQueue: Array<{ resolve: (token: string) => void; reject: (err: any) => void }> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else if (token) {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 apiClient.interceptors.response.use(
   (response) => response,
-  (error: AxiosError<{ detail?: string; message?: string }>) => {
+  async (error: AxiosError<{ detail?: string; message?: string }>) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
     const message =
       error.response?.data?.detail ||
       error.response?.data?.message ||
       error.message ||
       "An unexpected server error occurred";
 
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       if (typeof window !== "undefined") {
-        localStorage.removeItem("sp_access_token");
+        const refreshToken = localStorage.getItem("sp_refresh_token");
+        if (refreshToken) {
+          if (isRefreshing) {
+            return new Promise((resolve, reject) => {
+              failedQueue.push({ resolve, reject });
+            })
+              .then((token) => {
+                if (originalRequest.headers) {
+                  originalRequest.headers.Authorization = `Bearer ${token}`;
+                }
+                return apiClient(originalRequest);
+              })
+              .catch((err) => Promise.reject(err));
+          }
+
+          originalRequest._retry = true;
+          isRefreshing = true;
+
+          try {
+            const res = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+              refresh_token: refreshToken,
+            });
+
+            if (res.data?.access_token) {
+              const newAccessToken = res.data.access_token;
+              localStorage.setItem("sp_access_token", newAccessToken);
+              if (res.data?.refresh_token) {
+                localStorage.setItem("sp_refresh_token", res.data.refresh_token);
+              }
+              apiClient.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;
+              processQueue(null, newAccessToken);
+
+              if (originalRequest.headers) {
+                originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+              }
+              return apiClient(originalRequest);
+            }
+          } catch (refreshErr) {
+            processQueue(refreshErr, null);
+            localStorage.removeItem("sp_access_token");
+            localStorage.removeItem("sp_refresh_token");
+            if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+              window.location.href = "/login";
+            }
+            return Promise.reject(refreshErr);
+          } finally {
+            isRefreshing = false;
+          }
+        } else {
+          localStorage.removeItem("sp_access_token");
+          if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+            toast.error("Session expired. Please log in again.");
+          }
+        }
       }
-      toast.error("Session expired. Please log in again.");
     } else if (error.response?.status === 403) {
       toast.error("Access denied. You do not have permissions for this action.");
     } else if (error.response?.status && error.response.status >= 500) {
@@ -62,12 +149,55 @@ export const socialPulseApi = {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
       });
       if (res.data?.access_token) {
-        localStorage.setItem("sp_access_token", res.data.access_token);
+        setAuthTokens(res.data.access_token, res.data?.refresh_token);
       }
       return res.data;
     } catch {
+      setAuthTokens("sp_mock_jwt_token");
       return { access_token: "sp_mock_jwt_token", token_type: "bearer" };
     }
+  },
+
+  demoLogin: async () => {
+    try {
+      const res = await apiClient.post("/auth/demo-login");
+      const token = res.data?.access_token || "sp_demo_token_123";
+      setAuthTokens(token, res.data?.refresh_token);
+      return res.data;
+    } catch {
+      setAuthTokens("sp_demo_token_123");
+      return { access_token: "sp_demo_token_123", token_type: "bearer" };
+    }
+  },
+
+  register: async (payload: { email: string; password: string; full_name: string; organization_name?: string }) => {
+    const res = await apiClient.post("/auth/register", payload);
+    return res.data;
+  },
+
+  verifyEmail: async (token: string) => {
+    const res = await apiClient.get(`/auth/verify-email?token=${encodeURIComponent(token)}`);
+    return res.data;
+  },
+
+  resendVerification: async (email: string) => {
+    const res = await apiClient.post("/auth/resend-verification", { email });
+    return res.data;
+  },
+
+  forgotPassword: async (email: string) => {
+    const res = await apiClient.post("/auth/forgot-password", { email });
+    return res.data;
+  },
+
+  resetPassword: async (payload: { token: string; new_password: string }) => {
+    const res = await apiClient.post("/auth/reset-password", payload);
+    return res.data;
+  },
+
+  changePassword: async (payload: { current_password: string; new_password: string }) => {
+    const res = await apiClient.post("/security/change-password", payload);
+    return res.data;
   },
 
   getCurrentUser: async () => {
@@ -85,7 +215,64 @@ export const socialPulseApi = {
     }
   },
 
-  // 1. Caption AI Service
+  // Security Center APIs
+  getSecurityOverview: async () => {
+    try {
+      const res = await apiClient.get("/security/overview");
+      return res.data;
+    } catch {
+      return {
+        is_verified: true,
+        two_factor_enabled: false,
+        two_factor_ready: true,
+        active_sessions_count: 2,
+        security_score: 95,
+        connected_providers: [
+          { provider: "Google", connected_at: "2026-08-01T00:00:00Z", status: "Active", is_primary: true },
+        ],
+      };
+    }
+  },
+
+  getActiveSessions: async () => {
+    try {
+      const res = await apiClient.get("/security/sessions");
+      return res.data;
+    } catch {
+      return [
+        {
+          id: 1,
+          device_type: "desktop",
+          browser_name: "Chrome 127",
+          os_name: "macOS Sonoma",
+          ip_address: "192.168.1.45",
+          last_active: new Date().toISOString(),
+          is_current: true,
+        },
+        {
+          id: 2,
+          device_type: "mobile",
+          browser_name: "Mobile Safari",
+          os_name: "iOS 17",
+          ip_address: "172.56.21.90",
+          last_active: new Date(Date.now() - 86400000).toISOString(),
+          is_current: false,
+        },
+      ];
+    }
+  },
+
+  revokeSession: async (sessionId: number) => {
+    const res = await apiClient.delete(`/security/sessions/${sessionId}`);
+    return res.data;
+  },
+
+  logoutAllDevices: async () => {
+    const res = await apiClient.post("/auth/logout-all");
+    return res.data;
+  },
+
+  // Caption AI Service
   generateCaption: async (payload: { prompt: string; tone?: string; platform?: string; length?: string }) => {
     try {
       const res = await apiClient.post("/caption/generate", payload);
@@ -100,7 +287,7 @@ export const socialPulseApi = {
     }
   },
 
-  // 2. Hashtag Generator
+  // Hashtag Generator
   generateHashtags: async (payload: { topic: string; platform?: string; count?: number }) => {
     try {
       const res = await apiClient.post("/hashtag/generate", payload);
@@ -122,7 +309,7 @@ export const socialPulseApi = {
     }
   },
 
-  // 3. Sentiment Analysis
+  // Sentiment Analysis
   analyzeSentiment: async (text: string) => {
     try {
       const res = await apiClient.post("/sentiment/analyze", { text });
@@ -138,7 +325,7 @@ export const socialPulseApi = {
     }
   },
 
-  // 4. Reply Generator
+  // Reply Generator
   generateReply: async (payload: { comment: string; intent?: string }) => {
     try {
       const res = await apiClient.post("/ai/reply", payload);
@@ -152,7 +339,7 @@ export const socialPulseApi = {
     }
   },
 
-  // 5. Campaign Planner
+  // Campaign Planner
   planCampaign: async (payload: { objective: string; audience: string; durationDays: number }) => {
     try {
       const res = await apiClient.post("/ai/campaign-plan", payload);
@@ -171,7 +358,7 @@ export const socialPulseApi = {
     }
   },
 
-  // 6. Trend Detection
+  // Trend Detection
   detectTrends: async (category: string) => {
     try {
       const res = await apiClient.get(`/ai/trends?category=${category}`);
@@ -189,7 +376,7 @@ export const socialPulseApi = {
     }
   },
 
-  // 7. Content Optimizer
+  // Content Optimizer
   optimizeContent: async (content: string) => {
     try {
       const res = await apiClient.post("/ai/optimize", { content });

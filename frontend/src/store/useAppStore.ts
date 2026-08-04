@@ -15,6 +15,7 @@ export type NavView =
   | "team"
   | "settings"
   | "profile"
+  | "security-center"
   | "admin"
   | "media-library";
 

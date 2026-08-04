@@ -24,6 +24,10 @@ class PlatformType(str, enum.Enum):
     LINKEDIN = "LINKEDIN"
     INSTAGRAM = "INSTAGRAM"
     FACEBOOK = "FACEBOOK"
+    YOUTUBE = "YOUTUBE"
+    TIKTOK = "TIKTOK"
+    PINTEREST = "PINTEREST"
+    THREADS = "THREADS"
 
 
 class SocialAccount(Base):
@@ -48,6 +52,17 @@ class SocialAccount(Base):
     encrypted_access_token: Mapped[str] = mapped_column(Text, nullable=False)
     encrypted_refresh_token: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     token_expires_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    follower_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    reach_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    posts_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    engagement_rate: Mapped[float] = mapped_column(Integer, default=0, nullable=False)
+    avatar_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    sync_health: Mapped[int] = mapped_column(Integer, default=100, nullable=False)
+    status: Mapped[str] = mapped_column(String(50), default="CONNECTED", nullable=False)
+    last_synced_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
 

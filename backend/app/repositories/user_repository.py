@@ -52,6 +52,21 @@ class UserRepository(BaseRepository[User]):
 
         return result.scalar_one_or_none()
 
+    async def get_by_verification_token(self, token: str) -> User | None:
+        stmt = select(User).where(User.verification_token == token)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_by_reset_password_token(self, token: str) -> User | None:
+        stmt = select(User).where(User.reset_password_token == token)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_by_provider_user_id(self, provider: str, provider_user_id: str) -> User | None:
+        stmt = select(User).where(User.provider == provider, User.provider_user_id == provider_user_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def exists_by_email(self, email: str) -> bool:
         stmt = (
             select(User.id)

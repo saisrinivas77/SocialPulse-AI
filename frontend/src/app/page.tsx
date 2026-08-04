@@ -1,73 +1,151 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
-import { ArrowRight, Play, ChevronDown, Zap, Sparkles, BarChart3, Brain, Shield, Globe2, TrendingUp, Users, Star, CheckCircle2, Menu, X } from "lucide-react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import {
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  AnimatePresence,
+  useInView,
+  useScroll,
+  useMotionTemplate,
+} from "framer-motion";
+import {
+  ArrowRight, Zap, Sparkles, BarChart3, Brain, Shield, Globe2, TrendingUp,
+  Users, Star, CheckCircle2, Menu, X, Activity, Play, ChevronDown, Clock,
+  Radio, Layers, BrainCircuit, Wand2, Lock, BarChart2, Calendar,
+  RefreshCw, Check,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
-// ─── Mouse-reactive light cursor ───────────────────────────────────────────
-function MouseLight() {
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const smoothX = useSpring(x, { stiffness: 80, damping: 20 });
-  const smoothY = useSpring(y, { stiffness: 80, damping: 20 });
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 0: UTILITY HOOKS & PRIMITIVES
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Counts from 0 → target when element scrolls into view */
+function useAnimatedCounter(target: number, duration = 2000) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const started = useRef(false);
 
   useEffect(() => {
-    const move = (e: MouseEvent) => { x.set(e.clientX); y.set(e.clientY); };
-    window.addEventListener("mousemove", move);
-    return () => window.removeEventListener("mousemove", move);
-  }, [x, y]);
+    if (inView && !started.current) {
+      started.current = true;
+      const t0 = Date.now();
+      const tick = () => {
+        const p = Math.min((Date.now() - t0) / duration, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        setCount(Math.round(eased * target));
+        if (p < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+  }, [inView, target, duration]);
 
+  return { count, ref };
+}
+
+/** Pulsing live dot */
+function PulseDot({ color = "#10B981" }: { color?: string }) {
   return (
-    <motion.div
-      className="pointer-events-none fixed inset-0 z-0"
-      style={{
-        background: useTransform(
-          [smoothX, smoothY],
-          ([mx, my]: number[]) =>
-            `radial-gradient(600px circle at ${mx}px ${my}px, rgba(200,161,74,0.07) 0%, transparent 70%)`
-        ),
-      }}
-    />
+    <span className="relative flex items-center justify-center w-2 h-2 flex-shrink-0">
+      <motion.span
+        className="absolute inline-flex rounded-full"
+        style={{ backgroundColor: color, width: 8, height: 8 }}
+        animate={{ scale: [1, 2.2, 1], opacity: [0.8, 0, 0.8] }}
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <span className="relative inline-flex rounded-full w-2 h-2" style={{ backgroundColor: color }} />
+    </span>
   );
 }
 
-// ─── Animated grid ──────────────────────────────────────────────────────────
-function AnimatedGrid() {
+/** Section fade-in on scroll */
+function FadeUp({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+    <motion.div
+      initial={{ opacity: 0, y: 36 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.75, delay, ease: [0.16, 1, 0.3, 1] }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 1: BACKGROUND CANVAS EFFECTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Animated mesh-gradient noise background */
+function MeshBackground() {
+  return (
+    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+      {/* Base dark layer */}
+      <div className="absolute inset-0 bg-[#060608]" />
+      {/* Animated blobs */}
+      <motion.div
+        className="absolute -top-60 -left-60 w-[900px] h-[900px] rounded-full opacity-25"
+        style={{ background: "radial-gradient(circle, #C8A14A22 0%, #C8A14A08 40%, transparent 70%)" }}
+        animate={{ scale: [1, 1.12, 1], rotate: [0, 15, 0] }}
+        transition={{ duration: 24, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute top-1/2 -right-60 w-[700px] h-[700px] rounded-full opacity-20"
+        style={{ background: "radial-gradient(circle, #8B5CF630 0%, #8B5CF610 40%, transparent 70%)" }}
+        animate={{ scale: [1, 1.15, 1], rotate: [0, -12, 0] }}
+        transition={{ duration: 30, repeat: Infinity, ease: "easeInOut", delay: 5 }}
+      />
+      <motion.div
+        className="absolute -bottom-60 left-1/3 w-[600px] h-[600px] rounded-full opacity-15"
+        style={{ background: "radial-gradient(circle, #3B82F625 0%, transparent 70%)" }}
+        animate={{ scale: [1, 1.2, 1] }}
+        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 10 }}
+      />
+      {/* Grid overlay */}
       <div
-        className="absolute inset-0 opacity-[0.035]"
+        className="absolute inset-0 opacity-[0.028]"
         style={{
           backgroundImage: `
             linear-gradient(to right, #C8A14A 1px, transparent 1px),
             linear-gradient(to bottom, #C8A14A 1px, transparent 1px)
           `,
-          backgroundSize: "64px 64px",
+          backgroundSize: "72px 72px",
         }}
       />
+      {/* Vignette */}
+      <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 0%, transparent 50%, #060608 100%)" }} />
     </div>
   );
 }
 
-// ─── Floating particles ─────────────────────────────────────────────────────
+/** Floating particles */
 function Particles() {
-  const particles = Array.from({ length: 28 }, (_, i) => ({
+  const pts = Array.from({ length: 40 }, (_, i) => ({
     id: i,
     x: Math.random() * 100,
     y: Math.random() * 100,
-    size: 1 + Math.random() * 2.5,
-    delay: Math.random() * 5,
-    dur: 8 + Math.random() * 12,
+    size: 0.8 + Math.random() * 2,
+    delay: Math.random() * 8,
+    dur: 12 + Math.random() * 18,
   }));
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      {particles.map((p) => (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden z-0">
+      {pts.map((p) => (
         <motion.div
           key={p.id}
-          className="absolute rounded-full bg-[#C8A14A]"
-          style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size, opacity: 0.18 }}
-          animate={{ y: [0, -40, 0], opacity: [0.1, 0.3, 0.1] }}
+          className="absolute rounded-full"
+          style={{
+            left: `${p.x}%`, top: `${p.y}%`,
+            width: p.size, height: p.size,
+            background: p.id % 3 === 0 ? "#C8A14A" : p.id % 3 === 1 ? "#8B5CF6" : "#3B82F6",
+            opacity: 0.15,
+          }}
+          animate={{ y: [0, -45, 0], opacity: [0.07, 0.22, 0.07] }}
           transition={{ duration: p.dur, delay: p.delay, repeat: Infinity, ease: "easeInOut" }}
         />
       ))}
@@ -75,90 +153,123 @@ function Particles() {
   );
 }
 
-// ─── Ambient blobs ──────────────────────────────────────────────────────────
-function AmbientBlobs() {
+/** Mouse-reactive spotlight */
+function MouseSpotlight() {
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const sx = useSpring(mx, { stiffness: 60, damping: 18 });
+  const sy = useSpring(my, { stiffness: 60, damping: 18 });
+
+  useEffect(() => {
+    const fn = (e: MouseEvent) => { mx.set(e.clientX); my.set(e.clientY); };
+    window.addEventListener("mousemove", fn);
+    return () => window.removeEventListener("mousemove", fn);
+  }, [mx, my]);
+
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      <motion.div
-        className="absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(200,161,74,0.09) 0%, transparent 70%)" }}
-        animate={{ scale: [1, 1.1, 1], x: [0, 20, 0] }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="absolute -bottom-32 -left-32 w-[500px] h-[500px] rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(200,161,74,0.06) 0%, transparent 70%)" }}
-        animate={{ scale: [1, 1.15, 1], x: [0, -20, 0] }}
-        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut", delay: 5 }}
-      />
-    </div>
+    <motion.div
+      className="pointer-events-none fixed inset-0 z-0"
+      style={{
+        background: useTransform(
+          [sx, sy],
+          ([x, y]: number[]) =>
+            `radial-gradient(800px circle at ${x}px ${y}px, rgba(200,161,74,0.05) 0%, transparent 65%)`
+        ),
+      }}
+    />
   );
 }
 
-// ─── Nav ────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 2: NAVIGATION
+// ─────────────────────────────────────────────────────────────────────────────
+
 function Nav({ onLaunch }: { onLaunch: () => void }) {
   const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 24);
+    const fn = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", fn);
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
-  const links = ["Features", "Pricing", "Solutions", "Enterprise", "Resources"];
+  const links = ["Features", "Solutions", "Pricing", "Enterprise"];
 
   return (
     <motion.header
-      initial={{ y: -24, opacity: 0 }}
+      initial={{ y: -28, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${scrolled ? "bg-white/80 backdrop-blur-xl shadow-[0_1px_0_rgba(200,161,74,0.12)]" : "bg-transparent"}`}
+      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
+        scrolled
+          ? "bg-[#060608]/90 backdrop-blur-2xl border-b border-white/[0.06] shadow-[0_4px_32px_rgba(0,0,0,0.4)]"
+          : "bg-transparent"
+      }`}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Logo */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#C8A14A] to-[#9F7A2F] flex items-center justify-center shadow-md">
-            <Zap className="w-4 h-4 text-white fill-white" />
+        <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#C8A14A] to-[#9F7A2F] flex items-center justify-center shadow-[0_0_20px_rgba(200,161,74,0.4)]">
+            <Zap className="w-4.5 h-4.5 text-black fill-black" />
           </div>
-          <span className="font-bold text-[#111111] tracking-tight text-sm">SocialPulse AI</span>
+          <span className="font-black text-white tracking-tight text-[15px]">
+            SocialPulse <span className="text-[#C8A14A]">AI</span>
+          </span>
         </div>
 
-        {/* Desktop nav */}
+        {/* Desktop links */}
         <nav className="hidden md:flex items-center gap-8">
           {links.map((l) => (
-            <a key={l} href="#" className="text-[13px] font-medium text-[#666] hover:text-[#111] transition-colors">{l}</a>
+            <a key={l} href={`#${l.toLowerCase()}`}
+              className="text-[13px] font-medium text-white/50 hover:text-white/90 transition-colors">
+              {l}
+            </a>
           ))}
         </nav>
 
         {/* Actions */}
         <div className="hidden md:flex items-center gap-3">
-          <a href="/login" className="text-[13px] font-medium text-[#666] hover:text-[#111] transition-colors">Login</a>
-          <button
+          <a href="/login" className="text-[13px] font-medium text-white/50 hover:text-white transition-colors">
+            Sign In
+          </a>
+          <motion.button
             onClick={onLaunch}
-            className="flex items-center gap-1.5 bg-[#111111] text-white text-[13px] font-semibold px-4 py-2 rounded-full hover:bg-[#222] transition-all hover:scale-105 active:scale-100"
+            whileHover={{ scale: 1.04, y: -1 }}
+            whileTap={{ scale: 0.97 }}
+            className="flex items-center gap-1.5 bg-gradient-to-r from-[#C8A14A] to-[#9F7A2F] text-black text-[13px] font-bold px-5 py-2.5 rounded-full shadow-[0_0_20px_rgba(200,161,74,0.35)] hover:shadow-[0_0_30px_rgba(200,161,74,0.5)] transition-all"
           >
             Launch Workspace <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+          </motion.button>
         </div>
 
-        {/* Mobile menu toggle */}
-        <button className="md:hidden text-[#111]" onClick={() => setMenuOpen(!menuOpen)}>
-          {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        {/* Mobile toggle */}
+        <button className="md:hidden text-white/80" onClick={() => setMobileOpen(!mobileOpen)}>
+          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
 
-      {/* Mobile menu */}
       <AnimatePresence>
-        {menuOpen && (
+        {mobileOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-white/95 backdrop-blur-xl border-t border-[#ECECEC] px-6 py-4 space-y-4"
+            className="md:hidden bg-[#0A0A0C]/95 backdrop-blur-2xl border-t border-white/[0.06] px-6 py-5 space-y-4"
           >
-            {links.map((l) => <a key={l} href="#" className="block text-sm font-medium text-[#444]">{l}</a>)}
-            <button onClick={onLaunch} className="w-full bg-[#111] text-white text-sm font-semibold py-3 rounded-full">Launch Workspace</button>
+            {links.map((l) => (
+              <a key={l} href={`#${l.toLowerCase()}`}
+                onClick={() => setMobileOpen(false)}
+                className="block text-sm font-medium text-white/60 hover:text-white">
+                {l}
+              </a>
+            ))}
+            <button
+              onClick={onLaunch}
+              className="w-full bg-gradient-to-r from-[#C8A14A] to-[#9F7A2F] text-black text-sm font-bold py-3 rounded-full"
+            >
+              Launch Workspace
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -166,375 +277,937 @@ function Nav({ onLaunch }: { onLaunch: () => void }) {
   );
 }
 
-// ─── Feature cards ──────────────────────────────────────────────────────────
-const FEATURES = [
-  { icon: BarChart3, title: "Real-Time Analytics", desc: "Live dashboards tracking every metric across all platforms simultaneously with sub-second updates.", color: "#C8A14A" },
-  { icon: Brain, title: "AI Content Studio", desc: "Generate viral captions, hashtags, and full campaigns optimized for each platform using GPT-4.", color: "#8B5CF6" },
-  { icon: TrendingUp, title: "Predictive Intelligence", desc: "Forecast engagement trends and identify optimal posting windows before your competitors do.", color: "#10B981" },
-  { icon: Globe2, title: "Universal Publishing", desc: "Schedule and publish to Instagram, TikTok, LinkedIn, X, YouTube and more from one command center.", color: "#3B82F6" },
-  { icon: Shield, title: "Enterprise Security", desc: "SOC 2 Type II certified. GDPR compliant. SSO, audit logs, and role-based access built in.", color: "#EF4444" },
-  { icon: Users, title: "Team Collaboration", desc: "Invite your entire team, assign roles, and collaborate on content with real-time co-editing.", color: "#F59E0B" },
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 3: LIVE ACTIVITY TICKER
+// ─────────────────────────────────────────────────────────────────────────────
+
+const LIVE_EVENTS = [
+  { platform: "Instagram", action: "Post reached 42K impressions in 2h", icon: "📸" },
+  { platform: "TikTok", action: "Viral hook generated — 91% predicted CTR", icon: "🎵" },
+  { platform: "LinkedIn", action: "AI-optimized post published to 28K followers", icon: "💼" },
+  { platform: "YouTube", action: "Shorts trending — 8.7K views · 1h window", icon: "▶️" },
+  { platform: "X / Twitter", action: "Engagement spike detected — +340% above baseline", icon: "✖️" },
+  { platform: "Facebook", action: "Audience segment analysis ready for review", icon: "👥" },
+  { platform: "Pinterest", action: "Pin saved 2,190 times this week", icon: "📌" },
+  { platform: "Threads", action: "Sentiment analysis — 94.2% positive signal", icon: "🧵" },
 ];
 
-// ─── Scroll section ──────────────────────────────────────────────────────────
-function FadeSection({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+function LiveTicker() {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setIdx((p) => (p + 1) % LIVE_EVENTS.length), 3500);
+    return () => clearInterval(id);
+  }, []);
+  const evt = LIVE_EVENTS[idx];
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] }}
-    >
-      {children}
-    </motion.div>
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={idx}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        transition={{ duration: 0.35 }}
+        className="flex items-center gap-2 text-[11.5px] min-w-0"
+      >
+        <span className="text-white/70 truncate">
+          <span className="text-white font-semibold">{evt.icon} {evt.platform}</span>
+          {" — "}{evt.action}
+        </span>
+      </motion.div>
+    </AnimatePresence>
   );
 }
 
-// ─── Stat card ───────────────────────────────────────────────────────────────
-function StatCard({ value, label }: { value: string; label: string }) {
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 4: HERO DASHBOARD MOCK
+// ─────────────────────────────────────────────────────────────────────────────
+
+function HeroDashboardMock() {
+  const [liveBar, setLiveBar] = useState(94);
+  const [reach, setReach] = useState(4.21);
+  const [eng, setEng] = useState(8.4);
+  const bars = [38, 55, 42, 68, 52, 84, 60, 90, 74, 82, 66, liveBar];
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setLiveBar(82 + Math.floor(Math.random() * 16));
+      setReach((r) => parseFloat((r + 0.01).toFixed(2)));
+      setEng((e) => parseFloat((e + Math.random() * 0.04 - 0.02).toFixed(1)));
+    }, 2000);
+    return () => clearInterval(id);
+  }, []);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.92 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="text-center"
-    >
-      <div className="text-4xl md:text-5xl font-black text-[#111] tracking-tight">{value}</div>
-      <div className="text-sm text-[#888] mt-1 font-medium">{label}</div>
-    </motion.div>
+    <div className="relative rounded-2xl overflow-hidden border border-white/[0.08] shadow-[0_32px_80px_rgba(0,0,0,0.6),0_0_0_1px_rgba(200,161,74,0.08)] bg-[#0D0D10]">
+      {/* Glow border top */}
+      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#C8A14A]/60 to-transparent" />
+
+      {/* Browser chrome */}
+      <div className="flex items-center gap-2 px-4 py-2.5 bg-[#0A0A0D] border-b border-white/[0.05]">
+        <div className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
+        <div className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" />
+        <div className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
+        <div className="flex-1 mx-4 bg-white/[0.05] rounded-full px-3 py-0.5 text-[10px] text-white/30 font-mono">
+          app.socialpulse.ai/dashboard
+        </div>
+        <div className="flex items-center gap-1 text-[10px] text-emerald-400 font-bold">
+          <PulseDot color="#10B981" />
+          <span>Live</span>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-4 flex gap-4">
+        {/* Sidebar */}
+        <div className="hidden sm:flex flex-col gap-1 w-32 flex-shrink-0">
+          <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-[#C8A14A] to-[#9F7A2F] flex items-center justify-center mb-3 shadow-[0_0_12px_rgba(200,161,74,0.3)]">
+            <Zap className="w-3.5 h-3.5 text-black fill-black" />
+          </div>
+          {["Overview", "Analytics", "AI Studio", "Scheduler", "Posts", "Security"].map((item) => (
+            <div key={item}
+              className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[10px] font-medium ${
+                item === "Overview" ? "bg-[#C8A14A]/15 text-[#C8A14A]" : "text-white/30"
+              }`}
+            >
+              <div className={`w-1 h-1 rounded-full ${item === "Overview" ? "bg-[#C8A14A]" : "bg-white/20"}`} />
+              {item}
+            </div>
+          ))}
+        </div>
+
+        {/* Main */}
+        <div className="flex-1 space-y-3 min-w-0">
+          {/* Stat row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {[
+              { label: "Total Reach", val: `${reach.toFixed(2)}M`, trend: "+12.4%", color: "#C8A14A" },
+              { label: "Engagement", val: `${eng.toFixed(1)}%`, trend: "+3.1%", color: "#8B5CF6" },
+              { label: "AI Posts", val: "3,248", trend: "+18.7%", color: "#10B981" },
+              { label: "Revenue", val: "$84.5K", trend: "+9.3%", color: "#3B82F6" },
+            ].map((s, i) => (
+              <motion.div
+                key={s.label}
+                animate={{ opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 2, delay: i * 0.4, repeat: Infinity }}
+                className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-2.5"
+              >
+                <div className="text-[9px] text-white/40 font-medium">{s.label}</div>
+                <div className="text-sm font-black text-white mt-0.5 tabular-nums">{s.val}</div>
+                <div className="text-[8px] font-bold mt-0.5" style={{ color: s.color }}>↑ {s.trend}</div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Chart */}
+          <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-[10px] font-bold text-white/60">Engagement Over Time</div>
+              <div className="flex items-center gap-1 text-[9px] text-emerald-400 font-semibold">
+                <Activity className="w-2.5 h-2.5" /> Live
+              </div>
+            </div>
+            <div className="flex items-end gap-1 h-16">
+              {bars.map((h, i) => (
+                <motion.div
+                  key={i}
+                  animate={{ height: `${h}%` }}
+                  transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+                  className="flex-1 rounded-t-[2px]"
+                  style={{
+                    background: i === bars.length - 1
+                      ? "linear-gradient(to top, #C8A14A, #D7B45D)"
+                      : i > bars.length - 4
+                        ? "rgba(200,161,74,0.3)"
+                        : "rgba(255,255,255,0.06)"
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Platform badges */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {["IG", "TT", "LI", "YT", "X"].map((p) => (
+              <div key={p} className="px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-[9px] font-bold text-white/40">
+                {p} <span className="text-emerald-400">●</span>
+              </div>
+            ))}
+            <div className="text-[9px] text-white/20 ml-1">5 platforms active</div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
-// ─── Platform pill ───────────────────────────────────────────────────────────
-const PLATFORMS = ["Instagram", "TikTok", "LinkedIn", "YouTube", "X", "Facebook", "Pinterest", "Threads"];
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 5: HERO
+// ─────────────────────────────────────────────────────────────────────────────
 
-// ─── Main landing page ────────────────────────────────────────────────────────
+function Hero({ onLaunch }: { onLaunch: () => void }) {
+  return (
+    <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-28 pb-16">
+      {/* Badge */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.1 }}
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#C8A14A]/25 bg-[#C8A14A]/10 backdrop-blur-sm mb-8"
+      >
+        <PulseDot color="#C8A14A" />
+        <Sparkles className="w-3 h-3 text-[#C8A14A]" />
+        <span className="text-[10.5px] font-bold tracking-[0.15em] text-[#C8A14A] uppercase">
+          AI-Powered Social Intelligence Platform
+        </span>
+      </motion.div>
+
+      {/* Headline */}
+      <motion.h1
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        className="max-w-5xl text-5xl sm:text-6xl md:text-7xl lg:text-[86px] font-black text-white leading-[1.02] tracking-[-0.045em]"
+      >
+        Turn Social Noise{" "}
+        <br className="hidden sm:block" />
+        <span
+          style={{
+            background: "linear-gradient(135deg, #D7B45D 0%, #C8A14A 40%, #9F7A2F 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+          }}
+        >
+          into Revenue.
+        </span>
+      </motion.h1>
+
+      {/* Subheading */}
+      <motion.p
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.38 }}
+        className="mt-6 max-w-2xl text-lg sm:text-xl text-white/45 leading-relaxed font-light"
+      >
+        One command center for analytics, AI content generation, scheduling and predictive growth —
+        across every social network your brand lives on.
+      </motion.p>
+
+      {/* CTAs */}
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.52 }}
+        className="mt-10 flex flex-wrap items-center justify-center gap-4"
+      >
+        <motion.button
+          onClick={onLaunch}
+          whileHover={{ scale: 1.05, y: -2 }}
+          whileTap={{ scale: 0.97 }}
+          className="group flex items-center gap-2 bg-gradient-to-r from-[#C8A14A] to-[#9F7A2F] text-black px-8 py-4 rounded-full font-black text-sm shadow-[0_0_30px_rgba(200,161,74,0.4)] hover:shadow-[0_0_50px_rgba(200,161,74,0.6)] transition-all"
+        >
+          <Zap className="w-4 h-4 fill-black" />
+          Launch Workspace
+          <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+        </motion.button>
+
+        <motion.a
+          href="#features"
+          whileHover={{ scale: 1.03, y: -2 }}
+          whileTap={{ scale: 0.97 }}
+          className="group flex items-center gap-2.5 px-8 py-4 rounded-full font-semibold text-sm text-white/70 border border-white/[0.12] bg-white/[0.04] backdrop-blur-sm hover:border-white/25 hover:text-white transition-all"
+        >
+          <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center">
+            <Play className="w-2.5 h-2.5 fill-white ml-0.5" />
+          </div>
+          See How It Works
+        </motion.a>
+      </motion.div>
+
+      {/* Social proof */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.75 }}
+        className="mt-8 flex items-center gap-3 text-[12.5px] text-white/35"
+      >
+        <div className="flex -space-x-2">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="w-7 h-7 rounded-full border-2 border-[#060608] bg-gradient-to-br from-[#C8A14A]/40 to-[#8B5CF6]/40" />
+          ))}
+        </div>
+        <div className="flex gap-0.5">
+          {[1, 2, 3, 4, 5].map((i) => <Star key={i} className="w-3 h-3 fill-[#C8A14A] text-[#C8A14A]" />)}
+        </div>
+        <span>Loved by <span className="text-white/60 font-semibold">marketing teams worldwide</span></span>
+      </motion.div>
+
+      {/* Live ticker */}
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.9 }}
+        className="mt-5 flex items-center gap-3 px-4 py-2 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm text-[11.5px] max-w-lg overflow-hidden"
+      >
+        <div className="flex items-center gap-1.5 text-emerald-400 font-bold whitespace-nowrap">
+          <PulseDot color="#10B981" />
+          Live
+        </div>
+        <Radio className="w-3 h-3 text-white/20 flex-shrink-0" />
+        <LiveTicker />
+      </motion.div>
+
+      {/* Dashboard mock */}
+      <motion.div
+        initial={{ opacity: 0, y: 80, scale: 0.93 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 1.3, delay: 0.65, ease: [0.16, 1, 0.3, 1] }}
+        className="mt-16 w-full max-w-5xl"
+      >
+        <HeroDashboardMock />
+        {/* Glow below */}
+        <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-[#C8A14A]/10 rounded-full blur-3xl pointer-events-none" />
+      </motion.div>
+
+      {/* Scroll cue */}
+      <motion.div
+        animate={{ y: [0, 10, 0] }}
+        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+        className="mt-14 flex flex-col items-center gap-1.5 text-white/20"
+      >
+        <span className="text-[9px] uppercase tracking-[0.2em] font-bold">Scroll to explore</span>
+        <ChevronDown className="w-4 h-4" />
+      </motion.div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 6: PLATFORM MARQUEE
+// ─────────────────────────────────────────────────────────────────────────────
+
+const MARQUEE_ITEMS = [
+  { name: "Instagram", color: "#E1306C" },
+  { name: "TikTok", color: "#69C9D0" },
+  { name: "LinkedIn", color: "#0A66C2" },
+  { name: "YouTube", color: "#FF0000" },
+  { name: "X / Twitter", color: "#FFFFFF" },
+  { name: "Facebook", color: "#1877F2" },
+  { name: "Pinterest", color: "#BD081C" },
+  { name: "Threads", color: "#FFFFFF" },
+];
+
+function PlatformMarquee() {
+  const items = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
+  return (
+    <div className="relative py-10 border-y border-white/[0.05] overflow-hidden">
+      {/* Fade edges */}
+      <div className="absolute left-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-r from-[#060608] to-transparent pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-l from-[#060608] to-transparent pointer-events-none" />
+
+      <p className="text-center text-[10px] font-bold uppercase tracking-[0.2em] text-white/20 mb-5">
+        Connect every platform · One workspace
+      </p>
+
+      <motion.div
+        className="flex gap-4 w-max"
+        animate={{ x: ["0%", "-50%"] }}
+        transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
+      >
+        {items.map((p, i) => (
+          <div
+            key={i}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/[0.08] bg-white/[0.03] whitespace-nowrap"
+          >
+            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: p.color }} />
+            <span className="text-[12.5px] font-semibold text-white/50">{p.name}</span>
+          </div>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 7: ANIMATED METRICS
+// ─────────────────────────────────────────────────────────────────────────────
+
+const METRICS = [
+  { prefix: "", target: 12400, suffix: "+", label: "Workspaces Created", sub: "since global launch", color: "#C8A14A" },
+  { prefix: "", target: 8, suffix: "", label: "Platforms Supported", sub: "Instagram to Pinterest", color: "#8B5CF6" },
+  { prefix: "", target: 99, suffix: ".9%", label: "System Reliability", sub: "across all services", color: "#10B981" },
+  { prefix: "", target: 3200, suffix: "+", label: "AI Posts / Day", sub: "generated by the platform", color: "#3B82F6" },
+];
+
+function MetricsStrip() {
+  return (
+    <section className="py-20 px-6">
+      <div className="max-w-5xl mx-auto">
+        <FadeUp className="text-center mb-12">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/25">
+            Platform performance
+          </p>
+        </FadeUp>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {METRICS.map((m, i) => {
+            const { count, ref } = useAnimatedCounter(m.target, 2200);
+            return (
+              <motion.div
+                key={m.label}
+                ref={ref as React.Ref<HTMLDivElement>}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
+                className="relative bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6 text-center hover:border-white/[0.14] transition-all group"
+              >
+                <div
+                  className="absolute inset-x-0 top-0 h-[1px] rounded-t-2xl opacity-60"
+                  style={{ background: `linear-gradient(90deg, transparent, ${m.color}, transparent)` }}
+                />
+                <div className="text-3xl md:text-4xl font-black text-white tabular-nums">
+                  {m.prefix}{count.toLocaleString()}{m.suffix}
+                </div>
+                <div className="text-sm font-bold text-white/60 mt-1">{m.label}</div>
+                <div className="text-[10px] text-white/25 mt-0.5">{m.sub}</div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 8: FEATURE BENTO GRID
+// ─────────────────────────────────────────────────────────────────────────────
+
+const FEATURES = [
+  {
+    icon: BarChart3, title: "Real-Time Analytics", span: "col-span-2",
+    desc: "Live dashboards with sub-second updates tracking reach, engagement density, follower growth, and audience shifts across every platform simultaneously.",
+    color: "#C8A14A", accent: "from-[#C8A14A]/10",
+    preview: (
+      <div className="mt-4 flex items-end gap-1 h-12 opacity-60">
+        {[30, 55, 40, 70, 50, 88, 62, 94, 78, 86, 71, 98].map((h, i) => (
+          <div key={i} className="flex-1 rounded-t-[2px]"
+            style={{ height: `${h}%`, background: i > 9 ? "#C8A14A" : "rgba(200,161,74,0.2)" }} />
+        ))}
+      </div>
+    ),
+  },
+  {
+    icon: Brain, title: "AI Content Studio", span: "col-span-1",
+    desc: "Generate viral captions, hashtags, and full campaigns using advanced language models trained on 100M high-performing posts.",
+    color: "#8B5CF6", accent: "from-[#8B5CF6]/10",
+  },
+  {
+    icon: TrendingUp, title: "Predictive Intelligence", span: "col-span-1",
+    desc: "Forecast engagement trends, detect viral signals, and identify optimal posting windows before your competitors do.",
+    color: "#10B981", accent: "from-[#10B981]/10",
+  },
+  {
+    icon: Globe2, title: "Universal Publishing", span: "col-span-1",
+    desc: "Schedule and publish to all 8 platforms from one command center, with drag-and-drop calendar and auto-optimized timing.",
+    color: "#3B82F6", accent: "from-[#3B82F6]/10",
+  },
+  {
+    icon: Shield, title: "Enterprise Security", span: "col-span-2",
+    desc: "SOC 2 Type II certified. GDPR compliant. Full SSO, OAuth 2.0, session tracking, device revocation, audit logs, and RBAC built in out of the box.",
+    color: "#EF4444", accent: "from-[#EF4444]/10",
+    preview: (
+      <div className="mt-4 flex flex-wrap gap-1.5 opacity-60">
+        {["SSO", "RBAC", "SOC 2", "GDPR", "MFA", "Audit"].map((t) => (
+          <span key={t} className="px-2 py-0.5 rounded-full border border-red-500/20 bg-red-500/10 text-[9px] font-bold text-red-400">
+            {t}
+          </span>
+        ))}
+      </div>
+    ),
+  },
+];
+
+function FeatureBento() {
+  return (
+    <section id="features" className="py-24 px-6">
+      <div className="max-w-6xl mx-auto">
+        <FadeUp className="text-center mb-14">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/[0.08] bg-white/[0.04] mb-6">
+            <Layers className="w-3.5 h-3.5 text-[#C8A14A]" />
+            <span className="text-[10.5px] font-bold tracking-[0.15em] text-white/50 uppercase">Platform Capabilities</span>
+          </div>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight">
+            Everything you need to{" "}
+            <span style={{
+              background: "linear-gradient(135deg, #C8A14A, #D7B45D, #9F7A2F)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+            }}>
+              dominate social.
+            </span>
+          </h2>
+          <p className="mt-4 text-white/40 text-lg max-w-xl mx-auto">
+            One platform to analyze, create, schedule, and grow across every social network — powered by enterprise-grade AI.
+          </p>
+        </FadeUp>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {FEATURES.map((f, i) => {
+            const Icon = f.icon;
+            return (
+              <motion.div
+                key={f.title}
+                initial={{ opacity: 0, y: 32 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.09, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+                whileHover={{ y: -4 }}
+                className={`relative bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6 overflow-hidden group transition-all hover:border-white/[0.14] hover:shadow-[0_0_40px_rgba(0,0,0,0.4)] ${f.span}`}
+              >
+                {/* Gradient bg */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${f.accent} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+                {/* Top accent line */}
+                <div className="absolute inset-x-0 top-0 h-[1px] opacity-0 group-hover:opacity-80 transition-opacity"
+                  style={{ background: `linear-gradient(90deg, transparent, ${f.color}, transparent)` }} />
+
+                <div className="relative z-10">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110"
+                    style={{ background: `${f.color}18`, border: `1px solid ${f.color}25` }}>
+                    <Icon className="w-5 h-5" style={{ color: f.color }} />
+                  </div>
+                  <h3 className="font-bold text-white text-base mb-2">{f.title}</h3>
+                  <p className="text-[12.5px] text-white/40 leading-relaxed">{f.desc}</p>
+                  {f.preview}
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 9: HOW IT WORKS
+// ─────────────────────────────────────────────────────────────────────────────
+
+const HOW_STEPS = [
+  { num: "01", icon: Globe2, title: "Connect Your Platforms", desc: "Link Instagram, TikTok, LinkedIn, YouTube, X, Facebook, Pinterest, and Threads in under 2 minutes via secure OAuth.", color: "#C8A14A" },
+  { num: "02", icon: BrainCircuit, title: "AI Analyzes Everything", desc: "Neural models process your historical data, audience behavior, trending topics, and competitor signals in real time.", color: "#8B5CF6" },
+  { num: "03", icon: TrendingUp, title: "Grow with Intelligence", desc: "Act on AI-generated recommendations: optimal post times, viral content formulas, and predictive ROI forecasts.", color: "#10B981" },
+];
+
+function HowItWorks() {
+  return (
+    <section id="solutions" className="py-24 px-6 border-t border-white/[0.05]">
+      <div className="max-w-5xl mx-auto">
+        <FadeUp className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/[0.08] bg-white/[0.04] mb-6">
+            <RefreshCw className="w-3.5 h-3.5 text-[#C8A14A]" />
+            <span className="text-[10.5px] font-bold tracking-[0.15em] text-white/50 uppercase">How It Works</span>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight">
+            From zero to growth in <span style={{ color: "#C8A14A" }}>3 steps.</span>
+          </h2>
+        </FadeUp>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+          {/* Connector line */}
+          <div className="hidden md:block absolute top-10 left-1/6 right-1/6 h-[1px] bg-gradient-to-r from-[#C8A14A]/30 via-[#8B5CF6]/30 to-[#10B981]/30 pointer-events-none" />
+
+          {HOW_STEPS.map((step, i) => {
+            const Icon = step.icon;
+            return (
+              <FadeUp key={step.num} delay={i * 0.15}>
+                <div className="relative bg-white/[0.03] border border-white/[0.07] rounded-2xl p-7 text-center hover:border-white/[0.14] transition-all group">
+                  {/* Number badge */}
+                  <div
+                    className="w-12 h-12 rounded-2xl mx-auto mb-5 flex items-center justify-center text-sm font-black border group-hover:scale-105 transition-transform"
+                    style={{ background: `${step.color}15`, borderColor: `${step.color}30`, color: step.color }}
+                  >
+                    {step.num}
+                  </div>
+                  <div className="w-8 h-8 rounded-xl mx-auto mb-4 flex items-center justify-center"
+                    style={{ background: `${step.color}10` }}>
+                    <Icon className="w-4 h-4" style={{ color: step.color }} />
+                  </div>
+                  <h3 className="font-bold text-white text-base mb-2">{step.title}</h3>
+                  <p className="text-[12.5px] text-white/40 leading-relaxed">{step.desc}</p>
+                </div>
+              </FadeUp>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 10: TESTIMONIALS
+// ─────────────────────────────────────────────────────────────────────────────
+
+const TESTIMONIALS = [
+  {
+    quote: "SocialPulse AI is the only analytics platform that actually feels designed for enterprise marketing teams. The AI is genuinely useful, not just a gimmick.",
+    name: "Alex Morgan", role: "Head of Growth", company: "Series C SaaS",
+    initials: "AM", color: "#C8A14A",
+  },
+  {
+    quote: "Our content team went from spending 4 hours a day on captions and scheduling to 30 minutes. The predictive posting time alone pays for itself.",
+    name: "Priya Shah", role: "Marketing Director", company: "Luma Inc.",
+    initials: "PS", color: "#8B5CF6",
+  },
+  {
+    quote: "The dashboard is polished enough for a board presentation but fast enough for the team to use every morning. That balance is incredibly rare.",
+    name: "Jordan Lee", role: "VP Marketing", company: "Studio Nine",
+    initials: "JL", color: "#10B981",
+  },
+];
+
+function Testimonials() {
+  return (
+    <section className="py-24 px-6 border-t border-white/[0.05]">
+      <div className="max-w-6xl mx-auto">
+        <FadeUp className="text-center mb-14">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/[0.08] bg-white/[0.04] mb-6">
+            <Star className="w-3.5 h-3.5 text-[#C8A14A] fill-[#C8A14A]" />
+            <span className="text-[10.5px] font-bold tracking-[0.15em] text-white/50 uppercase">What customers say</span>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight">
+            Loved by <span style={{ color: "#C8A14A" }}>marketing leaders.</span>
+          </h2>
+        </FadeUp>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {TESTIMONIALS.map((t, i) => (
+            <motion.div
+              key={t.name}
+              initial={{ opacity: 0, y: 28 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+              className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-7 flex flex-col justify-between hover:border-white/[0.14] transition-all"
+            >
+              <div>
+                <div className="flex gap-0.5 mb-5">
+                  {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="w-3.5 h-3.5 fill-[#C8A14A] text-[#C8A14A]" />)}
+                </div>
+                <p className="text-[13.5px] text-white/60 leading-relaxed italic">"{t.quote}"</p>
+              </div>
+              <div className="flex items-center gap-3 pt-6 mt-6 border-t border-white/[0.06]">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-black"
+                  style={{ background: `${t.color}20`, color: t.color, border: `1px solid ${t.color}30` }}>
+                  {t.initials}
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-white">{t.name}</div>
+                  <div className="text-[11px] text-white/35">{t.role} · {t.company}</div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 11: PRICING
+// ─────────────────────────────────────────────────────────────────────────────
+
+const PLANS = [
+  {
+    name: "Starter", price_m: 29, price_y: 23,
+    desc: "For creators & influencers building their brand.",
+    badge: null, highlight: false,
+    features: ["3 Social Accounts", "AI Caption Generator (500/mo)", "Basic Analytics", "Weekly Email Reports", "Standard Support"],
+  },
+  {
+    name: "Growth Pro", price_m: 79, price_y: 63,
+    desc: "For scaling brands and high-momentum content teams.",
+    badge: "Most Popular", highlight: true,
+    features: ["Unlimited Social Accounts", "Unlimited AI Studio", "Predictive Posting Engine", "Multi-Platform Scheduler", "Custom PDF & CSV Exports", "Priority 24/7 Support"],
+  },
+  {
+    name: "Enterprise", price_m: 149, price_y: 119,
+    desc: "For multi-brand agencies and enterprise organizations.",
+    badge: "Enterprise", highlight: false,
+    features: ["Everything in Growth Pro", "Full Audit Logs & RBAC", "SSO Authentication", "Dedicated Account Manager", "SLA Guarantee", "Custom Integrations"],
+  },
+];
+
+function Pricing({ onLaunch }: { onLaunch: () => void }) {
+  const [annual, setAnnual] = useState(true);
+  return (
+    <section id="pricing" className="py-24 px-6 border-t border-white/[0.05]">
+      <div className="max-w-5xl mx-auto">
+        <FadeUp className="text-center mb-14">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/[0.08] bg-white/[0.04] mb-6">
+            <Layers className="w-3.5 h-3.5 text-[#C8A14A]" />
+            <span className="text-[10.5px] font-bold tracking-[0.15em] text-white/50 uppercase">Transparent Pricing</span>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight">
+            Invest in <span style={{ color: "#C8A14A" }}>predictable growth.</span>
+          </h2>
+          {/* Billing toggle */}
+          <div className="mt-8 inline-flex items-center gap-2 p-1.5 rounded-full bg-white/[0.04] border border-white/[0.08]">
+            {[false, true].map((isAnnual) => (
+              <button
+                key={String(isAnnual)}
+                onClick={() => setAnnual(isAnnual)}
+                className={`px-5 py-2 rounded-full text-[12px] font-bold transition-all ${
+                  annual === isAnnual
+                    ? "bg-gradient-to-r from-[#C8A14A] to-[#9F7A2F] text-black shadow-lg"
+                    : "text-white/40 hover:text-white/70"
+                }`}
+              >
+                {isAnnual ? (
+                  <span className="flex items-center gap-1.5">Annual <span className="text-[9px] bg-black/30 px-1.5 py-0.5 rounded-full">SAVE 20%</span></span>
+                ) : "Monthly"}
+              </button>
+            ))}
+          </div>
+        </FadeUp>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {PLANS.map((plan, i) => (
+            <motion.div
+              key={plan.name}
+              initial={{ opacity: 0, y: 32 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+              className={`relative rounded-2xl p-7 flex flex-col justify-between border transition-all ${
+                plan.highlight
+                  ? "bg-gradient-to-b from-[#C8A14A]/10 to-transparent border-[#C8A14A]/40 shadow-[0_0_50px_rgba(200,161,74,0.15)]"
+                  : "bg-white/[0.03] border-white/[0.07] hover:border-white/[0.14]"
+              }`}
+            >
+              {plan.badge && (
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#C8A14A] to-[#9F7A2F] text-black text-[10px] font-black uppercase tracking-wider px-4 py-1 rounded-full flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 fill-black" /> {plan.badge}
+                </div>
+              )}
+              <div>
+                <h3 className="text-xl font-bold text-white mb-1">{plan.name}</h3>
+                <p className="text-[11.5px] text-white/35 mb-5">{plan.desc}</p>
+                <div className="flex items-baseline gap-1 mb-6">
+                  <span className="text-4xl font-black text-white">
+                    ${annual ? plan.price_y : plan.price_m}
+                  </span>
+                  <span className="text-white/30 text-sm">/ month</span>
+                </div>
+                <div className="space-y-2.5">
+                  {plan.features.map((f) => (
+                    <div key={f} className="flex items-center gap-2.5 text-[12.5px] text-white/55">
+                      <div className="w-4 h-4 rounded-full bg-[#C8A14A]/15 flex items-center justify-center flex-shrink-0">
+                        <Check className="w-2.5 h-2.5 text-[#C8A14A]" />
+                      </div>
+                      {f}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <motion.button
+                onClick={onLaunch}
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98 }}
+                className={`mt-7 w-full py-3.5 rounded-xl text-[13px] font-bold flex items-center justify-center gap-2 transition-all ${
+                  plan.highlight
+                    ? "bg-gradient-to-r from-[#C8A14A] to-[#9F7A2F] text-black shadow-[0_0_20px_rgba(200,161,74,0.35)]"
+                    : "bg-white/[0.06] border border-white/[0.1] text-white hover:bg-white/[0.1]"
+                }`}
+              >
+                Get Started <ArrowRight className="w-4 h-4" />
+              </motion.button>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 12: FINAL CTA
+// ─────────────────────────────────────────────────────────────────────────────
+
+function FinalCTA({ onLaunch }: { onLaunch: () => void }) {
+  return (
+    <section id="enterprise" className="py-28 px-6 border-t border-white/[0.05]">
+      <div className="max-w-4xl mx-auto text-center">
+        <FadeUp>
+          {/* Glow */}
+          <div className="relative inline-block mb-8">
+            <div className="absolute inset-0 blur-3xl bg-[#C8A14A]/20 rounded-full scale-150" />
+            <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-[#C8A14A] to-[#9F7A2F] flex items-center justify-center mx-auto shadow-[0_0_40px_rgba(200,161,74,0.5)]">
+              <Zap className="w-8 h-8 fill-black text-black" />
+            </div>
+          </div>
+
+          <h2 className="text-5xl md:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.04]">
+            Ready to grow<br />
+            <span style={{
+              background: "linear-gradient(135deg, #D7B45D, #C8A14A, #9F7A2F)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+            }}>
+              intelligently?
+            </span>
+          </h2>
+          <p className="mt-6 text-white/40 text-xl max-w-xl mx-auto leading-relaxed">
+            Join thousands of marketing teams using SocialPulse AI to grow faster, smarter, and at scale.
+          </p>
+
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <motion.button
+              onClick={onLaunch}
+              whileHover={{ scale: 1.05, y: -3 }}
+              whileTap={{ scale: 0.97 }}
+              className="group flex items-center gap-2.5 bg-gradient-to-r from-[#C8A14A] to-[#9F7A2F] text-black px-9 py-4.5 rounded-full font-black text-sm shadow-[0_0_40px_rgba(200,161,74,0.4)] hover:shadow-[0_0_60px_rgba(200,161,74,0.6)] transition-all"
+            >
+              <Zap className="w-4 h-4 fill-black" />
+              Launch Workspace — Free
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            </motion.button>
+          </div>
+
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-6 text-[12px] text-white/25">
+            {["No credit card required", "14-day free trial", "Cancel anytime"].map((t) => (
+              <span key={t} className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> {t}
+              </span>
+            ))}
+          </div>
+        </FadeUp>
+      </div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 13: FOOTER
+// ─────────────────────────────────────────────────────────────────────────────
+
+function Footer({ onLaunch }: { onLaunch: () => void }) {
+  const navCols = [
+    {
+      title: "Product",
+      links: [
+        { label: "Analytics", href: "#features" },
+        { label: "AI Studio", href: "#features" },
+        { label: "Scheduler", href: "#features" },
+        { label: "Security", href: "#features" },
+        { label: "Pricing", href: "#pricing" },
+      ],
+    },
+    {
+      title: "Company",
+      links: [
+        { label: "About", href: "#" },
+        { label: "Blog", href: "#" },
+        { label: "Careers", href: "#" },
+        { label: "Enterprise", href: "#enterprise" },
+        { label: "Status", href: "#" },
+      ],
+    },
+    {
+      title: "Legal",
+      links: [
+        { label: "Privacy Policy", href: "#" },
+        { label: "Terms of Service", href: "#" },
+        { label: "Security", href: "#" },
+        { label: "Cookie Policy", href: "#" },
+      ],
+    },
+  ];
+
+  return (
+    <footer className="border-t border-white/[0.05] py-16 px-6 bg-[#040406]">
+      <div className="max-w-6xl mx-auto">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-10 mb-12">
+          {/* Brand */}
+          <div className="col-span-2 space-y-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#C8A14A] to-[#9F7A2F] flex items-center justify-center shadow-[0_0_16px_rgba(200,161,74,0.3)]">
+                <Zap className="w-4 h-4 fill-black text-black" />
+              </div>
+              <span className="font-black text-white text-sm">
+                SocialPulse <span className="text-[#C8A14A]">AI</span>
+              </span>
+            </div>
+            <p className="text-[12.5px] text-white/30 leading-relaxed max-w-xs">
+              Enterprise-grade AI platform for social media analytics, content generation, scheduling and predictive growth intelligence.
+            </p>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/8 text-emerald-400 text-[11px] font-semibold">
+              <PulseDot color="#10B981" />
+              All systems operational
+            </div>
+          </div>
+
+          {navCols.map((col) => (
+            <div key={col.title} className="space-y-3">
+              <h4 className="text-[10.5px] font-bold uppercase tracking-[0.15em] text-[#C8A14A]">{col.title}</h4>
+              <ul className="space-y-2">
+                {col.links.map((l) => (
+                  <li key={l.label}>
+                    <a href={l.href} className="text-[12.5px] text-white/30 hover:text-white/70 transition-colors">
+                      {l.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="pt-8 border-t border-white/[0.05] flex flex-col sm:flex-row items-center justify-between gap-4 text-[11.5px] text-white/20">
+          <p>© {new Date().getFullYear()} SocialPulse AI Inc. All rights reserved.</p>
+          <button
+            onClick={onLaunch}
+            className="flex items-center gap-1.5 text-[#C8A14A]/60 hover:text-[#C8A14A] transition-colors font-semibold"
+          >
+            Launch Workspace <ArrowRight className="w-3 h-3" />
+          </button>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROOT PAGE
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function LandingPage() {
   const router = useRouter();
-
-  const handleLaunch = () => router.push("/login");
+  const handleLaunch = useCallback(() => router.push("/login"), [router]);
 
   return (
-    <div className="relative min-h-screen bg-white text-[#111] overflow-x-hidden font-sans">
-      {/* Global ambient */}
-      <MouseLight />
-      <AmbientBlobs />
-      <AnimatedGrid />
+    <div className="relative min-h-screen bg-[#060608] text-white overflow-x-hidden font-sans">
+      {/* Persistent background */}
+      <MeshBackground />
       <Particles />
+      <MouseSpotlight />
 
       {/* Navigation */}
       <Nav onLaunch={handleLaunch} />
 
-      {/* ── HERO ── */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-24 pb-20">
-        {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[#ECE8E1] bg-[#FAFAF8] mb-8"
-        >
-          <Sparkles className="w-3.5 h-3.5 text-[#C8A14A]" />
-          <span className="text-[11px] font-semibold tracking-widest text-[#666] uppercase">Enterprise AI Analytics Platform</span>
-        </motion.div>
+      {/* Sections */}
+      <main className="relative z-10">
+        <Hero onLaunch={handleLaunch} />
+        <PlatformMarquee />
+        <MetricsStrip />
+        <FeatureBento />
+        <HowItWorks />
+        <Testimonials />
+        <Pricing onLaunch={handleLaunch} />
+        <FinalCTA onLaunch={handleLaunch} />
+      </main>
 
-        {/* Headline */}
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="max-w-4xl text-5xl sm:text-6xl md:text-7xl lg:text-[82px] font-black text-[#111] leading-[1.04] tracking-[-0.04em]"
-        >
-          The Operating System{" "}
-          <span className="relative inline-block">
-            <span
-              style={{
-                background: "linear-gradient(135deg, #C8A14A 0%, #D7B45D 50%, #9F7A2F 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              for Social Media
-            </span>
-          </span>{" "}
-          Intelligence.
-        </motion.h1>
-
-        {/* Subheading */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.35 }}
-          className="mt-6 max-w-xl text-lg text-[#666] leading-relaxed font-normal"
-        >
-          Create, analyze, schedule and optimize every social platform using enterprise AI. Built for teams that move at the speed of culture.
-        </motion.p>
-
-        {/* CTAs */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.48 }}
-          className="mt-10 flex flex-wrap items-center justify-center gap-4"
-        >
-          <motion.button
-            onClick={handleLaunch}
-            whileHover={{ scale: 1.03, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            className="flex items-center gap-2 bg-[#111] text-white px-7 py-3.5 rounded-full font-semibold text-sm shadow-[0_8px_30px_rgba(17,17,17,0.18)] hover:bg-[#222] transition-colors"
-          >
-            <Zap className="w-4 h-4 fill-white text-white" />
-            Launch Workspace
-            <ArrowRight className="w-4 h-4" />
-          </motion.button>
-
-          <motion.a
-            href="#demo"
-            whileHover={{ scale: 1.03, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            className="flex items-center gap-2 bg-white text-[#111] border border-[#ECECEC] px-7 py-3.5 rounded-full font-semibold text-sm hover:border-[#C8A14A] hover:text-[#C8A14A] transition-all"
-          >
-            <div className="w-5 h-5 rounded-full bg-[#F0F0F0] flex items-center justify-center">
-              <Play className="w-2.5 h-2.5 fill-[#111] ml-0.5" />
-            </div>
-            Watch Demo
-          </motion.a>
-        </motion.div>
-
-        {/* Social proof */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7, duration: 0.6 }}
-          className="mt-10 flex items-center gap-2 text-[13px] text-[#888]"
-        >
-          <div className="flex -space-x-2">
-            {[1,2,3,4].map(i => (
-              <div key={i} className="w-7 h-7 rounded-full bg-gradient-to-br from-[#ECE8E1] to-[#d4c4aa] border-2 border-white" />
-            ))}
-          </div>
-          <div className="flex items-center gap-1">
-            {[1,2,3,4,5].map(i => <Star key={i} className="w-3 h-3 fill-[#C8A14A] text-[#C8A14A]" />)}
-          </div>
-          <span>Trusted by <strong className="text-[#111]">4,200+</strong> marketing teams</span>
-        </motion.div>
-
-        {/* Dashboard preview */}
-        <motion.div
-          initial={{ opacity: 0, y: 60, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 1.2, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-16 w-full max-w-5xl"
-        >
-          <div className="relative rounded-2xl border border-[#ECECEC] bg-white shadow-[0_24px_80px_rgba(17,17,17,0.10)] overflow-hidden">
-            {/* Browser chrome */}
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-[#F0F0F0] bg-[#FAFAFA]">
-              <div className="w-3 h-3 rounded-full bg-[#FF5F57]" />
-              <div className="w-3 h-3 rounded-full bg-[#FEBC2E]" />
-              <div className="w-3 h-3 rounded-full bg-[#28C840]" />
-              <div className="flex-1 mx-4 bg-[#F0F0F0] rounded-full px-3 py-1 text-[11px] text-[#999] font-mono">app.socialpulse.ai/dashboard</div>
-            </div>
-            {/* Dashboard illustration */}
-            <div className="h-[340px] md:h-[440px] bg-gradient-to-b from-[#FAFAF8] to-white p-6 flex gap-5">
-              {/* Sidebar */}
-              <div className="hidden md:flex flex-col gap-2 w-44 flex-shrink-0">
-                <div className="h-8 w-8 rounded-xl bg-[#C8A14A]/10 mb-2" />
-                {["Overview","Analytics","AI Studio","Scheduler","Posts","Campaigns","Reports"].map(item => (
-                  <div key={item} className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-medium ${item === "Overview" ? "bg-[#C8A14A]/10 text-[#C8A14A]" : "text-[#888]"}`}>
-                    <div className={`w-3.5 h-3.5 rounded-full ${item === "Overview" ? "bg-[#C8A14A]" : "bg-[#E5E5E5]"}`} />
-                    {item}
-                  </div>
-                ))}
-              </div>
-              {/* Main content */}
-              <div className="flex-1 space-y-4">
-                {/* Stat row */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[
-                    { label: "Total Reach", val: "4.2M" },
-                    { label: "Engagement", val: "8.4%" },
-                    { label: "AI Posts", val: "142" },
-                    { label: "Revenue", val: "$84K" },
-                  ].map((s, i) => (
-                    <motion.div
-                      key={s.label}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.8 + i * 0.1 }}
-                      className="bg-white border border-[#ECECEC] rounded-xl p-3 shadow-sm"
-                    >
-                      <div className="text-[10px] text-[#888] font-medium">{s.label}</div>
-                      <div className="text-lg font-black text-[#111] mt-0.5">{s.val}</div>
-                      <div className="text-[9px] text-emerald-500 font-semibold mt-0.5">↑ 12.4%</div>
-                    </motion.div>
-                  ))}
-                </div>
-                {/* Chart area */}
-                <div className="bg-white border border-[#ECECEC] rounded-xl p-4 h-36 flex items-end gap-1.5 overflow-hidden">
-                  {[40,65,48,72,55,88,62,94,78,85,70,96].map((h, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ scaleY: 0 }}
-                      animate={{ scaleY: 1 }}
-                      transition={{ delay: 1 + i * 0.05, duration: 0.5, ease: [0.16,1,0.3,1] }}
-                      style={{ height: `${h}%`, originY: 1 }}
-                      className={`flex-1 rounded-t-sm ${i === 11 ? "bg-[#C8A14A]" : "bg-[#F0EDE6]"}`}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Scroll cue */}
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-          className="mt-10 flex flex-col items-center gap-1 text-[#ccc]"
-        >
-          <span className="text-[10px] uppercase tracking-widest font-semibold">Scroll to explore</span>
-          <ChevronDown className="w-4 h-4" />
-        </motion.div>
-      </section>
-
-      {/* ── PLATFORMS ── */}
-      <section className="py-16 px-6 border-t border-[#F0F0F0]">
-        <FadeSection>
-          <p className="text-center text-[12px] font-semibold uppercase tracking-widest text-[#bbb] mb-8">Connect every platform in one workspace</p>
-          <div className="flex flex-wrap justify-center gap-3 max-w-3xl mx-auto">
-            {PLATFORMS.map((p, i) => (
-              <motion.div
-                key={p}
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.06 }}
-                whileHover={{ scale: 1.06, y: -2 }}
-                className="px-4 py-2 rounded-full border border-[#ECECEC] bg-white text-[13px] font-medium text-[#444] shadow-sm hover:border-[#C8A14A] hover:text-[#C8A14A] transition-all cursor-default"
-              >
-                {p}
-              </motion.div>
-            ))}
-          </div>
-        </FadeSection>
-      </section>
-
-      {/* ── STATS ── */}
-      <section className="py-20 px-6 bg-[#FAFAF8] border-y border-[#F0F0F0]">
-        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-12">
-          <StatCard value="4,200+" label="Active Teams" />
-          <StatCard value="142M+" label="Posts Analyzed" />
-          <StatCard value="98.9%" label="Uptime SLA" />
-          <StatCard value="8.4x" label="Avg. ROI" />
-        </div>
-      </section>
-
-      {/* ── FEATURES ── */}
-      <section id="features" className="py-24 px-6">
-        <div className="max-w-6xl mx-auto">
-          <FadeSection>
-            <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#ECE8E1] bg-[#FAFAF8] mb-5">
-                <span className="text-[11px] font-semibold tracking-widest text-[#666] uppercase">Platform Capabilities</span>
-              </div>
-              <h2 className="text-4xl md:text-5xl font-black text-[#111] tracking-tight leading-tight">
-                Everything you need to<br />
-                <span style={{ background: "linear-gradient(135deg,#C8A14A,#9F7A2F)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                  dominate social media.
-                </span>
-              </h2>
-              <p className="mt-4 text-[#666] max-w-xl mx-auto">One platform to analyze, create, schedule, and grow across every social network, powered by enterprise-grade AI.</p>
-            </div>
-          </FadeSection>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {FEATURES.map((f, i) => {
-              const Icon = f.icon;
-              return (
-                <motion.div
-                  key={f.title}
-                  initial={{ opacity: 0, y: 32 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.08, duration: 0.6, ease: [0.16,1,0.3,1] }}
-                  whileHover={{ y: -4, boxShadow: "0 20px 48px rgba(17,17,17,0.08)" }}
-                  className="bg-white rounded-2xl border border-[#ECECEC] p-6 shadow-sm transition-all cursor-default"
-                >
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ background: `${f.color}15` }}>
-                    <Icon className="w-5 h-5" style={{ color: f.color }} />
-                  </div>
-                  <h3 className="font-bold text-[#111] text-base mb-2">{f.title}</h3>
-                  <p className="text-[13px] text-[#666] leading-relaxed">{f.desc}</p>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ── TESTIMONIAL ── */}
-      <section className="py-20 px-6 bg-[#FAFAF8] border-t border-[#F0F0F0]">
-        <div className="max-w-3xl mx-auto text-center">
-          <FadeSection>
-            <div className="flex justify-center mb-4">
-              {[1,2,3,4,5].map(i => <Star key={i} className="w-4 h-4 fill-[#C8A14A] text-[#C8A14A]" />)}
-            </div>
-            <blockquote className="text-2xl md:text-3xl font-semibold text-[#111] tracking-tight leading-snug">
-              "SocialPulse AI is the only platform that actually feels like it was designed for enterprise marketing teams. The AI is genuinely useful."
-            </blockquote>
-            <p className="mt-6 text-[#888] text-sm">— Head of Growth, Series C SaaS Company</p>
-          </FadeSection>
-        </div>
-      </section>
-
-      {/* ── CTA ── */}
-      <section className="py-28 px-6">
-        <div className="max-w-3xl mx-auto text-center">
-          <FadeSection>
-            <h2 className="text-4xl md:text-5xl font-black text-[#111] tracking-tight">
-              Ready to transform your<br />social media strategy?
-            </h2>
-            <p className="mt-4 text-[#666] text-lg max-w-lg mx-auto">Join 4,200+ marketing teams already using SocialPulse AI to grow faster, smarter, and at scale.</p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-              <motion.button
-                onClick={handleLaunch}
-                whileHover={{ scale: 1.04, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                className="flex items-center gap-2 bg-[#111] text-white px-8 py-4 rounded-full font-bold shadow-[0_8px_30px_rgba(17,17,17,0.18)] hover:bg-[#222] transition-colors text-sm"
-              >
-                <Zap className="w-4 h-4 fill-white" />
-                Launch Workspace — Free
-                <ArrowRight className="w-4 h-4" />
-              </motion.button>
-            </div>
-            <div className="mt-5 flex items-center justify-center gap-5 text-[12px] text-[#999]">
-              {["No credit card required","14-day free trial","Cancel anytime"].map(t => (
-                <span key={t} className="flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />{t}</span>
-              ))}
-            </div>
-          </FadeSection>
-        </div>
-      </section>
-
-      {/* ── FOOTER ── */}
-      <footer className="border-t border-[#F0F0F0] py-12 px-6">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#C8A14A] to-[#9F7A2F] flex items-center justify-center">
-              <Zap className="w-3.5 h-3.5 text-white fill-white" />
-            </div>
-            <span className="font-bold text-[#111] text-sm">SocialPulse AI</span>
-          </div>
-          <div className="flex gap-8 text-[12px] text-[#888]">
-            {["Privacy","Terms","Security","Status","Docs"].map(l => (
-              <a key={l} href="#" className="hover:text-[#111] transition-colors">{l}</a>
-            ))}
-          </div>
-          <p className="text-[12px] text-[#bbb]">© 2026 SocialPulse AI. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer onLaunch={handleLaunch} />
     </div>
   );
 }

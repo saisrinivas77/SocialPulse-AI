@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import Boolean, Enum as SQLEnum, String
+from sqlalchemy import Boolean, DateTime, Enum as SQLEnum, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -18,6 +19,7 @@ if TYPE_CHECKING:
     from app.models.api_key import APIKey
     from app.models.setting import SystemSetting
     from app.models.report import Report
+    from app.models.session import UserSession
 
 
 class UserRole(str, Enum):
@@ -48,6 +50,9 @@ class User(Base):
     phone_number: Mapped[str | None] = mapped_column(String(20), nullable=True)
     bio: Mapped[str | None] = mapped_column(String(500), nullable=True)
     profile_image: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    provider: Mapped[str] = mapped_column(String(50), default="email", nullable=False)
+    provider_user_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     role: Mapped[UserRole] = mapped_column(
         SQLEnum(UserRole), default=UserRole.USER, nullable=False
     )
@@ -55,6 +60,21 @@ class User(Base):
         SQLEnum(UserStatus), default=UserStatus.ACTIVE, nullable=False
     )
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    verification_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    verification_token_expires_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    reset_password_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    reset_password_token_expires_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    last_login: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    sessions: Mapped[List["UserSession"]] = relationship(
+        "UserSession", back_populates="user", cascade="all, delete-orphan"
+    )
 
     analytics: Mapped[List["Analytics"]] = relationship(
         "Analytics", back_populates="user", cascade="all, delete-orphan"

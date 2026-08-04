@@ -13,6 +13,7 @@ import {
   Settings,
   Users,
   Send,
+  ShieldCheck,
   ChevronLeft,
   ChevronRight,
   Check,
@@ -36,6 +37,7 @@ const navItems: NavItem[] = [
   { view: "social-accounts", label: "Social Accounts", icon: Share2 },
   { view: "reports", label: "Reports", icon: FileSpreadsheet },
   { view: "team", label: "Team", icon: Users },
+  { view: "security-center", label: "Security Center", icon: ShieldCheck, badge: "SECURE" },
   { view: "settings", label: "Settings", icon: Settings },
 ];
 

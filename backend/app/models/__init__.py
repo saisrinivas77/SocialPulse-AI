@@ -11,6 +11,7 @@ from .notification import Notification
 from .post import Post, PostStatus
 from .report import Report
 from .sentiment import Sentiment
+from .session import UserSession
 from .setting import SystemSetting
 from .social_account import PlatformType, SocialAccount
 from .user import User, UserRole, UserStatus
