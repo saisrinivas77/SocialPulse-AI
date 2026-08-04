@@ -34,7 +34,8 @@ class OAuthIntegrationService:
 
         # Fallback for dev mode / unconfigured provider credentials
         if not client_id or "dev_client_id" in client_id:
-            return f"{redirect_uri}?code=dev_oauth_code_{p}"
+            encoded_state = urllib.parse.quote(state, safe="")
+            return f"{redirect_uri}?code=dev_oauth_code_{p}&state={encoded_state}"
 
         encoded_redirect = urllib.parse.quote(redirect_uri, safe="")
 

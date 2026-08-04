@@ -69,6 +69,13 @@ async def create_database_tables() -> None:
         logger.warning(f"Could not connect to database on startup: {e}")
 
 
+@app.get("/health", tags=["Health"])
+@app.get("/api/v1/health", tags=["Health"])
+async def health_check():
+    """Health check endpoint — returns 200 OK when the API is running."""
+    return {"status": "ok", "service": "SocialPulse AI API"}
+
+
 @app.get("/metrics", response_class=PlainTextResponse, tags=["Operational Monitoring"])
 async def prometheus_metrics():
     """Prometheus telemetry metrics endpoint for operational monitoring."""

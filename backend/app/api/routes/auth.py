@@ -2,6 +2,9 @@
 """Authentication router handling email auth, verification, OAuth providers, demo login, and session control."""
 
 import os
+import base64
+import json
+from urllib.parse import urlparse
 from typing import Optional, List
 from fastapi import APIRouter, Depends, Request, Response, Query, status
 from fastapi.responses import RedirectResponse
@@ -165,7 +168,26 @@ async def oauth_login_redirect(
     """Redirect to official OAuth provider login (Google, Microsoft, GitHub, Apple, LinkedIn)."""
     backend_url = str(request.base_url).rstrip("/")
     redirect_uri = f"{backend_url}/api/v1/auth/{provider}/callback"
-    auth_url = oauth_service.get_login_authorization_url(provider=provider, redirect_uri=redirect_uri)
+
+    # Detect the real frontend origin from the Referer header sent when the
+    # browser first navigates to this endpoint (not the callback chain referer).
+    raw_referer = request.headers.get("referer") or request.headers.get("origin") or ""
+    if raw_referer:
+        parsed = urlparse(raw_referer)
+        frontend_origin = f"{parsed.scheme}://{parsed.netloc}"
+    else:
+        frontend_origin = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
+    # Encode frontend_origin into state so the callback can reliably redirect back
+    state_payload = base64.urlsafe_b64encode(
+        json.dumps({"frontend_url": frontend_origin}).encode()
+    ).decode()
+
+    auth_url = oauth_service.get_login_authorization_url(
+        provider=provider,
+        redirect_uri=redirect_uri,
+        state=state_payload,
+    )
     return RedirectResponse(url=auth_url)
 
 
@@ -195,12 +217,19 @@ async def oauth_login_callback(
         client_info=client_info,
     )
 
-    referer = request.headers.get("referer") or request.headers.get("origin")
-    if referer:
-        from urllib.parse import urlparse
-        parsed = urlparse(referer)
-        frontend_url = f"{parsed.scheme}://{parsed.netloc}"
-    else:
+    # Decode state to recover frontend_url encoded by oauth_login_redirect
+    state = request.query_params.get("state", "")
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    if state:
+        try:
+            decoded = json.loads(base64.urlsafe_b64decode(state + "==").decode())
+            frontend_url = decoded.get("frontend_url", frontend_url)
+        except Exception:
+            pass  # malformed state — use env default
+
+    # Ensure frontend_url is never the backend itself
+    backend_origin = str(request.base_url).rstrip("/")
+    if frontend_url.startswith(backend_origin):
         frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
     target_url = f"{frontend_url}/login?access_token={token_pair.access_token}&refresh_token={token_pair.refresh_token}"
