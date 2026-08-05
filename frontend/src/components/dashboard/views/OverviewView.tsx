@@ -46,6 +46,15 @@ const performanceData = [
 export const OverviewView: React.FC = () => {
   const { setCurrentView, posts, setIsCreatePostModalOpen, socialAccounts } = useAppStore();
   const [timeframe, setTimeframe] = useState("7d");
+  const [userName, setUserName] = useState("User");
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const name = localStorage.getItem("sp_user_name") || localStorage.getItem("sp_user_email")?.split("@")[0] || "User";
+      const firstName = name.split(" ")[0];
+      setUserName(firstName);
+    }
+  }, []);
 
   const connectedAccounts = socialAccounts.filter((a) => a.connected);
   const connectedCount = connectedAccounts.length;
@@ -152,7 +161,7 @@ export const OverviewView: React.FC = () => {
             <span className="w-1.5 h-1.5 rounded-full bg-[#31A24C] animate-pulse" />
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#050505] dark:text-[#E4E6EB]">
-            Good morning, Alex.
+            Good morning, {userName}.
           </h1>
           <p className="text-sm text-[#65676B] dark:text-[#B0B3B8] mt-1">
             {connectedCount > 0

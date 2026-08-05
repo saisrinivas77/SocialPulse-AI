@@ -126,7 +126,13 @@ export default function LoginPage() {
 
       if (urlAccessToken) {
         setAuthTokens(urlAccessToken, urlRefreshToken || "");
-        toast.success("Successfully authenticated with Google!");
+        const email = params.get("email");
+        const name = params.get("name");
+        const avatar = params.get("avatar");
+        if (email) localStorage.setItem("sp_user_email", email);
+        if (name) localStorage.setItem("sp_user_name", name);
+        if (avatar) localStorage.setItem("sp_user_avatar", avatar);
+        toast.success(`Welcome back, ${name || email || "User"}!`);
         setSuccess(true);
         setTimeout(() => router.replace("/dashboard"), 300);
         return;

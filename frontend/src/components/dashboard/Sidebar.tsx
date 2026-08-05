@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAppStore, NavView } from "@/store/useAppStore";
 import {
   LayoutDashboard,
@@ -58,6 +58,26 @@ export const Sidebar: React.FC = () => {
   } = useAppStore();
 
   const [isWorkspaceMenuOpen, setIsWorkspaceMenuOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState({
+    name: "User",
+    role: "Workspace Owner",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80",
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedName = localStorage.getItem("sp_user_name");
+      const storedEmail = localStorage.getItem("sp_user_email");
+      const storedAvatar = localStorage.getItem("sp_user_avatar");
+      const name = storedName || storedEmail?.split("@")[0] || "User";
+      const avatar = storedAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0866FF&color=fff`;
+      setUserProfile({
+        name,
+        role: "Workspace Owner",
+        avatar,
+      });
+    }
+  }, []);
 
   return (
     <aside
@@ -212,17 +232,17 @@ export const Sidebar: React.FC = () => {
           }`}
         >
           <img
-            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80"
-            alt="Alex Morgan"
+            src={userProfile.avatar}
+            alt={userProfile.name}
             className="w-7 h-7 rounded-full object-cover border border-[#0866FF] shrink-0"
           />
           {!isSidebarCollapsed && (
             <div className="flex flex-col truncate">
               <span className="text-xs font-bold text-[#050505] dark:text-[#E4E6EB] truncate">
-                Alex Morgan
+                {userProfile.name}
               </span>
               <span className="text-[10px] text-[#65676B] dark:text-[#B0B3B8] truncate">
-                VP of Growth
+                {userProfile.role}
               </span>
             </div>
           )}

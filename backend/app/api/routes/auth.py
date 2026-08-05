@@ -244,7 +244,17 @@ async def oauth_login_callback(
         if frontend_url.startswith(backend_origin):
             frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
-        target_url = f"{frontend_url}/login?access_token={token_pair.access_token}&refresh_token={token_pair.refresh_token}"
+        user_name_enc = urllib.parse.quote(profile.get("full_name") or profile["email"].split("@")[0])
+        user_email_enc = urllib.parse.quote(profile["email"])
+        user_avatar_enc = urllib.parse.quote(profile.get("avatar_url") or "")
+        target_url = (
+            f"{frontend_url}/login?"
+            f"access_token={token_pair.access_token}&"
+            f"refresh_token={token_pair.refresh_token}&"
+            f"email={user_email_enc}&"
+            f"name={user_name_enc}&"
+            f"avatar={user_avatar_enc}"
+        )
         return RedirectResponse(url=target_url)
     except Exception as exc:
         logger.error(f"OAuth callback failed for {provider}: {str(exc)}", exc_info=True)
