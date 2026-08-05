@@ -22,6 +22,7 @@ from app.schemas.auth import (
     UserRegister,
     UserResponse,
 )
+from app.config import settings
 from app.services.auth_service import AuthService
 from app.services.oauth_service import oauth_service
 
@@ -166,8 +167,11 @@ async def oauth_login_redirect(
     request: Request,
 ) -> RedirectResponse:
     """Redirect to official OAuth provider login (Google, Microsoft, GitHub, Apple, LinkedIn)."""
-    backend_url = str(request.base_url).rstrip("/")
-    redirect_uri = f"{backend_url}/api/v1/auth/{provider}/callback"
+    if provider.lower() == "google" and getattr(settings, "GOOGLE_REDIRECT_URI", None):
+        redirect_uri = settings.GOOGLE_REDIRECT_URI
+    else:
+        backend_url = os.getenv("BACKEND_URL", str(request.base_url).rstrip("/"))
+        redirect_uri = f"{backend_url}/api/v1/auth/{provider}/callback"
 
     # Detect the real frontend origin from the Referer header sent when the
     # browser first navigates to this endpoint (not the callback chain referer).
@@ -202,8 +206,11 @@ async def oauth_login_callback(
     auth_service: AuthService = Depends(get_auth_service),
 ):
     """Process OAuth code, fetch user profile, merge account, and redirect to frontend with tokens."""
-    backend_url = str(request.base_url).rstrip("/")
-    redirect_uri = f"{backend_url}/api/v1/auth/{provider}/callback"
+    if provider.lower() == "google" and getattr(settings, "GOOGLE_REDIRECT_URI", None):
+        redirect_uri = settings.GOOGLE_REDIRECT_URI
+    else:
+        backend_url = os.getenv("BACKEND_URL", str(request.base_url).rstrip("/"))
+        redirect_uri = f"{backend_url}/api/v1/auth/{provider}/callback"
 
     client_info = _extract_client_info(request)
     profile = await oauth_service.get_login_user_profile(provider=provider, code=code, redirect_uri=redirect_uri)
