@@ -468,21 +468,29 @@ export const OverviewView: React.FC = () => {
           </div>
 
           <div className="divide-y divide-black/5 dark:divide-white/10">
-            {posts.slice(0, 3).map((post) => (
-              <div key={post.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#F0F2F5] dark:bg-[#242526] border border-black/5 dark:border-white/10 flex items-center justify-center shrink-0 text-[#0866FF] font-bold text-xs">
-                    {post.platform[0]}
+            {posts.slice(0, 3).map((post) => {
+              const linkedAcc = socialAccounts.find((a) => a.platform.toLowerCase() === post.platform.toLowerCase());
+              const handle = linkedAcc && linkedAcc.connected ? linkedAcc.username : post.platform;
+              return (
+                <div key={post.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#F0F2F5] dark:bg-[#242526] border border-black/5 dark:border-white/10 flex items-center justify-center shrink-0 text-[#0866FF] font-bold text-xs">
+                      {post.platform[0]}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-xs font-bold text-[#050505] dark:text-[#E4E6EB]">
+                          {post.title}
+                        </h4>
+                        <span className="text-[10px] font-semibold text-[#0866FF] bg-[#0866FF]/10 px-2 py-0.5 rounded-full">
+                          {handle}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[#65676B] dark:text-[#B0B3B8] line-clamp-1">
+                        {post.content}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-[#050505] dark:text-[#E4E6EB]">
-                      {post.title}
-                    </h4>
-                    <p className="text-[11px] text-[#65676B] dark:text-[#B0B3B8] line-clamp-1">
-                      {post.content}
-                    </p>
-                  </div>
-                </div>
 
                 <div className="flex items-center gap-4 text-xs shrink-0 self-end sm:self-auto">
                   <span
@@ -504,7 +512,8 @@ export const OverviewView: React.FC = () => {
                   </div>
                 </div>
               </div>
-            ))}
+            );
+          })}
           </div>
         </div>
 

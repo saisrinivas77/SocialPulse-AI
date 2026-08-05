@@ -7,7 +7,7 @@ import { Send, X, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 export const CreatePostModal: React.FC = () => {
-  const { isCreatePostModalOpen, setIsCreatePostModalOpen, addPost } = useAppStore();
+  const { isCreatePostModalOpen, setIsCreatePostModalOpen, addPost, socialAccounts } = useAppStore();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [platform, setPlatform] = useState<any>("LinkedIn");
@@ -78,17 +78,17 @@ export const CreatePostModal: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="font-semibold text-[#5B5B5B] dark:text-[#A0A09B] block mb-1">Target Network</label>
+                <label className="font-semibold text-[#5B5B5B] dark:text-[#A0A09B] block mb-1">Target Channel</label>
                 <select
                   value={platform}
                   onChange={(e) => setPlatform(e.target.value)}
                   className="w-full p-3 rounded-xl bg-[#FAFAF8] dark:bg-[#1C1C1A] border border-[#ECE8E1] dark:border-[#262623] focus:outline-none cursor-pointer font-semibold"
                 >
-                  <option value="LinkedIn">LinkedIn</option>
-                  <option value="Instagram">Instagram</option>
-                  <option value="X">X (Twitter)</option>
-                  <option value="TikTok">TikTok</option>
-                  <option value="YouTube">YouTube</option>
+                  {socialAccounts.map((acc) => (
+                    <option key={acc.id} value={acc.platform}>
+                      {acc.platform} ({acc.connected ? acc.username : "Disconnected"})
+                    </option>
+                  ))}
                 </select>
               </div>
 
