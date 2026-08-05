@@ -63,9 +63,12 @@ class UserRepository(BaseRepository[User]):
         return result.scalar_one_or_none()
 
     async def get_by_provider_user_id(self, provider: str, provider_user_id: str) -> User | None:
-        stmt = select(User).where(User.provider == provider, User.provider_user_id == provider_user_id)
-        result = await self.session.execute(stmt)
-        return result.scalar_one_or_none()
+        try:
+            stmt = select(User).where(User.provider == provider, User.provider_user_id == provider_user_id)
+            result = await self.session.execute(stmt)
+            return result.scalar_one_or_none()
+        except Exception:
+            return None
 
     async def exists_by_email(self, email: str) -> bool:
         stmt = (

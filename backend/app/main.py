@@ -12,6 +12,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
 import app.models  # noqa: F401
+from sqlalchemy import text
 from app.api.router import api_router
 from app.config import settings
 from app.database import Base, engine
@@ -64,7 +65,16 @@ async def create_database_tables() -> None:
     try:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-        logger.info("Database tables initialized successfully.")
+            for query in [
+                "ALTER TABLE users ADD COLUMN provider VARCHAR(50) DEFAULT 'email'",
+                "ALTER TABLE users ADD COLUMN provider_user_id VARCHAR(255)",
+                "ALTER TABLE users ADD COLUMN profile_image VARCHAR(500)",
+            ]:
+                try:
+                    await conn.execute(text(query))
+                except Exception:
+                    pass
+        logger.info("Database tables and schema columns initialized successfully.")
     except Exception as e:
         logger.warning(f"Could not connect to database on startup: {e}")
 
