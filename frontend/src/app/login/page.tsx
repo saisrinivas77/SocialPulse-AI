@@ -227,18 +227,11 @@ export default function LoginPage() {
 
   const handleDemoLogin = async () => {
     setDemoLoading(true);
-    try {
-      const res = await socialPulseApi.demoLogin();
-      const token = res?.access_token || "sp_demo_token_123";
-      setAuthTokens(token, res?.refresh_token || "sp_demo_refresh_123");
-      setSuccess(true);
-      toast.success("Signed in with Demo Account!");
-      setTimeout(() => router.push("/init"), 800);
-    } catch {
-      toast.error("Could not sign in with demo account");
-    } finally {
-      setDemoLoading(false);
-    }
+    setAuthTokens("sp_demo_token_123", "sp_demo_refresh_123");
+    setSuccess(true);
+    toast.success("Signed in with Demo Account!");
+    setTimeout(() => router.push("/dashboard"), 500);
+    setDemoLoading(false);
   };
 
   const [oauthLoading, setOauthLoading] = useState<string | null>(null);
