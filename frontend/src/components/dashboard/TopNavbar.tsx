@@ -1,182 +1,218 @@
 "use client";
 
-import React, { useState } from "react";
-import { useTheme } from "next-themes";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
-
+import { useRouter } from "next/navigation";
 import {
   Search,
   Bell,
   Sun,
   Moon,
   ChevronDown,
+  Sparkles,
+  Zap,
+  Menu,
+  ShieldCheck,
   User,
   LogOut,
-  Plus,
-  Check,
-  CheckCheck,
-  Sparkles,
-  ShieldCheck,
+  Sliders,
+  CheckCircle2,
 } from "lucide-react";
-import { toast } from "sonner";
+import { useTheme } from "next-themes";
+import { socialPulseApi } from "@/lib/api";
 
 export const TopNavbar: React.FC = () => {
-  const {
-    isSidebarCollapsed,
-    currentWorkspace,
-    setWorkspace,
-    setIsSearchOpen,
-    setIsCreatePostModalOpen,
-    notifications,
-    unreadNotificationCount,
-    markAsRead,
-    markAllAsRead,
-    setCurrentView,
-  } = useAppStore();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+  const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
+  const {
+    currentView,
+    setCurrentView,
+    isSidebarCollapsed,
+    toggleSidebar,
+    setIsSearchOpen,
+    setIsUpgradeModalOpen,
+    notifications,
+    unreadNotificationCount,
+    markAllAsRead,
+  } = useAppStore();
 
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  const workspaces = [
-    { id: "ws-1", name: "Pulse Enterprise", tier: "Enterprise Pro", logo: "⚡" },
-    { id: "ws-2", name: "Acme Global Brand", tier: "Growth Pro", logo: "🚀" },
-    { id: "ws-3", name: "Personal AI Studio", tier: "Creator Tier", logo: "✨" },
-  ];
+  // Dynamic user profile state
+  const [userProfile, setUserProfile] = useState<{
+    name: string;
+    email: string;
+    provider: string;
+    avatar: string;
+  }>({
+    name: "Alex Morgan",
+    email: "alex.morgan.google@gmail.com",
+    provider: "Google",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80",
+  });
+
+  useEffect(() => {
+    socialPulseApi.getCurrentUser().then((user) => {
+      if (user) {
+        setUserProfile({
+          name: user.full_name || "Alex Morgan",
+          email: user.email || "alex.morgan.google@gmail.com",
+          provider: user.provider || "Google",
+          avatar:
+            user.avatar ||
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(
+              user.full_name || "Alex Morgan"
+            )}&background=0866FF&color=fff`,
+        });
+      }
+    });
+  }, []);
+
+  const unreadCount = unreadNotificationCount();
+
+  const getViewTitle = () => {
+    switch (currentView) {
+      case "overview":
+        return "Executive Command Center";
+      case "analytics":
+        return "Cross-Platform Intelligence";
+      case "ai-studio":
+        return "AI Content Studio";
+      case "social-accounts":
+        return "Connected Social Channels";
+      case "calendar":
+      case "scheduler":
+        return "Autonomous Post Queue";
+      case "posts":
+        return "Content Repository & Posts";
+      case "campaigns":
+        return "Multi-Week Campaigns";
+      case "reports":
+        return "Executive Analytics Reports";
+      case "notifications":
+        return "System Notifications";
+      case "team":
+        return "Team & Workspace Permissions";
+      case "settings":
+        return "Workspace Settings";
+      case "profile":
+        return "Account Profile";
+      case "security-center":
+        return "Security & Session Control";
+      case "admin":
+        return "Super Admin Panel";
+      case "media-library":
+        return "Media Library & Brand Assets";
+      default:
+        return "SocialPulse AI";
+    }
+  };
 
   return (
-    <header
-      className={`sticky top-0 z-30 h-14 border-b border-black/5 dark:border-white/10 bg-[#FFFFFF]/80 dark:bg-[#18191A]/80 backdrop-blur-xl transition-all duration-300 flex items-center justify-between px-6 sm:px-8 ${
-        isSidebarCollapsed ? "pl-20 sm:pl-24" : "pl-64 sm:pl-72"
-      }`}
-    >
-      {/* Left: Global AI Search Input Trigger */}
-      <div
-        onClick={() => setIsSearchOpen(true)}
-        className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#F0F2F5] dark:bg-[#242526] border border-black/5 dark:border-white/10 text-[#65676B] dark:text-[#B0B3B8] hover:border-[#0866FF] hover:text-[#050505] dark:hover:text-white transition-all cursor-pointer w-60 sm:w-72 group text-xs"
-      >
-        <Search className="w-3.5 h-3.5 text-[#0866FF] shrink-0 group-hover:scale-105 transition-transform" />
-        <span className="font-normal truncate">Search AI telemetry (⌘K)...</span>
-        <kbd className="hidden sm:inline-flex items-center gap-1 text-[10px] font-semibold bg-white dark:bg-[#3A3B3C] text-[#65676B] dark:text-[#E4E6EB] px-1.5 py-0.5 rounded border border-black/5 dark:border-white/10 ml-auto">
-          ⌘K
-        </kbd>
+    <header className="sticky top-0 z-30 h-16 bg-[#FFFFFF]/80 dark:bg-[#18191A]/80 backdrop-blur-md border-b border-black/5 dark:border-white/10 px-4 lg:px-6 flex items-center justify-between transition-colors font-sans">
+      {/* Left: Mobile Sidebar Trigger & View Title */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={toggleSidebar}
+          className="p-2 rounded-xl text-[#65676B] dark:text-[#B0B3B8] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C] transition-colors"
+          title="Toggle Navigation Menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        <div className="flex items-center gap-2">
+          <h1 className="text-base font-extrabold text-[#050505] dark:text-[#E4E6EB] tracking-tight">
+            {getViewTitle()}
+          </h1>
+          <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E7F0FF] text-[#0866FF] dark:bg-[#0866FF]/20 text-[10px] font-bold">
+            <Zap className="w-3 h-3 fill-current" /> Live Telemetry
+          </span>
+        </div>
       </div>
 
-      {/* Right Controls */}
-      <div className="flex items-center gap-2.5">
-        {/* Quick Action "+ Create" Button */}
+      {/* Right Actions Bar */}
+      <div className="flex items-center gap-2.5 sm:gap-3">
+        {/* Global Search Bar */}
         <button
-          onClick={() => setIsCreatePostModalOpen(true)}
-          className="px-3.5 py-1.5 rounded-full bg-[#0866FF] hover:bg-[#1877F2] text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+          onClick={() => setIsSearchOpen(true)}
+          className="hidden md:flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-[#F0F2F5] dark:bg-[#3A3B3C] text-[#65676B] dark:text-[#B0B3B8] text-xs hover:bg-[#E4E6E9] dark:hover:bg-[#4E4F50] transition-colors border border-transparent"
         >
-          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-          <span className="hidden sm:inline">Create Post</span>
+          <Search className="w-3.5 h-3.5" />
+          <span className="text-xs">Search metrics, posts, tools...</span>
+          <kbd className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#FFFFFF] dark:bg-[#242526] text-[#8A8D91] border border-black/5 dark:border-white/10">
+            ⌘K
+          </kbd>
         </button>
 
-        {/* Workspace Switcher */}
-        <div className="relative">
-          <button
-            onClick={() => setShowWorkspaceMenu(!showWorkspaceMenu)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F0F2F5] dark:bg-[#242526] border border-black/5 dark:border-white/10 hover:border-[#0866FF] text-[#050505] dark:text-[#E4E6EB] text-xs font-medium transition-all"
-          >
-            <span>{currentWorkspace.logo}</span>
-            <span className="hidden md:inline">{currentWorkspace.name}</span>
-            <ChevronDown className={`w-3 h-3 text-[#8A8D91] transition-transform ${showWorkspaceMenu ? "rotate-180" : ""}`} />
-          </button>
-
-          {showWorkspaceMenu && (
-            <div className="absolute right-0 mt-1.5 w-52 rounded-xl bg-[#FFFFFF] dark:bg-[#242526] border border-black/5 dark:border-white/10 p-1 shadow-2xl space-y-0.5 z-50">
-              <span className="text-[9px] uppercase font-bold tracking-wider text-[#8A8D91] px-2 py-1 block">
-                Select Workspace
-              </span>
-              {workspaces.map((ws) => (
-                <button
-                  key={ws.id}
-                  onClick={() => {
-                    setWorkspace(ws);
-                    setShowWorkspaceMenu(false);
-                    toast.success(`Switched to ${ws.name}`);
-                  }}
-                  className={`w-full flex items-center justify-between p-2 rounded-lg text-xs transition-all ${
-                    ws.id === currentWorkspace.id
-                      ? "bg-[#0866FF]/10 text-[#0866FF] font-semibold"
-                      : "text-[#65676B] dark:text-[#B0B3B8] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C]"
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span>{ws.logo}</span>
-                    <div className="flex flex-col text-left">
-                      <span>{ws.name}</span>
-                      <span className="text-[9px] text-[#8A8D91] font-normal">{ws.tier}</span>
-                    </div>
-                  </div>
-                  {ws.id === currentWorkspace.id && <Check className="w-3.5 h-3.5 text-[#0866FF]" />}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Theme Toggle Button */}
         <button
-          onClick={() => {
-            const nextTheme = theme === "dark" ? "light" : "dark";
-            setTheme(nextTheme);
-            toast.info(`Switched to ${nextTheme} mode`);
-          }}
-          className="p-2 rounded-full border border-black/5 dark:border-white/10 bg-[#F0F2F5] dark:bg-[#242526] hover:border-[#0866FF] text-[#050505] dark:text-[#E4E6EB] transition-colors"
-          title="Toggle Theme"
+          onClick={() => setIsSearchOpen(true)}
+          className="md:hidden p-2 rounded-full text-[#65676B] dark:text-[#B0B3B8] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C]"
         >
-          {theme === "dark" ? <Sun className="w-3.5 h-3.5 text-[#0866FF]" /> : <Moon className="w-3.5 h-3.5 text-[#0866FF]" />}
+          <Search className="w-4 h-4" />
         </button>
 
-        {/* Notifications Popover */}
+        {/* Upgrade Tier Button */}
+        <button
+          onClick={() => setIsUpgradeModalOpen(true)}
+          className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#0866FF] hover:bg-[#1877F2] text-white text-xs font-bold shadow-xs transition-all"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Enterprise Pro</span>
+        </button>
+
+        {/* Theme Toggle */}
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-full text-[#65676B] dark:text-[#B0B3B8] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C] transition-colors"
+          title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Mode`}
+        >
+          {theme === "dark" ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
+        </button>
+
+        {/* Notification Bell */}
         <div className="relative">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="p-2 rounded-full border border-black/5 dark:border-white/10 bg-[#F0F2F5] dark:bg-[#242526] hover:border-[#0866FF] text-[#050505] dark:text-[#E4E6EB] transition-colors relative"
+            className="p-2 rounded-full text-[#65676B] dark:text-[#B0B3B8] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C] transition-colors relative"
+            title="Notifications"
           >
-            <Bell className="w-3.5 h-3.5 text-[#0866FF]" />
-            {unreadNotificationCount() > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#0866FF] text-white text-[9px] font-bold flex items-center justify-center">
-                {unreadNotificationCount()}
-              </span>
+            <Bell className="w-4 h-4" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#FA383E]" />
             )}
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 mt-1.5 w-80 rounded-2xl bg-[#FFFFFF] dark:bg-[#242526] border border-black/5 dark:border-white/10 p-3.5 shadow-2xl space-y-2.5 z-50">
+            <div className="absolute right-0 mt-1.5 w-80 rounded-2xl bg-[#FFFFFF] dark:bg-[#242526] border border-black/5 dark:border-white/10 p-4 shadow-2xl space-y-3 z-50">
               <div className="flex items-center justify-between border-b border-black/5 dark:border-white/10 pb-2">
-                <span className="text-xs font-bold text-[#050505] dark:text-[#E4E6EB] uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#0866FF]" /> Activity ({unreadNotificationCount()})
-                </span>
-                <button
-                  onClick={markAllAsRead}
-                  className="text-[10px] font-semibold text-[#0866FF] hover:underline flex items-center gap-1"
-                >
-                  <CheckCheck className="w-3 h-3" /> Clear all
-                </button>
+                <span className="text-xs font-bold text-[#050505] dark:text-[#E4E6EB]">Notifications</span>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllAsRead}
+                    className="text-[10px] font-semibold text-[#0866FF] hover:underline"
+                  >
+                    Mark all read
+                  </button>
+                )}
               </div>
 
-              <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-60 overflow-y-auto">
                 {notifications.map((n) => (
                   <div
                     key={n.id}
-                    onClick={() => markAsRead(n.id)}
-                    className={`p-2.5 rounded-xl text-xs cursor-pointer transition-colors ${
+                    className={`p-2.5 rounded-xl border text-xs transition-colors ${
                       n.read
-                        ? "bg-[#F0F2F5] dark:bg-[#3A3B3C] text-[#65676B] dark:text-[#B0B3B8]"
-                        : "bg-[#0866FF]/10 text-[#050505] dark:text-[#E4E6EB] font-medium"
+                        ? "bg-[#F0F2F5]/50 dark:bg-[#3A3B3C]/40 border-transparent text-[#65676B] dark:text-[#B0B3B8]"
+                        : "bg-[#E7F0FF]/50 dark:bg-[#0866FF]/10 border-[#0866FF]/20 text-[#050505] dark:text-[#E4E6EB]"
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-semibold text-[#0866FF] text-[11px]">{n.title}</span>
+                    <div className="flex items-center justify-between font-bold mb-0.5">
+                      <span>{n.title}</span>
                       <span className="text-[9px] text-[#8A8D91]">{n.timestamp}</span>
                     </div>
-                    <p className="text-[11px] leading-relaxed">{n.message}</p>
+                    <p className="text-[11px] text-[#65676B] dark:text-[#B0B3B8] leading-tight">{n.message}</p>
                   </div>
                 ))}
               </div>
@@ -194,24 +230,31 @@ export const TopNavbar: React.FC = () => {
           )}
         </div>
 
-        {/* User Profile Avatar */}
+        {/* User Profile Avatar & Dropdown */}
         <div className="relative">
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
             className="flex items-center gap-2 p-0.5 rounded-full border border-black/5 dark:border-white/10 hover:border-[#0866FF] transition-all"
           >
             <img
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80"
-              alt="Alex Morgan"
+              src={userProfile.avatar}
+              alt={userProfile.name}
               className="w-7 h-7 rounded-full object-cover border border-[#0866FF]"
             />
           </button>
 
           {showProfileMenu && (
-            <div className="absolute right-0 mt-1.5 w-48 rounded-xl bg-[#FFFFFF] dark:bg-[#242526] border border-black/5 dark:border-white/10 p-1 shadow-2xl space-y-0.5 z-50">
+            <div className="absolute right-0 mt-1.5 w-56 rounded-2xl bg-[#FFFFFF] dark:bg-[#242526] border border-black/5 dark:border-white/10 p-2 shadow-2xl space-y-1 z-50">
               <div className="px-3 py-2 border-b border-black/5 dark:border-white/10">
-                <p className="text-xs font-bold text-[#050505] dark:text-[#E4E6EB]">Alex Morgan</p>
-                <p className="text-[10px] text-[#8A8D91]">alex@socialpulse.ai</p>
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <p className="text-xs font-extrabold text-[#050505] dark:text-[#E4E6EB] truncate">
+                    {userProfile.name}
+                  </p>
+                </div>
+                <p className="text-[10px] text-[#8A8D91] truncate mb-1.5">{userProfile.email}</p>
+                <span className="inline-flex items-center gap-1 text-[9px] font-bold text-[#31A24C] bg-[#E7F8ED] px-2 py-0.5 rounded-full border border-[#31A24C]/30">
+                  <CheckCircle2 className="w-2.5 h-2.5 text-[#31A24C]" /> {userProfile.provider} Auth Active
+                </span>
               </div>
 
               <button
@@ -219,9 +262,19 @@ export const TopNavbar: React.FC = () => {
                   setCurrentView("settings");
                   setShowProfileMenu(false);
                 }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-[#65676B] dark:text-[#B0B3B8] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C]"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-[#65676B] dark:text-[#B0B3B8] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C] transition-colors"
               >
                 <User className="w-3.5 h-3.5 text-[#0866FF]" /> Account Settings
+              </button>
+
+              <button
+                onClick={() => {
+                  setCurrentView("social-accounts");
+                  setShowProfileMenu(false);
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-[#65676B] dark:text-[#B0B3B8] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C] transition-colors"
+              >
+                <Zap className="w-3.5 h-3.5 text-[#0866FF]" /> Integrations & Channels
               </button>
 
               <button
@@ -229,7 +282,7 @@ export const TopNavbar: React.FC = () => {
                   setCurrentView("team");
                   setShowProfileMenu(false);
                 }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-[#65676B] dark:text-[#B0B3B8] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C]"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-[#65676B] dark:text-[#B0B3B8] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C] transition-colors"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-[#0866FF]" /> Team & Permissions
               </button>
@@ -238,10 +291,13 @@ export const TopNavbar: React.FC = () => {
                 onClick={() => {
                   if (typeof window !== "undefined") {
                     localStorage.removeItem("sp_access_token");
+                    localStorage.removeItem("sp_auth_provider");
+                    localStorage.removeItem("sp_user_email");
+                    localStorage.removeItem("sp_user_name");
                   }
                   router.push("/login");
                 }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-[#FA383E] hover:bg-[#FA383E]/10"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-[#FA383E] hover:bg-[#FA383E]/10 transition-colors"
               >
                 <LogOut className="w-3.5 h-3.5" /> Sign Out
               </button>

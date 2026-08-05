@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import { socialPulseApi } from "@/lib/api";
 import { useAppStore } from "@/store/useAppStore";
@@ -9,6 +9,10 @@ import {
   RefreshCw,
   Plus,
   Zap,
+  CheckCircle2,
+  X,
+  ExternalLink,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -93,6 +97,15 @@ const PlatformLogo: React.FC<{ platform: string; className?: string }> = ({ plat
 export const SocialAccountsView: React.FC = () => {
   const { socialAccounts, toggleAccountConnection } = useAppStore();
   const [activeSyncingId, setActiveSyncingId] = useState<string | null>(null);
+  const [showConnectModal, setShowConnectModal] = useState(false);
+  const [userEmail, setUserEmail] = useState("alex.morgan.google@gmail.com");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const email = localStorage.getItem("sp_user_email") || "alex.morgan.google@gmail.com";
+      setUserEmail(email);
+    }
+  }, []);
 
   const syncMutation = useMutation({
     mutationFn: (accountId: string) => socialPulseApi.syncSocialAccount(accountId),
@@ -115,42 +128,44 @@ export const SocialAccountsView: React.FC = () => {
   const handleConnectToggle = (id: string, platform: string, connected: boolean) => {
     toggleAccountConnection(id);
     if (!connected) {
-      toast.success(`Successfully authenticated OAuth token for ${platform}!`);
+      toast.success(`Successfully connected ${platform} linked to ${userEmail}!`);
     } else {
-      toast.info(`Disconnected ${platform} account.`);
+      toast.info(`Disconnected ${platform} channel.`);
     }
   };
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-8 pb-12 font-sans">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-black/5 dark:border-white/10 pb-6"
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-black/[0.06] dark:border-white/[0.08] pb-6"
       >
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-semibold uppercase tracking-widest text-[#0866FF]">
-              OAuth & Telemetry Gateways
+            <span className="text-xs font-extrabold uppercase tracking-widest text-[#0866FF]">
+              OAuth & Integration Hub
             </span>
-            <span className="apple-badge text-[9px] px-2 py-0.5 rounded-full">8 Supported Networks</span>
+            <span className="bg-[#E7F0FF] text-[#0866FF] dark:bg-[#0866FF]/20 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+              Linked to {userEmail}
+            </span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#050505] dark:text-[#E4E6EB]">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-[#111111] dark:text-white">
             Connected Social Accounts
           </h1>
-          <p className="text-sm text-[#65676B] dark:text-[#B0B3B8] mt-1">
-            Manage enterprise API keys, token health, rate limits, and real-time syncing pipelines.
+          <p className="text-sm text-[#777777] dark:text-[#A0A0A0] mt-1">
+            Manage Instagram, LinkedIn, YouTube, TikTok, Facebook, X & Pinterest channels for {userEmail}.
           </p>
         </div>
 
         <button
-          onClick={() => toast.info("Opening Enterprise OAuth Gateway modal...")}
-          className="px-5 py-2.5 rounded-full bg-[#0866FF] hover:bg-[#1877F2] text-white font-semibold text-xs shadow-md flex items-center gap-2"
+          onClick={() => setShowConnectModal(true)}
+          className="px-5 py-2.5 rounded-full bg-[#0866FF] hover:bg-[#1877F2] text-white font-extrabold text-xs shadow-sm flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
-          <span>Connect New Platform</span>
+          <span>Connect New Channel</span>
         </button>
       </motion.div>
 
@@ -162,42 +177,43 @@ export const SocialAccountsView: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.05 }}
-            className={`apple-card p-6 flex flex-col justify-between h-full space-y-4 ${
-              account.connected ? "border-[#0866FF]/40 shadow-blue-500/10" : "opacity-80"
+            className={`bg-white dark:bg-[#18181B] rounded-[28px] border p-6 flex flex-col justify-between h-full space-y-4 shadow-xs ${
+              account.connected
+                ? "border-[#0866FF]/40 shadow-blue-500/10"
+                : "border-black/[0.06] dark:border-white/[0.08] opacity-80"
             }`}
           >
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  {/* Official Platform Logo Icon */}
                   <PlatformLogo platform={account.platform} className="w-10 h-10 shrink-0 shadow-xs" />
                   <div>
-                    <h3 className="text-sm font-bold text-[#050505] dark:text-[#E4E6EB]">
+                    <h3 className="text-sm font-extrabold text-[#111111] dark:text-white">
                       {account.platform}
                     </h3>
-                    <p className="text-xs text-[#65676B] dark:text-[#B0B3B8]">
+                    <p className="text-xs text-[#777777] dark:text-[#A0A0A0]">
                       {account.username}
                     </p>
                   </div>
                 </div>
 
                 <span
-                  className={`w-3 h-3 rounded-full border-2 border-white dark:border-[#18191A] ${
-                    account.connected ? "bg-[#31A24C]" : "bg-[#8A8D91]"
+                  className={`w-3 h-3 rounded-full border-2 border-white dark:border-[#18181B] ${
+                    account.connected ? "bg-[#31A24C]" : "bg-[#A0A0A0]"
                   }`}
                   title={account.connected ? "Active OAuth Token" : "Disconnected"}
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2 p-3 rounded-2xl bg-[#F0F2F5] dark:bg-[#3A3B3C] border border-black/5 dark:border-white/10 text-xs">
+              <div className="grid grid-cols-2 gap-2 p-3 rounded-2xl bg-[#FAFBFD] dark:bg-[#121316] border border-black/[0.04] dark:border-white/[0.06] text-xs">
                 <div>
-                  <span className="text-[10px] text-[#8A8D91] block">Followers</span>
-                  <span className="font-extrabold text-[#050505] dark:text-[#E4E6EB]">
+                  <span className="text-[10px] text-[#777777] dark:text-[#A0A0A0] block">Followers</span>
+                  <span className="font-extrabold text-[#111111] dark:text-white">
                     {account.followers}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-[#8A8D91] block">Sync Health</span>
+                  <span className="text-[10px] text-[#777777] dark:text-[#A0A0A0] block">Sync Health</span>
                   <span className="font-extrabold text-[#0866FF]">
                     {account.connected ? `${account.health}%` : "--"}
                   </span>
@@ -205,10 +221,10 @@ export const SocialAccountsView: React.FC = () => {
               </div>
             </div>
 
-            <div className="space-y-2 pt-2 border-t border-black/5 dark:border-white/10">
-              <div className="flex items-center justify-between text-[11px] text-[#8A8D91]">
+            <div className="space-y-2 pt-2 border-t border-black/[0.06] dark:border-white/[0.08]">
+              <div className="flex items-center justify-between text-[11px] text-[#777777] dark:text-[#A0A0A0]">
                 <span>Status:</span>
-                <span className="font-semibold text-[#050505] dark:text-[#E4E6EB]">
+                <span className="font-semibold text-[#111111] dark:text-white">
                   {account.lastSynced}
                 </span>
               </div>
@@ -219,7 +235,7 @@ export const SocialAccountsView: React.FC = () => {
                     <button
                       onClick={() => handleSyncNow(account.id, account.platform)}
                       disabled={activeSyncingId === account.id}
-                      className="flex-1 py-2 rounded-xl border border-black/5 dark:border-white/10 bg-white dark:bg-[#242526] text-xs font-semibold text-[#050505] dark:text-[#E4E6EB] hover:border-[#0866FF] flex items-center justify-center gap-1.5 transition-all"
+                      className="flex-1 py-2 rounded-full border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs font-bold text-[#111111] dark:text-white hover:border-[#0866FF] flex items-center justify-center gap-1.5 transition-all"
                     >
                       <RefreshCw className={`w-3.5 h-3.5 text-[#0866FF] ${activeSyncingId === account.id ? "animate-spin" : ""}`} />
                       <span>{activeSyncingId === account.id ? "Syncing..." : "Sync Now"}</span>
@@ -227,7 +243,7 @@ export const SocialAccountsView: React.FC = () => {
 
                     <button
                       onClick={() => handleConnectToggle(account.id, account.platform, account.connected)}
-                      className="px-3 py-2 rounded-xl border border-red-500/20 text-red-500 hover:bg-red-500/10 text-xs font-semibold transition-colors"
+                      className="px-3.5 py-2 rounded-full border border-[#FA383E]/20 text-[#FA383E] hover:bg-[#FEF2F2] text-xs font-bold transition-colors"
                       title="Disconnect"
                     >
                       Disconnect
@@ -236,10 +252,10 @@ export const SocialAccountsView: React.FC = () => {
                 ) : (
                   <button
                     onClick={() => handleConnectToggle(account.id, account.platform, account.connected)}
-                    className="w-full btn-gold-primary py-2 text-xs font-bold flex items-center justify-center gap-1.5"
+                    className="w-full py-2 bg-[#0866FF] hover:bg-[#1877F2] text-white rounded-full text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-xs transition-all"
                   >
                     <Zap className="w-3.5 h-3.5" />
-                    <span>OAuth Connect</span>
+                    <span>Connect Channel</span>
                   </button>
                 )}
               </div>
@@ -247,6 +263,71 @@ export const SocialAccountsView: React.FC = () => {
           </motion.div>
         ))}
       </div>
+
+      {/* Connect Channel Modal */}
+      <AnimatePresence>
+        {showConnectModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 font-sans"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 10 }}
+              className="bg-white dark:bg-[#18181B] rounded-[32px] border border-black/[0.06] dark:border-white/[0.08] p-6 max-w-md w-full shadow-2xl relative"
+            >
+              <button
+                onClick={() => setShowConnectModal(false)}
+                className="absolute right-5 top-5 text-[#A0A0A0] hover:text-[#111111]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-2 mb-2">
+                <ShieldCheck className="w-5 h-5 text-[#0866FF]" />
+                <h3 className="text-xl font-black text-[#111111] dark:text-white">Connect Social Channel</h3>
+              </div>
+              <p className="text-xs text-[#777777] dark:text-[#A0A0A0] mb-6">
+                Authorize channel integration using your authenticated account: <strong className="text-[#0866FF]">{userEmail}</strong>
+              </p>
+
+              <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                {socialAccounts.map((acc) => (
+                  <div
+                    key={acc.id}
+                    className="flex items-center justify-between p-3.5 rounded-2xl border border-black/[0.06] dark:border-white/[0.08] bg-[#FAFBFD] dark:bg-[#121316]"
+                  >
+                    <div className="flex items-center gap-3">
+                      <PlatformLogo platform={acc.platform} className="w-8 h-8 shrink-0" />
+                      <div>
+                        <h4 className="text-xs font-bold text-[#111111] dark:text-white">{acc.platform}</h4>
+                        <p className="text-[10px] text-[#777777]">{acc.connected ? "Connected" : "Available to Link"}</p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        handleConnectToggle(acc.id, acc.platform, acc.connected);
+                        setShowConnectModal(false);
+                      }}
+                      className={`px-4 py-1.5 rounded-full text-xs font-extrabold transition-all ${
+                        acc.connected
+                          ? "bg-[#FEF2F2] text-[#FA383E]"
+                          : "bg-[#0866FF] hover:bg-[#1877F2] text-white shadow-xs"
+                      }`}
+                    >
+                      {acc.connected ? "Disconnect" : "Connect"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
