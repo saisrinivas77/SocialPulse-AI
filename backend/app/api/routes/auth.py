@@ -1,11 +1,15 @@
 # app/api/routes/auth.py
 """Authentication router handling email auth, verification, OAuth providers, demo login, and session control."""
 
+import logging
 import os
 import base64
 import json
+import urllib.parse
 from urllib.parse import urlparse
 from typing import Optional, List
+
+logger = logging.getLogger(__name__)
 from fastapi import APIRouter, Depends, Request, Response, Query, status
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
@@ -212,35 +216,41 @@ async def oauth_login_callback(
         backend_url = os.getenv("BACKEND_URL", str(request.base_url).rstrip("/"))
         redirect_uri = f"{backend_url}/api/v1/auth/{provider}/callback"
 
-    client_info = _extract_client_info(request)
-    profile = await oauth_service.get_login_user_profile(provider=provider, code=code, redirect_uri=redirect_uri)
+    try:
+        client_info = _extract_client_info(request)
+        profile = await oauth_service.get_login_user_profile(provider=provider, code=code, redirect_uri=redirect_uri)
 
-    token_pair = await auth_service.authenticate_oauth_user(
-        provider=provider,
-        provider_user_id=profile["provider_user_id"],
-        email=profile["email"],
-        full_name=profile["full_name"],
-        avatar_url=profile.get("avatar_url"),
-        client_info=client_info,
-    )
+        token_pair = await auth_service.authenticate_oauth_user(
+            provider=provider,
+            provider_user_id=profile["provider_user_id"],
+            email=profile["email"],
+            full_name=profile["full_name"],
+            avatar_url=profile.get("avatar_url"),
+            client_info=client_info,
+        )
 
-    # Decode state to recover frontend_url encoded by oauth_login_redirect
-    state = request.query_params.get("state", "")
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-    if state:
-        try:
-            decoded = json.loads(base64.urlsafe_b64decode(state + "==").decode())
-            frontend_url = decoded.get("frontend_url", frontend_url)
-        except Exception:
-            pass  # malformed state — use env default
-
-    # Ensure frontend_url is never the backend itself
-    backend_origin = str(request.base_url).rstrip("/")
-    if frontend_url.startswith(backend_origin):
+        # Decode state to recover frontend_url encoded by oauth_login_redirect
+        state = request.query_params.get("state", "")
         frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+        if state:
+            try:
+                decoded = json.loads(base64.urlsafe_b64decode(state + "==").decode())
+                frontend_url = decoded.get("frontend_url", frontend_url)
+            except Exception:
+                pass  # malformed state — use env default
 
-    target_url = f"{frontend_url}/login?access_token={token_pair.access_token}&refresh_token={token_pair.refresh_token}"
-    return RedirectResponse(url=target_url)
+        # Ensure frontend_url is never the backend itself
+        backend_origin = str(request.base_url).rstrip("/")
+        if frontend_url.startswith(backend_origin):
+            frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
+        target_url = f"{frontend_url}/login?access_token={token_pair.access_token}&refresh_token={token_pair.refresh_token}"
+        return RedirectResponse(url=target_url)
+    except Exception as exc:
+        logger.error(f"OAuth callback failed for {provider}: {str(exc)}", exc_info=True)
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+        error_msg = urllib.parse.quote(str(exc))
+        return RedirectResponse(url=f"{frontend_url}/login?error=oauth_failed&provider={provider}&details={error_msg}")
 
 
 @router.post(

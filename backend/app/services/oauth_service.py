@@ -1,10 +1,13 @@
 # app/services/oauth_service.py
 """Enterprise OAuth 2.0 / OpenID Connect Service supporting Login Providers and Social Platform Connections."""
 
+import logging
 import os
 import urllib.parse
 from typing import Dict, Any, Optional
 import httpx
+
+logger = logging.getLogger(__name__)
 
 
 class OAuthIntegrationService:
@@ -113,11 +116,13 @@ class OAuthIntegrationService:
                     }
 
                 elif p == "google":
+                    client_id = os.getenv("GOOGLE_CLIENT_ID", self.google_client_id)
+                    client_secret = os.getenv("GOOGLE_CLIENT_SECRET", "")
                     token_res = await client.post(
                         "https://oauth2.googleapis.com/token",
                         data={
-                            "client_id": self.google_client_id,
-                            "client_secret": os.getenv("GOOGLE_CLIENT_SECRET", ""),
+                            "client_id": client_id,
+                            "client_secret": client_secret,
                             "code": code,
                             "grant_type": "authorization_code",
                             "redirect_uri": redirect_uri,
@@ -126,20 +131,23 @@ class OAuthIntegrationService:
                     t_data = token_res.json()
                     access_token = t_data.get("access_token")
 
-                    user_res = await client.get(
-                        "https://www.googleapis.com/oauth2/v2/userinfo",
-                        headers={"Authorization": f"Bearer {access_token}"},
-                    )
-                    g_data = user_res.json()
-                    return {
-                        "provider_user_id": g_data.get("id"),
-                        "email": g_data.get("email"),
-                        "full_name": g_data.get("name", "Google User"),
-                        "avatar_url": g_data.get("picture"),
-                    }
+                    if access_token:
+                        user_res = await client.get(
+                            "https://www.googleapis.com/oauth2/v2/userinfo",
+                            headers={"Authorization": f"Bearer {access_token}"},
+                        )
+                        g_data = user_res.json()
+                        email = g_data.get("email")
+                        if email:
+                            return {
+                                "provider_user_id": str(g_data.get("id") or f"google_{code[:8]}"),
+                                "email": email,
+                                "full_name": g_data.get("name") or "Google User",
+                                "avatar_url": g_data.get("picture"),
+                            }
 
-        except Exception:
-            pass
+        except Exception as err:
+            logger.warning(f"OAuth profile resolution failed for {p}: {err}")
 
         # Fallback profile
         return {
