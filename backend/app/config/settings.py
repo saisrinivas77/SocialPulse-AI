@@ -223,6 +223,7 @@ class Settings(BaseSettings):
 
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: SecretStr = SecretStr("")
+    GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/v1/auth/google/callback"
     YOUTUBE_API_KEY: str = ""
 
     GITHUB_CLIENT_ID: str = ""
