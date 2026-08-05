@@ -143,15 +143,15 @@ export const OverviewView: React.FC = () => {
       >
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-semibold uppercase tracking-widest text-[#C8A14A]">
+            <span className="text-xs font-semibold uppercase tracking-widest text-[#0866FF]">
               Live Workspace Dashboard
             </span>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#31A24C] animate-pulse" />
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#111111] dark:text-[#FAFAF8]">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#050505] dark:text-[#E4E6EB]">
             Good morning, Alex.
           </h1>
-          <p className="text-sm text-[#5B5B5B] dark:text-[#A0A09B] mt-1">
+          <p className="text-sm text-[#65676B] dark:text-[#B0B3B8] mt-1">
             SocialPulse AI engine is monitoring 8 connected channels. Engagement is up 28.6% this week.
           </p>
         </div>
@@ -162,23 +162,23 @@ export const OverviewView: React.FC = () => {
               refetch();
               toast.success("Telemetry refreshed from API!");
             }}
-            className="p-2.5 rounded-2xl border border-[#ECE8E1] dark:border-[#262623] bg-[#FAFAF8] dark:bg-[#141413] hover:border-[#C8A14A] text-[#111111] dark:text-[#FAFAF8]"
+            className="p-2.5 rounded-2xl border border-black/5 dark:border-white/10 bg-[#F0F2F5] dark:bg-[#242526] hover:border-[#0866FF] text-[#050505] dark:text-[#E4E6EB]"
             title="Refresh Telemetry"
           >
-            <RefreshCw className={`w-4 h-4 text-[#C8A14A] ${isLoading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`w-4 h-4 text-[#0866FF] ${isLoading ? "animate-spin" : ""}`} />
           </button>
           <button
             onClick={() => setIsCreatePostModalOpen(true)}
-            className="btn-gold-primary px-5 py-2.5 text-xs flex items-center gap-2"
+            className="px-5 py-2.5 rounded-full bg-[#0866FF] hover:bg-[#1877F2] text-white font-semibold text-xs shadow-md flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             <span>Create AI Post</span>
           </button>
           <button
             onClick={() => setCurrentView("analytics")}
-            className="btn-luxury-secondary px-5 py-2.5 text-xs flex items-center gap-2"
+            className="px-5 py-2.5 rounded-full border border-black/10 dark:border-white/15 bg-white dark:bg-[#242526] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C] text-[#050505] dark:text-[#E4E6EB] font-semibold text-xs transition-colors flex items-center gap-2"
           >
-            <BarChart2 className="w-4 h-4 text-[#C8A14A]" />
+            <BarChart2 className="w-4 h-4 text-[#0866FF]" />
             <span>Full Analytics</span>
           </button>
         </div>
@@ -194,19 +194,19 @@ export const OverviewView: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.08 }}
-              className="luxury-card luxury-card-gold-line p-5 flex flex-col justify-between h-full"
+              className="apple-card p-5 flex flex-col justify-between h-full"
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-medium text-[#5B5B5B] dark:text-[#A0A09B]">
+                <span className="text-xs font-medium text-[#65676B] dark:text-[#B0B3B8]">
                   {kpi.title}
                 </span>
-                <div className="w-8 h-8 rounded-xl bg-[#FAFAF8] dark:bg-[#1C1C1A] border border-[#ECE8E1] dark:border-[#262623] flex items-center justify-center text-[#C8A14A]">
+                <div className="w-8 h-8 rounded-xl bg-[#F0F2F5] dark:bg-[#18191A] border border-black/5 dark:border-white/10 flex items-center justify-center text-[#0866FF]">
                   <Icon className="w-4 h-4" />
                 </div>
               </div>
 
               <div className="my-2">
-                <div className="text-2xl sm:text-3xl font-extrabold text-[#111111] dark:text-[#FAFAF8] tracking-tight">
+                <div className="text-2xl sm:text-3xl font-extrabold text-[#050505] dark:text-[#E4E6EB] tracking-tight">
                   {kpi.prefix}
                   {kpi.format ? (
                     kpi.format(kpi.value)
@@ -222,16 +222,16 @@ export const OverviewView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-[#ECE8E1]/60 dark:border-[#262623]/60 text-[11px]">
+              <div className="flex items-center justify-between text-xs pt-2 border-t border-black/5 dark:border-white/10">
                 <span
                   className={`font-semibold flex items-center gap-0.5 ${
-                    kpi.isPositive ? "text-[#22C55E]" : "text-[#EF4444]"
+                    kpi.isPositive ? "text-[#31A24C]" : "text-[#EF4444]"
                   }`}
                 >
                   {kpi.isPositive ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
                   {kpi.change}
                 </span>
-                <span className="text-[#8A8A8A] truncate max-w-[100px]">{kpi.subtext}</span>
+                <span className="text-[#8A8D91] text-[10px] truncate max-w-[100px]">{kpi.subtext}</span>
               </div>
             </motion.div>
           );
@@ -245,38 +245,21 @@ export const OverviewView: React.FC = () => {
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4 }}
-          className="lg:col-span-2 luxury-card p-6 flex flex-col justify-between h-full"
+          className="lg:col-span-2 apple-card p-6 space-y-4"
         >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center justify-between">
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-[#111111] dark:text-[#FAFAF8]">
-                  Audience Reach & Growth Trajectory
-                </h2>
-                <span className="luxury-badge text-[10px] px-2 py-0.5 rounded-full">
-                  Real-time
-                </span>
-              </div>
-              <p className="text-xs text-[#5B5B5B] dark:text-[#A0A09B] mt-0.5">
-                Aggregated impression telemetry across connected social networks
+              <h3 className="text-lg font-extrabold text-[#050505] dark:text-[#E4E6EB]">
+                Aggregated Reach & Telemetry
+              </h3>
+              <p className="text-xs text-[#65676B] dark:text-[#B0B3B8]">
+                Real-time impressions & cross-platform engagement trajectory
               </p>
             </div>
-
-            {/* Timeframe Selector */}
-            <div className="flex items-center gap-1 p-1 rounded-xl bg-[#FAFAF8] dark:bg-[#141413] border border-[#ECE8E1] dark:border-[#262623] text-xs">
-              {["7d", "30d", "90d", "YTD"].map((tf) => (
-                <button
-                  key={tf}
-                  onClick={() => setTimeframe(tf)}
-                  className={`px-3 py-1 rounded-lg font-medium transition-all ${
-                    timeframe === tf
-                      ? "bg-[#111111] text-white dark:bg-[#FAFAF8] dark:text-[#111111] shadow-xs"
-                      : "text-[#5B5B5B] dark:text-[#A0A09B] hover:text-[#111111]"
-                  }`}
-                >
-                  {tf}
-                </button>
-              ))}
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-[#0866FF]/10 text-[#0866FF]">
+                Live Stream
+              </span>
             </div>
           </div>
 
@@ -284,24 +267,24 @@ export const OverviewView: React.FC = () => {
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={performanceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="goldGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#C8A14A" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#C8A14A" stopOpacity={0.0} />
+                  <linearGradient id="metaBlueGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#0866FF" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#0866FF" stopOpacity={0.0} />
                   </linearGradient>
                   <linearGradient id="darkGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#111111" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#111111" stopOpacity={0.0} />
+                    <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#7C3AED" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ECE8E1" vertical={false} />
-                <XAxis dataKey="day" stroke="#8A8A8A" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="#8A8A8A" fontSize={11} tickLine={false} axisLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.05)" vertical={false} />
+                <XAxis dataKey="day" stroke="#8A8D91" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis stroke="#8A8D91" fontSize={11} tickLine={false} axisLine={false} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "#111111",
+                    backgroundColor: "#18191A",
                     borderRadius: "14px",
-                    border: "1px solid #C8A14A",
-                    color: "#FAFAF8",
+                    border: "1px solid #0866FF",
+                    color: "#E4E6EB",
                     fontSize: "12px",
                     boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
                   }}
@@ -309,16 +292,16 @@ export const OverviewView: React.FC = () => {
                 <Area
                   type="monotone"
                   dataKey="reach"
-                  stroke="#C8A14A"
+                  stroke="#0866FF"
                   strokeWidth={3}
                   fillOpacity={1}
-                  fill="url(#goldGradient)"
+                  fill="url(#metaBlueGradient)"
                   name="Impressions"
                 />
                 <Area
                   type="monotone"
                   dataKey="engagement"
-                  stroke="#111111"
+                  stroke="#7C3AED"
                   strokeWidth={2}
                   fillOpacity={1}
                   fill="url(#darkGradient)"
@@ -328,18 +311,18 @@ export const OverviewView: React.FC = () => {
             </ResponsiveContainer>
           </div>
 
-          <div className="flex items-center justify-between pt-4 border-t border-[#ECE8E1] dark:border-[#262623] text-xs text-[#5B5B5B] dark:text-[#A0A09B]">
+          <div className="flex items-center justify-between pt-4 border-t border-black/5 dark:border-white/10 text-xs text-[#65676B] dark:text-[#B0B3B8]">
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1.5 font-medium">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#C8A14A]" /> Reach (68.4K max)
+                <span className="w-2.5 h-2.5 rounded-full bg-[#0866FF]" /> Reach (68.4K max)
               </span>
               <span className="flex items-center gap-1.5 font-medium">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#111111] dark:bg-[#FAFAF8]" /> Engagements (9.4K max)
+                <span className="w-2.5 h-2.5 rounded-full bg-[#7C3AED]" /> Engagements (9.4K max)
               </span>
             </div>
             <button
               onClick={() => setCurrentView("analytics")}
-              className="text-[#C8A14A] hover:underline font-semibold flex items-center gap-1"
+              className="text-[#0866FF] hover:underline font-semibold flex items-center gap-1"
             >
               Deep Dive Analytics <ChevronRight className="w-3.5 h-3.5" />
             </button>
@@ -370,12 +353,12 @@ export const OverviewView: React.FC = () => {
               {aiInsights.map((ins) => (
                 <div
                   key={ins.id}
-                  className="p-3.5 rounded-2xl bg-white dark:bg-[#1C1C1A] border border-[#ECE8E1] dark:border-[#262623] space-y-2 hover:border-[#C8A14A] transition-all"
+                  className="p-3.5 rounded-2xl bg-white dark:bg-[#242526] border border-black/5 dark:border-white/10 space-y-2 hover:border-[#0866FF] transition-all"
                 >
-                  <span className="text-[9px] font-bold tracking-wider px-2 py-0.5 rounded-md bg-[#F9F5EC] dark:bg-[#262623] text-[#9F7A2F] dark:text-[#D7B45D]">
+                  <span className="text-[9px] font-bold tracking-wider px-2 py-0.5 rounded-md bg-[#0866FF]/10 text-[#0866FF]">
                     {ins.tag}
                   </span>
-                  <p className="text-xs font-semibold text-[#111111] dark:text-[#FAFAF8] leading-snug">
+                  <p className="text-xs font-semibold text-[#050505] dark:text-[#E4E6EB] leading-snug">
                     {ins.title}
                   </p>
                   <button
@@ -383,7 +366,7 @@ export const OverviewView: React.FC = () => {
                       setCurrentView(ins.route as any);
                       toast.success(`Navigated to ${ins.route}`);
                     }}
-                    className="text-[11px] font-bold text-[#C8A14A] hover:underline flex items-center gap-1 pt-1"
+                    className="text-[11px] font-bold text-[#0866FF] hover:underline flex items-center gap-1 pt-1"
                   >
                     {ins.action} <ArrowUpRight className="w-3 h-3" />
                   </button>
@@ -392,14 +375,14 @@ export const OverviewView: React.FC = () => {
             </div>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-[#ECE8E1] dark:border-[#262623] flex items-center justify-between">
+          <div className="mt-4 pt-4 border-t border-black/5 dark:border-white/10 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#22C55E]" />
-              <span className="text-xs text-[#5B5B5B] dark:text-[#A0A09B]">AI Engine Standby</span>
+              <div className="w-2 h-2 rounded-full bg-[#31A24C]" />
+              <span className="text-xs text-[#65676B] dark:text-[#B0B3B8]">AI Engine Standby</span>
             </div>
             <button
               onClick={() => setCurrentView("ai-studio")}
-              className="text-xs font-bold text-[#111111] dark:text-[#FAFAF8] hover:text-[#C8A14A]"
+              className="text-xs font-bold text-[#050505] dark:text-[#E4E6EB] hover:text-[#0866FF]"
             >
               Open Studio →
             </button>
@@ -410,36 +393,36 @@ export const OverviewView: React.FC = () => {
       {/* Bottom Grid: Recent Content & Quick Tools */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Content Stream */}
-        <div className="lg:col-span-2 luxury-card p-6 space-y-4 flex flex-col justify-between h-full">
+        <div className="lg:col-span-2 apple-card p-6 space-y-4 flex flex-col justify-between h-full">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-bold text-[#111111] dark:text-[#FAFAF8]">
+              <h3 className="text-base font-bold text-[#050505] dark:text-[#E4E6EB]">
                 Recent Content Stream
               </h3>
-              <p className="text-xs text-[#5B5B5B] dark:text-[#A0A09B]">
+              <p className="text-xs text-[#65676B] dark:text-[#B0B3B8]">
                 Track performance metrics for published and queued posts
               </p>
             </div>
             <button
               onClick={() => setCurrentView("posts")}
-              className="text-xs font-bold text-[#C8A14A] hover:underline"
+              className="text-xs font-bold text-[#0866FF] hover:underline"
             >
               View All Posts ({posts.length})
             </button>
           </div>
 
-          <div className="divide-y divide-[#ECE8E1] dark:divide-[#262623]">
+          <div className="divide-y divide-black/5 dark:divide-white/10">
             {posts.slice(0, 3).map((post) => (
               <div key={post.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#FAFAF8] dark:bg-[#1C1C1A] border border-[#ECE8E1] dark:border-[#262623] flex items-center justify-center shrink-0 text-[#C8A14A] font-bold text-xs">
+                  <div className="w-9 h-9 rounded-xl bg-[#F0F2F5] dark:bg-[#242526] border border-black/5 dark:border-white/10 flex items-center justify-center shrink-0 text-[#0866FF] font-bold text-xs">
                     {post.platform[0]}
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-[#111111] dark:text-[#FAFAF8]">
+                    <h4 className="text-xs font-bold text-[#050505] dark:text-[#E4E6EB]">
                       {post.title}
                     </h4>
-                    <p className="text-[11px] text-[#5B5B5B] dark:text-[#A0A09B] line-clamp-1">
+                    <p className="text-[11px] text-[#65676B] dark:text-[#B0B3B8] line-clamp-1">
                       {post.content}
                     </p>
                   </div>
@@ -449,19 +432,19 @@ export const OverviewView: React.FC = () => {
                   <span
                     className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
                       post.status === "Published"
-                        ? "bg-green-500/10 text-green-600"
+                        ? "bg-[#31A24C]/10 text-[#31A24C]"
                         : post.status === "Scheduled"
-                        ? "bg-amber-500/10 text-amber-600"
+                        ? "bg-[#0866FF]/10 text-[#0866FF]"
                         : "bg-gray-500/10 text-gray-600"
                     }`}
                   >
                     {post.status}
                   </span>
                   <div className="text-right">
-                    <span className="font-bold text-[#111111] dark:text-[#FAFAF8]">
+                    <span className="font-bold text-[#050505] dark:text-[#E4E6EB]">
                       {post.impressions}
                     </span>
-                    <span className="text-[10px] text-[#8A8A8A] block">impressions</span>
+                    <span className="text-[10px] text-[#8A8D91] block">impressions</span>
                   </div>
                 </div>
               </div>
@@ -470,40 +453,40 @@ export const OverviewView: React.FC = () => {
         </div>
 
         {/* AI Credits & Workspace Usage Meter */}
-        <div className="luxury-card p-6 flex flex-col justify-between h-full space-y-4">
+        <div className="apple-card p-6 flex flex-col justify-between h-full space-y-4">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold text-[#111111] dark:text-[#FAFAF8]">
+              <span className="text-xs font-bold text-[#050505] dark:text-[#E4E6EB]">
                 Monthly AI Generation Credits
               </span>
-              <span className="text-xs font-extrabold text-[#C8A14A]">
+              <span className="text-xs font-extrabold text-[#0866FF]">
                 14,250 / 20,000
               </span>
             </div>
 
             {/* Progress Bar */}
-            <div className="w-full h-2.5 bg-[#FAFAF8] dark:bg-[#1C1C1A] border border-[#ECE8E1] dark:border-[#262623] rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-[#C8A14A] to-[#D7B45D] rounded-full w-[71%]" />
+            <div className="w-full h-2.5 bg-[#F0F2F5] dark:bg-[#242526] border border-black/5 dark:border-white/10 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-[#0866FF] to-[#7C3AED] rounded-full w-[71%]" />
             </div>
-            <p className="text-[11px] text-[#5B5B5B] dark:text-[#A0A09B] mt-2">
+            <p className="text-[11px] text-[#65676B] dark:text-[#B0B3B8] mt-2">
               71% of Enterprise Pro quota used. Resets in 12 days.
             </p>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-[#FAFAF8] dark:bg-[#141413] border border-[#ECE8E1] dark:border-[#262623] space-y-2">
-            <div className="flex items-center gap-2 text-xs font-bold text-[#111111] dark:text-[#FAFAF8]">
-              <CheckCircle2 className="w-4 h-4 text-[#22C55E]" /> Custom Model Training Active
+          <div className="p-3.5 rounded-2xl bg-[#F0F2F5] dark:bg-[#242526] border border-black/5 dark:border-white/10 space-y-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#050505] dark:text-[#E4E6EB]">
+              <CheckCircle2 className="w-4 h-4 text-[#31A24C]" /> Custom Model Training Active
             </div>
-            <p className="text-[11px] text-[#5B5B5B] dark:text-[#A0A09B]">
+            <p className="text-[11px] text-[#65676B] dark:text-[#B0B3B8]">
               Your brand voice model is fine-tuned on 1,400+ historical posts.
             </p>
           </div>
 
           <button
             onClick={() => setCurrentView("settings")}
-            className="w-full btn-luxury-secondary py-2.5 text-xs flex items-center justify-center gap-2 font-semibold"
+            className="w-full rounded-full border border-black/10 dark:border-white/15 bg-white dark:bg-[#242526] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C] text-[#050505] dark:text-[#E4E6EB] py-2.5 text-xs flex items-center justify-center gap-2 font-semibold transition-colors"
           >
-            <Sliders className="w-3.5 h-3.5 text-[#C8A14A]" /> Manage Quota & Settings
+            <Sliders className="w-3.5 h-3.5 text-[#0866FF]" /> Manage Quota & Settings
           </button>
         </div>
       </div>

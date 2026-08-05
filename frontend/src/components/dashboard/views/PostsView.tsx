@@ -42,30 +42,30 @@ export const PostsView: React.FC = () => {
       >
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-semibold uppercase tracking-widest text-[#C8A14A]">
+            <span className="text-xs font-semibold uppercase tracking-widest text-[#0866FF]">
               Content Queue & Archive
             </span>
-            <span className="luxury-badge text-[9px] px-2 py-0.5 rounded-full">
+            <span className="apple-badge text-[9px] px-2 py-0.5 rounded-full">
               {posts.length} Total Posts
             </span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#111111] dark:text-[#FAFAF8]">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#050505] dark:text-[#E4E6EB]">
             Posts & Campaign Queue
           </h1>
-          <p className="text-sm text-[#5B5B5B] dark:text-[#A0A09B] mt-1">
+          <p className="text-sm text-[#65676B] dark:text-[#B0B3B8] mt-1">
             Inspect performance telemetry, edit drafts, and manage multi-channel publication status.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           {/* Table / Grid Toggle */}
-          <div className="flex items-center gap-1 p-1 rounded-2xl bg-[#FAFAF8] dark:bg-[#141413] border border-[#ECE8E1] dark:border-[#262623] text-xs">
+          <div className="flex items-center gap-1 p-1 rounded-2xl bg-[#F0F2F5] dark:bg-[#242526] border border-black/5 dark:border-white/10 text-xs">
             <button
               onClick={() => setViewMode("table")}
               className={`p-2 rounded-xl transition-all ${
                 viewMode === "table"
-                  ? "bg-[#111111] text-white dark:bg-[#FAFAF8] dark:text-[#111111]"
-                  : "text-[#5B5B5B] dark:text-[#A0A09B]"
+                  ? "bg-[#0866FF] text-white shadow-xs"
+                  : "text-[#65676B] dark:text-[#B0B3B8]"
               }`}
               title="Table View"
             >
@@ -75,8 +75,8 @@ export const PostsView: React.FC = () => {
               onClick={() => setViewMode("grid")}
               className={`p-2 rounded-xl transition-all ${
                 viewMode === "grid"
-                  ? "bg-[#111111] text-white dark:bg-[#FAFAF8] dark:text-[#111111]"
-                  : "text-[#5B5B5B] dark:text-[#A0A09B]"
+                  ? "bg-[#0866FF] text-white shadow-xs"
+                  : "text-[#65676B] dark:text-[#B0B3B8]"
               }`}
               title="Grid View"
             >
@@ -86,7 +86,7 @@ export const PostsView: React.FC = () => {
 
           <button
             onClick={() => setIsCreatePostModalOpen(true)}
-            className="btn-gold-primary px-5 py-2.5 text-xs flex items-center gap-2"
+            className="px-5 py-2.5 rounded-full bg-[#0866FF] hover:bg-[#1877F2] text-white font-semibold text-xs shadow-md flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             <span>Create New Post</span>
@@ -95,15 +95,15 @@ export const PostsView: React.FC = () => {
       </motion.div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 text-xs border-b border-[#ECE8E1] dark:border-[#262623]">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 text-xs border-b border-black/5 dark:border-white/10">
         {["All", "Published", "Scheduled", "Draft", "Failed"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 rounded-2xl font-bold transition-all ${
               activeTab === tab
-                ? "bg-[#111111] text-white dark:bg-[#FAFAF8] dark:text-[#111111] shadow-xs"
-                : "text-[#5B5B5B] dark:text-[#A0A09B] hover:text-[#111111] dark:hover:text-[#FAFAF8] hover:bg-[#FAFAF8] dark:hover:bg-[#141413]"
+                ? "bg-[#0866FF] text-white shadow-xs"
+                : "text-[#65676B] dark:text-[#B0B3B8] hover:text-[#050505] dark:hover:text-[#E4E6EB] hover:bg-[#F0F2F5] dark:hover:bg-[#242526]"
             }`}
           >
             {tab}
@@ -113,9 +113,9 @@ export const PostsView: React.FC = () => {
 
       {/* Posts Content */}
       {viewMode === "table" ? (
-        <div className="luxury-card overflow-hidden">
+        <div className="apple-card overflow-hidden">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#FAFAF8] dark:bg-[#141413] border-b border-[#ECE8E1] dark:border-[#262623] text-[#8A8A8A] font-bold uppercase tracking-wider">
+            <thead className="bg-[#F0F2F5] dark:bg-[#242526] border-b border-black/5 dark:border-white/10 text-[#8A8D91] font-bold uppercase tracking-wider">
               <tr>
                 <th className="py-3.5 px-4">Title & Content</th>
                 <th className="py-3.5 px-4">Platform</th>
@@ -126,41 +126,41 @@ export const PostsView: React.FC = () => {
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#ECE8E1] dark:divide-[#262623]">
+            <tbody className="divide-y divide-black/5 dark:divide-white/10">
               {filteredPosts.map((post) => (
                 <tr
                   key={post.id}
                   onClick={() => setSelectedPost(post)}
-                  className="hover:bg-[#FAFAF8] dark:hover:bg-[#141413] cursor-pointer transition-colors"
+                  className="hover:bg-[#F0F2F5]/50 dark:hover:bg-[#242526]/50 cursor-pointer transition-colors"
                 >
                   <td className="py-4 px-4 max-w-xs">
-                    <p className="font-bold text-[#111111] dark:text-[#FAFAF8] truncate">{post.title}</p>
-                    <p className="text-[#5B5B5B] dark:text-[#A0A09B] truncate text-[11px] mt-0.5">{post.content}</p>
+                    <p className="font-bold text-[#050505] dark:text-[#E4E6EB] truncate">{post.title}</p>
+                    <p className="text-[#65676B] dark:text-[#B0B3B8] truncate text-[11px] mt-0.5">{post.content}</p>
                   </td>
-                  <td className="py-4 px-4 font-semibold text-[#C8A14A]">{post.platform}</td>
+                  <td className="py-4 px-4 font-semibold text-[#0866FF]">{post.platform}</td>
                   <td className="py-4 px-4">
                     <span
                       className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
                         post.status === "Published"
-                          ? "bg-green-500/10 text-green-600"
+                          ? "bg-[#31A24C]/10 text-[#31A24C]"
                           : post.status === "Scheduled"
-                          ? "bg-amber-500/10 text-amber-600"
+                          ? "bg-[#0866FF]/10 text-[#0866FF]"
                           : "bg-gray-500/10 text-gray-600"
                       }`}
                     >
                       {post.status}
                     </span>
                   </td>
-                  <td className="py-4 px-4 font-bold text-[#111111] dark:text-[#FAFAF8]">{post.impressions}</td>
-                  <td className="py-4 px-4 font-semibold text-[#22C55E]">{post.engagement}</td>
-                  <td className="py-4 px-4 text-[#8A8A8A]">{post.scheduledTime}</td>
+                  <td className="py-4 px-4 font-bold text-[#050505] dark:text-[#E4E6EB]">{post.impressions}</td>
+                  <td className="py-4 px-4 font-semibold text-[#31A24C]">{post.engagement}</td>
+                  <td className="py-4 px-4 text-[#8A8D91]">{post.scheduledTime}</td>
                   <td className="py-4 px-4 text-right">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedPost(post);
                       }}
-                      className="text-xs font-bold text-[#C8A14A] hover:underline"
+                      className="text-xs font-bold text-[#0866FF] hover:underline"
                     >
                       Inspect Drawer →
                     </button>
@@ -177,30 +177,30 @@ export const PostsView: React.FC = () => {
             <div
               key={post.id}
               onClick={() => setSelectedPost(post)}
-              className="luxury-card p-6 flex flex-col justify-between space-y-4 cursor-pointer hover:border-[#C8A14A]"
+              className="apple-card p-6 flex flex-col justify-between space-y-4 cursor-pointer hover:border-[#0866FF]"
             >
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold text-[#C8A14A]">{post.platform}</span>
+                  <span className="text-xs font-bold text-[#0866FF]">{post.platform}</span>
                   <span
                     className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                       post.status === "Published"
-                        ? "bg-green-500/10 text-green-600"
+                        ? "bg-[#31A24C]/10 text-[#31A24C]"
                         : post.status === "Scheduled"
-                        ? "bg-amber-500/10 text-amber-600"
+                        ? "bg-[#0866FF]/10 text-[#0866FF]"
                         : "bg-gray-500/10 text-gray-600"
                     }`}
                   >
                     {post.status}
                   </span>
                 </div>
-                <h3 className="text-sm font-bold text-[#111111] dark:text-[#FAFAF8] mb-1">{post.title}</h3>
-                <p className="text-xs text-[#5B5B5B] dark:text-[#A0A09B] line-clamp-3">{post.content}</p>
+                <h3 className="text-sm font-bold text-[#050505] dark:text-[#E4E6EB] mb-1">{post.title}</h3>
+                <p className="text-xs text-[#65676B] dark:text-[#B0B3B8] line-clamp-3">{post.content}</p>
               </div>
 
-              <div className="pt-3 border-t border-[#ECE8E1] dark:border-[#262623] flex items-center justify-between text-xs">
-                <span className="text-[#8A8A8A]">{post.scheduledTime}</span>
-                <span className="font-bold text-[#111111] dark:text-[#FAFAF8]">{post.impressions} views</span>
+              <div className="pt-3 border-t border-black/5 dark:border-white/10 flex items-center justify-between text-xs">
+                <span className="text-[#8A8D91]">{post.scheduledTime}</span>
+                <span className="font-bold text-[#050505] dark:text-[#E4E6EB]">{post.impressions} views</span>
               </div>
             </div>
           ))}
@@ -216,17 +216,17 @@ export const PostsView: React.FC = () => {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="w-full max-w-md bg-white dark:bg-[#141413] border-l border-[#ECE8E1] dark:border-[#262623] h-full p-6 overflow-y-auto space-y-6 shadow-2xl flex flex-col justify-between"
+              className="w-full max-w-md bg-white dark:bg-[#18191A] border-l border-black/5 dark:border-white/10 h-full p-6 overflow-y-auto space-y-6 shadow-2xl flex flex-col justify-between"
             >
               <div className="space-y-6">
-                <div className="flex items-center justify-between border-b border-[#ECE8E1] dark:border-[#262623] pb-4">
+                <div className="flex items-center justify-between border-b border-black/5 dark:border-white/10 pb-4">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-[#C8A14A]" />
-                    <h3 className="text-base font-bold text-[#111111] dark:text-[#FAFAF8]">Post Inspection</h3>
+                    <Sparkles className="w-4 h-4 text-[#0866FF]" />
+                    <h3 className="text-base font-bold text-[#050505] dark:text-[#E4E6EB]">Post Inspection</h3>
                   </div>
                   <button
                     onClick={() => setSelectedPost(null)}
-                    className="p-1 rounded-xl border border-[#ECE8E1] dark:border-[#262623] text-[#5B5B5B] dark:text-[#A0A09B]"
+                    className="p-1 rounded-xl border border-black/5 dark:border-white/10 text-[#65676B] dark:text-[#B0B3B8]"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -234,40 +234,40 @@ export const PostsView: React.FC = () => {
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-[#8A8A8A]">Platform:</span>
-                    <span className="font-bold text-[#C8A14A]">{selectedPost.platform}</span>
+                    <span className="text-[#8A8D91]">Platform:</span>
+                    <span className="font-bold text-[#0866FF]">{selectedPost.platform}</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-[#8A8A8A]">Status:</span>
-                    <span className="font-bold text-[#111111] dark:text-[#FAFAF8]">{selectedPost.status}</span>
+                    <span className="text-[#8A8D91]">Status:</span>
+                    <span className="font-bold text-[#050505] dark:text-[#E4E6EB]">{selectedPost.status}</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-[#8A8A8A]">Schedule:</span>
-                    <span className="font-bold text-[#111111] dark:text-[#FAFAF8]">{selectedPost.scheduledTime}</span>
+                    <span className="text-[#8A8D91]">Schedule:</span>
+                    <span className="font-bold text-[#050505] dark:text-[#E4E6EB]">{selectedPost.scheduledTime}</span>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-[#FAFAF8] dark:bg-[#1C1C1A] border border-[#ECE8E1] dark:border-[#262623] text-sm text-[#111111] dark:text-[#FAFAF8] space-y-2">
+                <div className="p-4 rounded-2xl bg-[#F0F2F5] dark:bg-[#242526] border border-black/5 dark:border-white/10 text-sm text-[#050505] dark:text-[#E4E6EB] space-y-2">
                   <h4 className="font-bold">{selectedPost.title}</h4>
-                  <p className="text-xs text-[#5B5B5B] dark:text-[#A0A09B]">{selectedPost.content}</p>
+                  <p className="text-xs text-[#65676B] dark:text-[#B0B3B8]">{selectedPost.content}</p>
                 </div>
 
                 {/* Telemetry Numbers */}
                 <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="p-3 rounded-xl bg-[#FAFAF8] dark:bg-[#1C1C1A] border border-[#ECE8E1] dark:border-[#262623]">
-                    <Heart className="w-3.5 h-3.5 text-[#C8A14A] mx-auto mb-1" />
-                    <span className="text-xs font-extrabold text-[#111111] dark:text-[#FAFAF8] block">{selectedPost.likes}</span>
-                    <span className="text-[9px] text-[#8A8A8A]">Likes</span>
+                  <div className="p-3 rounded-xl bg-[#F0F2F5] dark:bg-[#242526] border border-black/5 dark:border-white/10">
+                    <Heart className="w-3.5 h-3.5 text-[#0866FF] mx-auto mb-1" />
+                    <span className="text-xs font-extrabold text-[#050505] dark:text-[#E4E6EB] block">{selectedPost.likes}</span>
+                    <span className="text-[9px] text-[#8A8D91]">Likes</span>
                   </div>
-                  <div className="p-3 rounded-xl bg-[#FAFAF8] dark:bg-[#1C1C1A] border border-[#ECE8E1] dark:border-[#262623]">
-                    <MessageSquare className="w-3.5 h-3.5 text-[#C8A14A] mx-auto mb-1" />
-                    <span className="text-xs font-extrabold text-[#111111] dark:text-[#FAFAF8] block">{selectedPost.comments}</span>
-                    <span className="text-[9px] text-[#8A8A8A]">Comments</span>
+                  <div className="p-3 rounded-xl bg-[#F0F2F5] dark:bg-[#242526] border border-black/5 dark:border-white/10">
+                    <MessageSquare className="w-3.5 h-3.5 text-[#0866FF] mx-auto mb-1" />
+                    <span className="text-xs font-extrabold text-[#050505] dark:text-[#E4E6EB] block">{selectedPost.comments}</span>
+                    <span className="text-[9px] text-[#8A8D91]">Comments</span>
                   </div>
-                  <div className="p-3 rounded-xl bg-[#FAFAF8] dark:bg-[#1C1C1A] border border-[#ECE8E1] dark:border-[#262623]">
-                    <Share2 className="w-3.5 h-3.5 text-[#C8A14A] mx-auto mb-1" />
-                    <span className="text-xs font-extrabold text-[#111111] dark:text-[#FAFAF8] block">{selectedPost.shares}</span>
-                    <span className="text-[9px] text-[#8A8A8A]">Shares</span>
+                  <div className="p-3 rounded-xl bg-[#F0F2F5] dark:bg-[#242526] border border-black/5 dark:border-white/10">
+                    <Share2 className="w-3.5 h-3.5 text-[#0866FF] mx-auto mb-1" />
+                    <span className="text-xs font-extrabold text-[#050505] dark:text-[#E4E6EB] block">{selectedPost.shares}</span>
+                    <span className="text-[9px] text-[#8A8D91]">Shares</span>
                   </div>
                 </div>
               </div>
@@ -277,7 +277,7 @@ export const PostsView: React.FC = () => {
                   toast.success("Post updated in queue!");
                   setSelectedPost(null);
                 }}
-                className="w-full btn-gold-primary py-2.5 text-xs font-bold"
+                className="w-full rounded-full bg-[#0866FF] hover:bg-[#1877F2] text-white py-2.5 text-xs font-bold shadow-md"
               >
                 Close & Save Changes
               </button>

@@ -92,7 +92,7 @@ export const ClientPageLauncher: React.FC = () => {
         <CreatePostModal />
 
         {/* Main SaaS Platform App Shell */}
-        <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] relative selection:bg-[#C8A14A] selection:text-white transition-colors duration-300">
+        <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] relative selection:bg-[#0866FF] selection:text-white transition-colors duration-300">
           <Sidebar />
           <TopNavbar />
           <main

@@ -82,22 +82,22 @@ export const ReportsView: React.FC = () => {
       >
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-semibold uppercase tracking-widest text-[#C8A14A]">
+            <span className="text-xs font-semibold uppercase tracking-widest text-[#0866FF]">
               Automated Intelligence Exports
             </span>
-            <span className="luxury-badge text-[9px] px-2 py-0.5 rounded-full">Executive Ready</span>
+            <span className="apple-badge text-[9px] px-2 py-0.5 rounded-full">Executive Ready</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#111111] dark:text-[#FAFAF8]">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#050505] dark:text-[#E4E6EB]">
             Reports & Export Center
           </h1>
-          <p className="text-sm text-[#5B5B5B] dark:text-[#A0A09B] mt-1">
+          <p className="text-sm text-[#65676B] dark:text-[#B0B3B8] mt-1">
             Generate, inspect, and schedule white-labeled executive PDF reports and raw CSV telemetry exports.
           </p>
         </div>
 
         <button
           onClick={() => handleOpenPdf("Custom Executive Report")}
-          className="btn-gold-primary px-5 py-2.5 text-xs flex items-center gap-2"
+          className="px-5 py-2.5 rounded-full bg-[#0866FF] hover:bg-[#1877F2] text-white font-semibold text-xs shadow-md flex items-center gap-2"
         >
           <Sparkles className="w-4 h-4" />
           <span>Generate New Report</span>
@@ -109,40 +109,40 @@ export const ReportsView: React.FC = () => {
         {reportTemplates.map((report) => (
           <div
             key={report.id}
-            className="luxury-card p-6 flex flex-col justify-between space-y-4 hover:border-[#C8A14A]"
+            className="apple-card p-6 flex flex-col justify-between space-y-4 hover:border-[#0866FF]"
           >
             <div>
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[10px] font-extrabold tracking-wider uppercase px-2.5 py-1 rounded-md bg-[#F9F5EC] dark:bg-[#262623] text-[#9F7A2F] dark:text-[#D7B45D]">
+                <span className="text-[10px] font-extrabold tracking-wider uppercase px-2.5 py-1 rounded-md bg-[#0866FF]/10 text-[#0866FF]">
                   {report.type}
                 </span>
-                <span className="text-xs text-[#8A8A8A]">{report.date}</span>
+                <span className="text-xs text-[#8A8D91]">{report.date}</span>
               </div>
 
-              <h3 className="text-base font-bold text-[#111111] dark:text-[#FAFAF8] mb-1">
+              <h3 className="text-base font-bold text-[#050505] dark:text-[#E4E6EB] mb-1">
                 {report.title}
               </h3>
-              <p className="text-xs text-[#5B5B5B] dark:text-[#A0A09B] leading-relaxed">
+              <p className="text-xs text-[#65676B] dark:text-[#B0B3B8] leading-relaxed">
                 {report.desc}
               </p>
             </div>
 
-            <div className="pt-4 border-t border-[#ECE8E1] dark:border-[#262623] flex items-center justify-between">
-              <span className="text-xs text-[#8A8A8A] font-medium">{report.pages} pages • Generated</span>
+            <div className="pt-4 border-t border-black/5 dark:border-white/10 flex items-center justify-between">
+              <span className="text-xs text-[#8A8D91] font-medium">{report.pages} pages • Generated</span>
 
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => handleOpenPdf(report.title)}
-                  className="px-3.5 py-1.5 rounded-xl border border-[#ECE8E1] dark:border-[#262623] bg-white dark:bg-[#1C1C1A] text-xs font-semibold text-[#111111] dark:text-[#FAFAF8] hover:border-[#C8A14A] flex items-center gap-1.5"
+                  className="px-3.5 py-1.5 rounded-xl border border-black/5 dark:border-white/10 bg-white dark:bg-[#242526] text-xs font-semibold text-[#050505] dark:text-[#E4E6EB] hover:border-[#0866FF] flex items-center gap-1.5"
                 >
-                  <Eye className="w-3.5 h-3.5 text-[#C8A14A]" />
+                  <Eye className="w-3.5 h-3.5 text-[#0866FF]" />
                   <span>Preview PDF</span>
                 </button>
 
                 <button
                   onClick={() => handleExport("csv", report.title)}
                   disabled={exportMutation.isPending}
-                  className="p-2 rounded-xl border border-[#ECE8E1] dark:border-[#262623] text-[#5B5B5B] dark:text-[#A0A09B] hover:border-[#C8A14A]"
+                  className="p-2 rounded-xl border border-black/5 dark:border-white/10 text-[#65676B] dark:text-[#B0B3B8] hover:border-[#0866FF]"
                   title="Download Raw Data"
                 >
                   <Download className="w-4 h-4" />

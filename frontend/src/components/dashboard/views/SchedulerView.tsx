@@ -54,28 +54,28 @@ export const SchedulerView: React.FC = () => {
       >
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-semibold uppercase tracking-widest text-[#C8A14A]">
+            <span className="text-xs font-semibold uppercase tracking-widest text-[#0866FF]">
               Publication Timeline
             </span>
-            <span className="luxury-badge text-[9px] px-2 py-0.5 rounded-full">Multi-channel Sync</span>
+            <span className="apple-badge text-[9px] px-2 py-0.5 rounded-full">Multi-channel Sync</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#111111] dark:text-[#FAFAF8]">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#050505] dark:text-[#E4E6EB]">
             Content Calendar & Schedule
           </h1>
-          <p className="text-sm text-[#5B5B5B] dark:text-[#A0A09B] mt-1">
+          <p className="text-sm text-[#65676B] dark:text-[#B0B3B8] mt-1">
             Visualize, queue, and rearrange multi-channel posts with automated peak-time delivery.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           {/* Month / Agenda Toggle */}
-          <div className="flex items-center gap-1 p-1 rounded-2xl bg-[#FAFAF8] dark:bg-[#141413] border border-[#ECE8E1] dark:border-[#262623] text-xs">
+          <div className="flex items-center gap-1 p-1 rounded-2xl bg-[#F0F2F5] dark:bg-[#242526] border border-black/5 dark:border-white/10 text-xs">
             <button
               onClick={() => setViewMode("month")}
               className={`px-3 py-1.5 rounded-xl font-semibold transition-all ${
                 viewMode === "month"
-                  ? "bg-[#111111] text-white dark:bg-[#FAFAF8] dark:text-[#111111]"
-                  : "text-[#5B5B5B] dark:text-[#A0A09B]"
+                  ? "bg-[#0866FF] text-white shadow-xs"
+                  : "text-[#65676B] dark:text-[#B0B3B8]"
               }`}
             >
               Month View
@@ -84,8 +84,8 @@ export const SchedulerView: React.FC = () => {
               onClick={() => setViewMode("agenda")}
               className={`px-3 py-1.5 rounded-xl font-semibold transition-all ${
                 viewMode === "agenda"
-                  ? "bg-[#111111] text-white dark:bg-[#FAFAF8] dark:text-[#111111]"
-                  : "text-[#5B5B5B] dark:text-[#A0A09B]"
+                  ? "bg-[#0866FF] text-white shadow-xs"
+                  : "text-[#65676B] dark:text-[#B0B3B8]"
               }`}
             >
               Agenda List
@@ -94,7 +94,7 @@ export const SchedulerView: React.FC = () => {
 
           <button
             onClick={() => setIsCreatePostModalOpen(true)}
-            className="btn-gold-primary px-5 py-2.5 text-xs flex items-center gap-2"
+            className="px-5 py-2.5 rounded-full bg-[#0866FF] hover:bg-[#1877F2] text-white font-semibold text-xs shadow-md flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             <span>Schedule Post</span>
@@ -103,22 +103,22 @@ export const SchedulerView: React.FC = () => {
       </motion.div>
 
       {/* Calendar Toolbar */}
-      <div className="flex items-center justify-between p-4 luxury-card">
+      <div className="flex items-center justify-between p-4 apple-card">
         <div className="flex items-center gap-3">
-          <CalendarIcon className="w-5 h-5 text-[#C8A14A]" />
-          <h2 className="text-lg font-extrabold text-[#111111] dark:text-[#FAFAF8]">
+          <CalendarIcon className="w-5 h-5 text-[#0866FF]" />
+          <h2 className="text-lg font-extrabold text-[#050505] dark:text-[#E4E6EB]">
             {currentMonth}
           </h2>
         </div>
 
         <div className="flex items-center gap-2">
-          <button className="p-2 rounded-xl border border-[#ECE8E1] dark:border-[#262623] bg-[#FAFAF8] dark:bg-[#141413] text-[#111111] dark:text-[#FAFAF8] hover:border-[#C8A14A]">
+          <button className="p-2 rounded-xl border border-black/5 dark:border-white/10 bg-[#F0F2F5] dark:bg-[#242526] text-[#050505] dark:text-[#E4E6EB] hover:border-[#0866FF]">
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <button className="px-3 py-1.5 rounded-xl border border-[#ECE8E1] dark:border-[#262623] text-xs font-bold text-[#111111] dark:text-[#FAFAF8]">
+          <button className="px-3 py-1.5 rounded-xl border border-black/5 dark:border-white/10 text-xs font-bold text-[#050505] dark:text-[#E4E6EB]">
             Today
           </button>
-          <button className="p-2 rounded-xl border border-[#ECE8E1] dark:border-[#262623] bg-[#FAFAF8] dark:bg-[#141413] text-[#111111] dark:text-[#FAFAF8] hover:border-[#C8A14A]">
+          <button className="p-2 rounded-xl border border-black/5 dark:border-white/10 bg-[#F0F2F5] dark:bg-[#242526] text-[#050505] dark:text-[#E4E6EB] hover:border-[#0866FF]">
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
@@ -126,9 +126,9 @@ export const SchedulerView: React.FC = () => {
 
       {/* Calendar Body */}
       {viewMode === "month" ? (
-        <div className="luxury-card p-4 overflow-x-auto">
+        <div className="apple-card p-4 overflow-x-auto">
           {/* Days of Week Header */}
-          <div className="grid grid-cols-7 gap-2 mb-2 text-center text-xs font-bold text-[#8A8A8A] uppercase tracking-wider">
+          <div className="grid grid-cols-7 gap-2 mb-2 text-center text-xs font-bold text-[#8A8D91] uppercase tracking-wider">
             {daysOfWeek.map((day) => (
               <div key={day} className="py-2">{day}</div>
             ))}
@@ -142,34 +142,34 @@ export const SchedulerView: React.FC = () => {
                 onClick={() => handleSlotClick(item.day)}
                 className={`min-h-[110px] p-2.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between group ${
                   item.day === 7
-                    ? "bg-[#F9F5EC] dark:bg-[#262623] border-[#C8A14A]"
-                    : "bg-[#FAFAF8]/50 dark:bg-[#141413]/50 border-[#ECE8E1] dark:border-[#262623] hover:border-[#C8A14A]"
+                    ? "bg-[#0866FF]/10 dark:bg-[#0866FF]/20 border-[#0866FF]"
+                    : "bg-[#F0F2F5]/50 dark:bg-[#242526]/50 border-black/5 dark:border-white/10 hover:border-[#0866FF]"
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span
                     className={`text-xs font-extrabold ${
                       item.day === 7
-                        ? "text-[#C8A14A]"
-                        : "text-[#111111] dark:text-[#FAFAF8]"
+                        ? "text-[#0866FF]"
+                        : "text-[#050505] dark:text-[#E4E6EB]"
                     }`}
                   >
                     {item.day}
                   </span>
-                  <Plus className="w-3 h-3 text-[#8A8A8A] opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <Plus className="w-3 h-3 text-[#8A8D91] opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
 
                 <div className="space-y-1 my-1">
                   {item.events.map((evt, idx) => (
                     <div
                       key={idx}
-                      className="p-1.5 rounded-xl bg-white dark:bg-[#1C1C1A] border border-[#C8A14A]/30 text-[10px] space-y-0.5 shadow-xs"
+                      className="p-1.5 rounded-xl bg-white dark:bg-[#18191A] border border-[#0866FF]/30 text-[10px] space-y-0.5 shadow-xs"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-[#C8A14A] truncate">{evt.platform}</span>
-                        <span className="text-[8px] font-semibold text-[#8A8A8A]">{evt.time}</span>
+                        <span className="font-bold text-[#0866FF] truncate">{evt.platform}</span>
+                        <span className="text-[8px] font-semibold text-[#8A8D91]">{evt.time}</span>
                       </div>
-                      <p className="font-medium text-[#111111] dark:text-[#FAFAF8] truncate">
+                      <p className="font-medium text-[#050505] dark:text-[#E4E6EB] truncate">
                         {evt.title}
                       </p>
                     </div>
@@ -181,22 +181,22 @@ export const SchedulerView: React.FC = () => {
         </div>
       ) : (
         /* Agenda View List */
-        <div className="luxury-card p-6 divide-y divide-[#ECE8E1] dark:divide-[#262623]">
+        <div className="apple-card p-6 divide-y divide-black/5 dark:divide-white/10">
           {posts.map((post) => (
             <div key={post.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-2xl bg-[#FAFAF8] dark:bg-[#141413] border border-[#ECE8E1] dark:border-[#262623] flex items-center justify-center text-[#C8A14A] font-bold text-sm">
+                <div className="w-10 h-10 rounded-2xl bg-[#F0F2F5] dark:bg-[#242526] border border-black/5 dark:border-white/10 flex items-center justify-center text-[#0866FF] font-bold text-sm">
                   {post.platform[0]}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-[#C8A14A]">{post.platform}</span>
-                    <span className="text-xs text-[#8A8A8A]">• {post.scheduledTime}</span>
+                    <span className="text-xs font-bold text-[#0866FF]">{post.platform}</span>
+                    <span className="text-xs text-[#8A8D91]">• {post.scheduledTime}</span>
                   </div>
-                  <h3 className="text-sm font-bold text-[#111111] dark:text-[#FAFAF8] mt-0.5">
+                  <h3 className="text-sm font-bold text-[#050505] dark:text-[#E4E6EB] mt-0.5">
                     {post.title}
                   </h3>
-                  <p className="text-xs text-[#5B5B5B] dark:text-[#A0A09B] mt-1">
+                  <p className="text-xs text-[#65676B] dark:text-[#B0B3B8] mt-1">
                     {post.content}
                   </p>
                 </div>

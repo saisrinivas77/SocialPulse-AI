@@ -37,22 +37,22 @@ export const TeamView: React.FC = () => {
       >
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-semibold uppercase tracking-widest text-[#C8A14A]">
+            <span className="text-xs font-semibold uppercase tracking-widest text-[#0866FF]">
               Role-Based Access Control
             </span>
-            <span className="luxury-badge text-[9px] px-2 py-0.5 rounded-full">{teamMembers.length} Members Active</span>
+            <span className="apple-badge text-[9px] px-2 py-0.5 rounded-full">{teamMembers.length} Members Active</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#111111] dark:text-[#FAFAF8]">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#050505] dark:text-[#E4E6EB]">
             Team & Permissions
           </h1>
-          <p className="text-sm text-[#5B5B5B] dark:text-[#A0A09B] mt-1">
+          <p className="text-sm text-[#65676B] dark:text-[#B0B3B8] mt-1">
             Manage workspace seats, invite collaborators, and configure granular enterprise permissions.
           </p>
         </div>
 
         <button
           onClick={() => setIsInviteTeamModalOpen(true)}
-          className="btn-gold-primary px-5 py-2.5 text-xs flex items-center gap-2"
+          className="px-5 py-2.5 rounded-full bg-[#0866FF] hover:bg-[#1877F2] text-white font-semibold text-xs shadow-md flex items-center gap-2"
         >
           <UserPlus className="w-4 h-4" />
           <span>Invite Team Member</span>
@@ -60,37 +60,37 @@ export const TeamView: React.FC = () => {
       </motion.div>
 
       {/* Team Members List */}
-      <div className="luxury-card overflow-hidden">
-        <div className="p-4 border-b border-[#ECE8E1] dark:border-[#262623] flex items-center justify-between">
-          <h3 className="text-base font-bold text-[#111111] dark:text-[#FAFAF8]">Active Team Members</h3>
-          <span className="text-xs text-[#8A8A8A]">Pulse Enterprise Workspace</span>
+      <div className="apple-card overflow-hidden">
+        <div className="p-4 border-b border-black/5 dark:border-white/10 flex items-center justify-between">
+          <h3 className="text-base font-bold text-[#050505] dark:text-[#E4E6EB]">Active Team Members</h3>
+          <span className="text-xs text-[#8A8D91]">Pulse Enterprise Workspace</span>
         </div>
 
-        <div className="divide-y divide-[#ECE8E1] dark:divide-[#262623]">
+        <div className="divide-y divide-black/5 dark:divide-white/10">
           {teamMembers.map((member) => (
             <div key={member.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <img
                   src={member.avatar}
                   alt={member.name}
-                  className="w-10 h-10 rounded-2xl object-cover border border-[#C8A14A]"
+                  className="w-10 h-10 rounded-2xl object-cover border border-[#0866FF]"
                 />
                 <div>
                   <div className="flex items-center gap-2">
-                    <h4 className="text-sm font-bold text-[#111111] dark:text-[#FAFAF8]">{member.name}</h4>
-                    <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#F9F5EC] dark:bg-[#262623] text-[#9F7A2F] dark:text-[#D7B45D]">
+                    <h4 className="text-sm font-bold text-[#050505] dark:text-[#E4E6EB]">{member.name}</h4>
+                    <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#0866FF]/10 text-[#0866FF]">
                       {member.role}
                     </span>
                   </div>
-                  <p className="text-xs text-[#5B5B5B] dark:text-[#A0A09B] mt-0.5">{member.email}</p>
+                  <p className="text-xs text-[#65676B] dark:text-[#B0B3B8] mt-0.5">{member.email}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-4 text-xs">
-                <span className="text-[#8A8A8A]">Active {member.lastActive}</span>
+                <span className="text-[#8A8D91]">Active {member.lastActive}</span>
                 <button
                   onClick={() => toast.info(`Editing settings for ${member.name}`)}
-                  className="px-3 py-1.5 rounded-xl border border-[#ECE8E1] dark:border-[#262623] font-semibold text-[#111111] dark:text-[#FAFAF8] hover:border-[#C8A14A]"
+                  className="px-3 py-1.5 rounded-xl border border-black/5 dark:border-white/10 font-semibold text-[#050505] dark:text-[#E4E6EB] hover:border-[#0866FF]"
                 >
                   Manage Seat
                 </button>
@@ -101,9 +101,9 @@ export const TeamView: React.FC = () => {
       </div>
 
       {/* Permissions Matrix */}
-      <div className="luxury-card p-6 space-y-4">
+      <div className="apple-card p-6 space-y-4">
         <div className="flex items-center gap-2">
-          <Shield className="w-5 h-5 text-[#C8A14A]" />
+          <Shield className="w-5 h-5 text-[#0866FF]" />
           <h3 className="text-base font-bold text-[#111111] dark:text-[#FAFAF8]">
             Granular Role Permissions Matrix
           </h3>

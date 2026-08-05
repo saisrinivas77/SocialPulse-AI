@@ -85,40 +85,21 @@ function FadeUp({ children, delay = 0, className = "" }: { children: React.React
 function MeshBackground() {
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      {/* Base dark layer */}
-      <div className="absolute inset-0 bg-[#060608]" />
-      {/* Animated blobs */}
+      {/* Base layer */}
+      <div className="absolute inset-0 bg-[#FFFFFF] dark:bg-[#18191A]" />
+      {/* Animated subtle Meta blue blobs */}
       <motion.div
-        className="absolute -top-60 -left-60 w-[900px] h-[900px] rounded-full opacity-25"
-        style={{ background: "radial-gradient(circle, #C8A14A22 0%, #C8A14A08 40%, transparent 70%)" }}
+        className="absolute -top-60 -left-60 w-[900px] h-[900px] rounded-full opacity-30 dark:opacity-20"
+        style={{ background: "radial-gradient(circle, rgba(8, 102, 255, 0.15) 0%, rgba(8, 102, 255, 0.03) 40%, transparent 70%)" }}
         animate={{ scale: [1, 1.12, 1], rotate: [0, 15, 0] }}
         transition={{ duration: 24, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
-        className="absolute top-1/2 -right-60 w-[700px] h-[700px] rounded-full opacity-20"
-        style={{ background: "radial-gradient(circle, #8B5CF630 0%, #8B5CF610 40%, transparent 70%)" }}
+        className="absolute top-1/2 -right-60 w-[700px] h-[700px] rounded-full opacity-25 dark:opacity-15"
+        style={{ background: "radial-gradient(circle, rgba(124, 58, 237, 0.12) 0%, rgba(124, 58, 237, 0.02) 40%, transparent 70%)" }}
         animate={{ scale: [1, 1.15, 1], rotate: [0, -12, 0] }}
         transition={{ duration: 30, repeat: Infinity, ease: "easeInOut", delay: 5 }}
       />
-      <motion.div
-        className="absolute -bottom-60 left-1/3 w-[600px] h-[600px] rounded-full opacity-15"
-        style={{ background: "radial-gradient(circle, #3B82F625 0%, transparent 70%)" }}
-        animate={{ scale: [1, 1.2, 1] }}
-        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 10 }}
-      />
-      {/* Grid overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.028]"
-        style={{
-          backgroundImage: `
-            linear-gradient(to right, #C8A14A 1px, transparent 1px),
-            linear-gradient(to bottom, #C8A14A 1px, transparent 1px)
-          `,
-          backgroundSize: "72px 72px",
-        }}
-      />
-      {/* Vignette */}
-      <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 0%, transparent 50%, #060608 100%)" }} />
     </div>
   );
 }
@@ -142,7 +123,7 @@ function Particles() {
           style={{
             left: `${p.x}%`, top: `${p.y}%`,
             width: p.size, height: p.size,
-            background: p.id % 3 === 0 ? "#C8A14A" : p.id % 3 === 1 ? "#8B5CF6" : "#3B82F6",
+            background: p.id % 3 === 0 ? "#0866FF" : p.id % 3 === 1 ? "#7C3AED" : "#1877F2",
             opacity: 0.15,
           }}
           animate={{ y: [0, -45, 0], opacity: [0.07, 0.22, 0.07] }}
@@ -173,7 +154,7 @@ function MouseSpotlight() {
         background: useTransform(
           [sx, sy],
           ([x, y]: number[]) =>
-            `radial-gradient(800px circle at ${x}px ${y}px, rgba(200,161,74,0.05) 0%, transparent 65%)`
+            `radial-gradient(800px circle at ${x}px ${y}px, rgba(8,102,255,0.05) 0%, transparent 65%)`
         ),
       }}
     />
@@ -203,18 +184,18 @@ function Nav({ onLaunch }: { onLaunch: () => void }) {
       transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
       className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "bg-[#060608]/90 backdrop-blur-2xl border-b border-white/[0.06] shadow-[0_4px_32px_rgba(0,0,0,0.4)]"
+          ? "bg-white/80 dark:bg-[#18191A]/80 backdrop-blur-xl border-b border-black/5 dark:border-white/10 shadow-sm"
           : "bg-transparent"
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#C8A14A] to-[#9F7A2F] flex items-center justify-center shadow-[0_0_20px_rgba(200,161,74,0.4)]">
-            <Zap className="w-4.5 h-4.5 text-black fill-black" />
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#0866FF] to-[#7C3AED] flex items-center justify-center shadow-md shadow-blue-500/20">
+            <Zap className="w-4 h-4 text-white fill-white" />
           </div>
-          <span className="font-black text-white tracking-tight text-[15px]">
-            SocialPulse <span className="text-[#C8A14A]">AI</span>
+          <span className="font-black text-[#050505] dark:text-white tracking-tight text-[15px]">
+            SocialPulse <span className="text-[#0866FF]">AI</span>
           </span>
         </div>
 
@@ -222,7 +203,7 @@ function Nav({ onLaunch }: { onLaunch: () => void }) {
         <nav className="hidden md:flex items-center gap-8">
           {links.map((l) => (
             <a key={l} href={`#${l.toLowerCase()}`}
-              className="text-[13px] font-medium text-white/50 hover:text-white/90 transition-colors">
+              className="text-[13px] font-medium text-[#65676B] dark:text-white/60 hover:text-[#0866FF] dark:hover:text-white transition-colors">
               {l}
             </a>
           ))}
@@ -230,21 +211,21 @@ function Nav({ onLaunch }: { onLaunch: () => void }) {
 
         {/* Actions */}
         <div className="hidden md:flex items-center gap-3">
-          <a href="/login" className="text-[13px] font-medium text-white/50 hover:text-white transition-colors">
+          <a href="/login" className="text-[13px] font-medium text-[#65676B] dark:text-white/60 hover:text-[#0866FF] transition-colors">
             Sign In
           </a>
           <motion.button
             onClick={onLaunch}
-            whileHover={{ scale: 1.04, y: -1 }}
+            whileHover={{ scale: 1.03, y: -1 }}
             whileTap={{ scale: 0.97 }}
-            className="flex items-center gap-1.5 bg-gradient-to-r from-[#C8A14A] to-[#9F7A2F] text-black text-[13px] font-bold px-5 py-2.5 rounded-full shadow-[0_0_20px_rgba(200,161,74,0.35)] hover:shadow-[0_0_30px_rgba(200,161,74,0.5)] transition-all"
+            className="flex items-center gap-1.5 bg-[#0866FF] hover:bg-[#1877F2] text-white text-[13px] font-bold px-5 py-2 rounded-full shadow-md shadow-blue-500/25 transition-all"
           >
             Launch Workspace <ArrowRight className="w-3.5 h-3.5" />
           </motion.button>
         </div>
 
         {/* Mobile toggle */}
-        <button className="md:hidden text-white/80" onClick={() => setMobileOpen(!mobileOpen)}>
+        <button className="md:hidden text-[#050505] dark:text-white/80" onClick={() => setMobileOpen(!mobileOpen)}>
           {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
@@ -255,18 +236,18 @@ function Nav({ onLaunch }: { onLaunch: () => void }) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-[#0A0A0C]/95 backdrop-blur-2xl border-t border-white/[0.06] px-6 py-5 space-y-4"
+            className="md:hidden bg-white/95 dark:bg-[#18191A]/95 backdrop-blur-2xl border-t border-black/5 dark:border-white/10 px-6 py-5 space-y-4"
           >
             {links.map((l) => (
               <a key={l} href={`#${l.toLowerCase()}`}
                 onClick={() => setMobileOpen(false)}
-                className="block text-sm font-medium text-white/60 hover:text-white">
+                className="block text-sm font-medium text-[#65676B] dark:text-white/60 hover:text-[#0866FF]">
                 {l}
               </a>
             ))}
             <button
               onClick={onLaunch}
-              className="w-full bg-gradient-to-r from-[#C8A14A] to-[#9F7A2F] text-black text-sm font-bold py-3 rounded-full"
+              className="w-full bg-[#0866FF] hover:bg-[#1877F2] text-white text-sm font-bold py-3 rounded-full shadow-md"
             >
               Launch Workspace
             </button>
@@ -339,9 +320,9 @@ function HeroDashboardMock() {
   }, []);
 
   return (
-    <div className="relative rounded-2xl overflow-hidden border border-white/[0.08] shadow-[0_32px_80px_rgba(0,0,0,0.6),0_0_0_1px_rgba(200,161,74,0.08)] bg-[#0D0D10]">
+    <div className="relative rounded-2xl overflow-hidden border border-white/[0.08] shadow-[0_32px_80px_rgba(0,0,0,0.6),0_0_0_1px_rgba(8,102,255,0.15)] bg-[#0D0D10]">
       {/* Glow border top */}
-      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#C8A14A]/60 to-transparent" />
+      <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#0866FF]/60 to-transparent" />
 
       {/* Browser chrome */}
       <div className="flex items-center gap-2 px-4 py-2.5 bg-[#0A0A0D] border-b border-white/[0.05]">
@@ -361,16 +342,16 @@ function HeroDashboardMock() {
       <div className="p-4 flex gap-4">
         {/* Sidebar */}
         <div className="hidden sm:flex flex-col gap-1 w-32 flex-shrink-0">
-          <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-[#C8A14A] to-[#9F7A2F] flex items-center justify-center mb-3 shadow-[0_0_12px_rgba(200,161,74,0.3)]">
-            <Zap className="w-3.5 h-3.5 text-black fill-black" />
+          <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-[#0866FF] to-[#7C3AED] flex items-center justify-center mb-3 shadow-md shadow-blue-500/20">
+            <Zap className="w-3.5 h-3.5 text-white fill-white" />
           </div>
           {["Overview", "Analytics", "AI Studio", "Scheduler", "Posts", "Security"].map((item) => (
             <div key={item}
               className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[10px] font-medium ${
-                item === "Overview" ? "bg-[#C8A14A]/15 text-[#C8A14A]" : "text-white/30"
+                item === "Overview" ? "bg-[#0866FF]/15 text-[#0866FF]" : "text-white/30"
               }`}
             >
-              <div className={`w-1 h-1 rounded-full ${item === "Overview" ? "bg-[#C8A14A]" : "bg-white/20"}`} />
+              <div className={`w-1 h-1 rounded-full ${item === "Overview" ? "bg-[#0866FF]" : "bg-white/20"}`} />
               {item}
             </div>
           ))}
@@ -381,10 +362,10 @@ function HeroDashboardMock() {
           {/* Stat row */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {[
-              { label: "Total Reach", val: `${reach.toFixed(2)}M`, trend: "+12.4%", color: "#C8A14A" },
-              { label: "Engagement", val: `${eng.toFixed(1)}%`, trend: "+3.1%", color: "#8B5CF6" },
+              { label: "Total Reach", val: `${reach.toFixed(2)}M`, trend: "+12.4%", color: "#0866FF" },
+              { label: "Engagement", val: `${eng.toFixed(1)}%`, trend: "+3.1%", color: "#7C3AED" },
               { label: "AI Posts", val: "3,248", trend: "+18.7%", color: "#10B981" },
-              { label: "Revenue", val: "$84.5K", trend: "+9.3%", color: "#3B82F6" },
+              { label: "Revenue", val: "$84.5K", trend: "+9.3%", color: "#1877F2" },
             ].map((s, i) => (
               <motion.div
                 key={s.label}
@@ -416,9 +397,9 @@ function HeroDashboardMock() {
                   className="flex-1 rounded-t-[2px]"
                   style={{
                     background: i === bars.length - 1
-                      ? "linear-gradient(to top, #C8A14A, #D7B45D)"
+                      ? "linear-gradient(to top, #0866FF, #7C3AED)"
                       : i > bars.length - 4
-                        ? "rgba(200,161,74,0.3)"
+                        ? "rgba(8,102,255,0.3)"
                         : "rgba(255,255,255,0.06)"
                   }}
                 />
@@ -453,11 +434,11 @@ function Hero({ onLaunch }: { onLaunch: () => void }) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.1 }}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#C8A14A]/25 bg-[#C8A14A]/10 backdrop-blur-sm mb-8"
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#0866FF]/25 bg-[#0866FF]/10 backdrop-blur-sm mb-8"
       >
-        <PulseDot color="#C8A14A" />
-        <Sparkles className="w-3 h-3 text-[#C8A14A]" />
-        <span className="text-[10.5px] font-bold tracking-[0.15em] text-[#C8A14A] uppercase">
+        <PulseDot color="#0866FF" />
+        <Sparkles className="w-3.5 h-3.5 text-[#0866FF]" />
+        <span className="text-[10.5px] font-bold tracking-[0.15em] text-[#0866FF] uppercase">
           AI-Powered Social Intelligence Platform
         </span>
       </motion.div>
@@ -467,17 +448,11 @@ function Hero({ onLaunch }: { onLaunch: () => void }) {
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-        className="max-w-5xl text-5xl sm:text-6xl md:text-7xl lg:text-[86px] font-black text-white leading-[1.02] tracking-[-0.045em]"
+        className="max-w-5xl text-5xl sm:text-6xl md:text-7xl lg:text-[86px] font-black text-[#050505] dark:text-white leading-[1.02] tracking-[-0.045em]"
       >
         Turn Social Noise{" "}
         <br className="hidden sm:block" />
-        <span
-          style={{
-            background: "linear-gradient(135deg, #D7B45D 0%, #C8A14A 40%, #9F7A2F 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-          }}
-        >
+        <span className="meta-gradient-text">
           into Revenue.
         </span>
       </motion.h1>
@@ -487,7 +462,7 @@ function Hero({ onLaunch }: { onLaunch: () => void }) {
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.38 }}
-        className="mt-6 max-w-2xl text-lg sm:text-xl text-white/45 leading-relaxed font-light"
+        className="mt-6 max-w-2xl text-lg sm:text-xl text-[#65676B] dark:text-white/45 leading-relaxed font-light"
       >
         One command center for analytics, AI content generation, scheduling and predictive growth —
         across every social network your brand lives on.
@@ -502,11 +477,11 @@ function Hero({ onLaunch }: { onLaunch: () => void }) {
       >
         <motion.button
           onClick={onLaunch}
-          whileHover={{ scale: 1.05, y: -2 }}
+          whileHover={{ scale: 1.04, y: -2 }}
           whileTap={{ scale: 0.97 }}
-          className="group flex items-center gap-2 bg-gradient-to-r from-[#C8A14A] to-[#9F7A2F] text-black px-8 py-4 rounded-full font-black text-sm shadow-[0_0_30px_rgba(200,161,74,0.4)] hover:shadow-[0_0_50px_rgba(200,161,74,0.6)] transition-all"
+          className="group flex items-center gap-2 bg-[#0866FF] hover:bg-[#1877F2] text-white px-8 py-4 rounded-full font-black text-sm shadow-lg shadow-blue-500/25 transition-all"
         >
-          <Zap className="w-4 h-4 fill-black" />
+          <Zap className="w-4 h-4 fill-white" />
           Launch Workspace
           <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
         </motion.button>
@@ -515,10 +490,10 @@ function Hero({ onLaunch }: { onLaunch: () => void }) {
           href="#features"
           whileHover={{ scale: 1.03, y: -2 }}
           whileTap={{ scale: 0.97 }}
-          className="group flex items-center gap-2.5 px-8 py-4 rounded-full font-semibold text-sm text-white/70 border border-white/[0.12] bg-white/[0.04] backdrop-blur-sm hover:border-white/25 hover:text-white transition-all"
+          className="group flex items-center gap-2.5 px-8 py-4 rounded-full font-semibold text-sm text-[#050505] dark:text-white/70 border border-black/10 dark:border-white/[0.12] bg-[#F0F2F5] dark:bg-white/[0.04] backdrop-blur-sm hover:border-[#0866FF] hover:text-[#0866FF] dark:hover:text-white transition-all"
         >
-          <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center">
-            <Play className="w-2.5 h-2.5 fill-white ml-0.5" />
+          <div className="w-5 h-5 rounded-full bg-[#0866FF]/10 flex items-center justify-center">
+            <Play className="w-2.5 h-2.5 fill-[#0866FF] text-[#0866FF] ml-0.5" />
           </div>
           See How It Works
         </motion.a>
@@ -529,17 +504,17 @@ function Hero({ onLaunch }: { onLaunch: () => void }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.75 }}
-        className="mt-8 flex items-center gap-3 text-[12.5px] text-white/35"
+        className="mt-8 flex items-center gap-3 text-[12.5px] text-[#65676B] dark:text-white/35"
       >
         <div className="flex -space-x-2">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="w-7 h-7 rounded-full border-2 border-[#060608] bg-gradient-to-br from-[#C8A14A]/40 to-[#8B5CF6]/40" />
+            <div key={i} className="w-7 h-7 rounded-full border-2 border-white dark:border-[#060608] bg-gradient-to-br from-[#0866FF]/40 to-[#7C3AED]/40" />
           ))}
         </div>
         <div className="flex gap-0.5">
-          {[1, 2, 3, 4, 5].map((i) => <Star key={i} className="w-3 h-3 fill-[#C8A14A] text-[#C8A14A]" />)}
+          {[1, 2, 3, 4, 5].map((i) => <Star key={i} className="w-3 h-3 fill-[#0866FF] text-[#0866FF]" />)}
         </div>
-        <span>Loved by <span className="text-white/60 font-semibold">marketing teams worldwide</span></span>
+        <span>Loved by <span className="text-[#050505] dark:text-white/60 font-semibold">marketing teams worldwide</span></span>
       </motion.div>
 
       {/* Live ticker */}
@@ -547,13 +522,13 @@ function Hero({ onLaunch }: { onLaunch: () => void }) {
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.9 }}
-        className="mt-5 flex items-center gap-3 px-4 py-2 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-sm text-[11.5px] max-w-lg overflow-hidden"
+        className="mt-5 flex items-center gap-3 px-4 py-2 rounded-full border border-black/5 dark:border-white/[0.08] bg-[#F0F2F5] dark:bg-white/[0.03] backdrop-blur-sm text-[11.5px] max-w-lg overflow-hidden"
       >
-        <div className="flex items-center gap-1.5 text-emerald-400 font-bold whitespace-nowrap">
+        <div className="flex items-center gap-1.5 text-emerald-500 font-bold whitespace-nowrap">
           <PulseDot color="#10B981" />
           Live
         </div>
-        <Radio className="w-3 h-3 text-white/20 flex-shrink-0" />
+        <Radio className="w-3 h-3 text-[#65676B] dark:text-white/20 flex-shrink-0" />
         <LiveTicker />
       </motion.div>
 
@@ -566,7 +541,7 @@ function Hero({ onLaunch }: { onLaunch: () => void }) {
       >
         <HeroDashboardMock />
         {/* Glow below */}
-        <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-[#C8A14A]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-[#0866FF]/10 rounded-full blur-3xl pointer-events-none" />
       </motion.div>
 
       {/* Scroll cue */}
@@ -633,10 +608,10 @@ function PlatformMarquee() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const METRICS = [
-  { prefix: "", target: 12400, suffix: "+", label: "Workspaces Created", sub: "since global launch", color: "#C8A14A" },
-  { prefix: "", target: 8, suffix: "", label: "Platforms Supported", sub: "Instagram to Pinterest", color: "#8B5CF6" },
+  { prefix: "", target: 12400, suffix: "+", label: "Workspaces Created", sub: "since global launch", color: "#0866FF" },
+  { prefix: "", target: 8, suffix: "", label: "Platforms Supported", sub: "Instagram to Pinterest", color: "#7C3AED" },
   { prefix: "", target: 99, suffix: ".9%", label: "System Reliability", sub: "across all services", color: "#10B981" },
-  { prefix: "", target: 3200, suffix: "+", label: "AI Posts / Day", sub: "generated by the platform", color: "#3B82F6" },
+  { prefix: "", target: 3200, suffix: "+", label: "AI Posts / Day", sub: "generated by the platform", color: "#1877F2" },
 ];
 
 function MetricsStrip() {
@@ -644,7 +619,7 @@ function MetricsStrip() {
     <section className="py-20 px-6">
       <div className="max-w-5xl mx-auto">
         <FadeUp className="text-center mb-12">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/25">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#65676B] dark:text-white/25">
             Platform performance
           </p>
         </FadeUp>
@@ -659,17 +634,17 @@ function MetricsStrip() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
-                className="relative bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6 text-center hover:border-white/[0.14] transition-all group"
+                className="relative bg-white dark:bg-white/[0.03] border border-black/5 dark:border-white/[0.07] rounded-2xl p-6 text-center hover:border-[#0866FF]/30 transition-all group shadow-sm"
               >
                 <div
                   className="absolute inset-x-0 top-0 h-[1px] rounded-t-2xl opacity-60"
                   style={{ background: `linear-gradient(90deg, transparent, ${m.color}, transparent)` }}
                 />
-                <div className="text-3xl md:text-4xl font-black text-white tabular-nums">
+                <div className="text-3xl md:text-4xl font-black text-[#050505] dark:text-white tabular-nums">
                   {m.prefix}{count.toLocaleString()}{m.suffix}
                 </div>
-                <div className="text-sm font-bold text-white/60 mt-1">{m.label}</div>
-                <div className="text-[10px] text-white/25 mt-0.5">{m.sub}</div>
+                <div className="text-sm font-bold text-[#65676B] dark:text-white/60 mt-1">{m.label}</div>
+                <div className="text-[10px] text-[#8A8D91] dark:text-white/25 mt-0.5">{m.sub}</div>
               </motion.div>
             );
           })}
@@ -687,12 +662,12 @@ const FEATURES = [
   {
     icon: BarChart3, title: "Real-Time Analytics", span: "col-span-2",
     desc: "Live dashboards with sub-second updates tracking reach, engagement density, follower growth, and audience shifts across every platform simultaneously.",
-    color: "#C8A14A", accent: "from-[#C8A14A]/10",
+    color: "#0866FF", accent: "from-[#0866FF]/10",
     preview: (
-      <div className="mt-4 flex items-end gap-1 h-12 opacity-60">
+      <div className="mt-4 flex items-end gap-1 h-12 opacity-80">
         {[30, 55, 40, 70, 50, 88, 62, 94, 78, 86, 71, 98].map((h, i) => (
           <div key={i} className="flex-1 rounded-t-[2px]"
-            style={{ height: `${h}%`, background: i > 9 ? "#C8A14A" : "rgba(200,161,74,0.2)" }} />
+            style={{ height: `${h}%`, background: i > 9 ? "#0866FF" : "rgba(8,102,255,0.2)" }} />
         ))}
       </div>
     ),
@@ -700,7 +675,7 @@ const FEATURES = [
   {
     icon: Brain, title: "AI Content Studio", span: "col-span-1",
     desc: "Generate viral captions, hashtags, and full campaigns using advanced language models trained on 100M high-performing posts.",
-    color: "#8B5CF6", accent: "from-[#8B5CF6]/10",
+    color: "#7C3AED", accent: "from-[#7C3AED]/10",
   },
   {
     icon: TrendingUp, title: "Predictive Intelligence", span: "col-span-1",
@@ -710,16 +685,16 @@ const FEATURES = [
   {
     icon: Globe2, title: "Universal Publishing", span: "col-span-1",
     desc: "Schedule and publish to all 8 platforms from one command center, with drag-and-drop calendar and auto-optimized timing.",
-    color: "#3B82F6", accent: "from-[#3B82F6]/10",
+    color: "#1877F2", accent: "from-[#1877F2]/10",
   },
   {
     icon: Shield, title: "Enterprise Security", span: "col-span-2",
     desc: "SOC 2 Type II certified. GDPR compliant. Full SSO, OAuth 2.0, session tracking, device revocation, audit logs, and RBAC built in out of the box.",
-    color: "#EF4444", accent: "from-[#EF4444]/10",
+    color: "#FA383E", accent: "from-[#FA383E]/10",
     preview: (
-      <div className="mt-4 flex flex-wrap gap-1.5 opacity-60">
+      <div className="mt-4 flex flex-wrap gap-1.5 opacity-80">
         {["SSO", "RBAC", "SOC 2", "GDPR", "MFA", "Audit"].map((t) => (
-          <span key={t} className="px-2 py-0.5 rounded-full border border-red-500/20 bg-red-500/10 text-[9px] font-bold text-red-400">
+          <span key={t} className="px-2 py-0.5 rounded-full border border-red-500/20 bg-red-500/10 text-[9px] font-bold text-red-500">
             {t}
           </span>
         ))}
@@ -733,20 +708,17 @@ function FeatureBento() {
     <section id="features" className="py-24 px-6">
       <div className="max-w-6xl mx-auto">
         <FadeUp className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/[0.08] bg-white/[0.04] mb-6">
-            <Layers className="w-3.5 h-3.5 text-[#C8A14A]" />
-            <span className="text-[10.5px] font-bold tracking-[0.15em] text-white/50 uppercase">Platform Capabilities</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#0866FF]/20 bg-[#0866FF]/10 mb-6">
+            <Layers className="w-3.5 h-3.5 text-[#0866FF]" />
+            <span className="text-[10.5px] font-bold tracking-[0.15em] text-[#0866FF] uppercase">Platform Capabilities</span>
           </div>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-tight">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-[#050505] dark:text-white tracking-tight leading-tight">
             Everything you need to{" "}
-            <span style={{
-              background: "linear-gradient(135deg, #C8A14A, #D7B45D, #9F7A2F)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-            }}>
+            <span className="meta-gradient-text">
               dominate social.
             </span>
           </h2>
-          <p className="mt-4 text-white/40 text-lg max-w-xl mx-auto">
+          <p className="mt-4 text-[#65676B] dark:text-white/40 text-lg max-w-xl mx-auto">
             One platform to analyze, create, schedule, and grow across every social network — powered by enterprise-grade AI.
           </p>
         </FadeUp>
@@ -762,7 +734,7 @@ function FeatureBento() {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.09, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
                 whileHover={{ y: -4 }}
-                className={`relative bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6 overflow-hidden group transition-all hover:border-white/[0.14] hover:shadow-[0_0_40px_rgba(0,0,0,0.4)] ${f.span}`}
+                className={`relative bg-white dark:bg-white/[0.03] border border-black/5 dark:border-white/[0.07] rounded-2xl p-6 overflow-hidden group transition-all hover:border-[#0866FF]/30 hover:shadow-lg ${f.span}`}
               >
                 {/* Gradient bg */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${f.accent} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
@@ -775,8 +747,8 @@ function FeatureBento() {
                     style={{ background: `${f.color}18`, border: `1px solid ${f.color}25` }}>
                     <Icon className="w-5 h-5" style={{ color: f.color }} />
                   </div>
-                  <h3 className="font-bold text-white text-base mb-2">{f.title}</h3>
-                  <p className="text-[12.5px] text-white/40 leading-relaxed">{f.desc}</p>
+                  <h3 className="font-bold text-[#050505] dark:text-white text-base mb-2">{f.title}</h3>
+                  <p className="text-[12.5px] text-[#65676B] dark:text-white/40 leading-relaxed">{f.desc}</p>
                   {f.preview}
                 </div>
               </motion.div>
@@ -800,40 +772,41 @@ const HOW_STEPS = [
 
 function HowItWorks() {
   return (
-    <section id="solutions" className="py-24 px-6 border-t border-white/[0.05]">
+    <section id="solutions" className="py-24 px-6 border-t border-black/5 dark:border-white/[0.05]">
       <div className="max-w-5xl mx-auto">
         <FadeUp className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/[0.08] bg-white/[0.04] mb-6">
-            <RefreshCw className="w-3.5 h-3.5 text-[#C8A14A]" />
-            <span className="text-[10.5px] font-bold tracking-[0.15em] text-white/50 uppercase">How It Works</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#0866FF]/20 bg-[#0866FF]/10 mb-6">
+            <RefreshCw className="w-3.5 h-3.5 text-[#0866FF]" />
+            <span className="text-[10.5px] font-bold tracking-[0.15em] text-[#0866FF] uppercase">How It Works</span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight">
-            From zero to growth in <span style={{ color: "#C8A14A" }}>3 steps.</span>
+          <h2 className="text-4xl md:text-5xl font-black text-[#050505] dark:text-white tracking-tight">
+            From zero to growth in <span className="text-[#0866FF]">3 steps.</span>
           </h2>
         </FadeUp>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
           {/* Connector line */}
-          <div className="hidden md:block absolute top-10 left-1/6 right-1/6 h-[1px] bg-gradient-to-r from-[#C8A14A]/30 via-[#8B5CF6]/30 to-[#10B981]/30 pointer-events-none" />
+          <div className="hidden md:block absolute top-10 left-1/6 right-1/6 h-[1px] bg-gradient-to-r from-[#0866FF]/30 via-[#7C3AED]/30 to-[#10B981]/30 pointer-events-none" />
 
           {HOW_STEPS.map((step, i) => {
             const Icon = step.icon;
+            const stepColor = step.num === "01" ? "#0866FF" : step.color;
             return (
               <FadeUp key={step.num} delay={i * 0.15}>
-                <div className="relative bg-white/[0.03] border border-white/[0.07] rounded-2xl p-7 text-center hover:border-white/[0.14] transition-all group">
+                <div className="relative bg-white dark:bg-white/[0.03] border border-black/5 dark:border-white/[0.07] rounded-2xl p-7 text-center hover:border-[#0866FF]/30 transition-all group shadow-sm">
                   {/* Number badge */}
                   <div
                     className="w-12 h-12 rounded-2xl mx-auto mb-5 flex items-center justify-center text-sm font-black border group-hover:scale-105 transition-transform"
-                    style={{ background: `${step.color}15`, borderColor: `${step.color}30`, color: step.color }}
+                    style={{ background: `${stepColor}15`, borderColor: `${stepColor}30`, color: stepColor }}
                   >
                     {step.num}
                   </div>
                   <div className="w-8 h-8 rounded-xl mx-auto mb-4 flex items-center justify-center"
-                    style={{ background: `${step.color}10` }}>
-                    <Icon className="w-4 h-4" style={{ color: step.color }} />
+                    style={{ background: `${stepColor}10` }}>
+                    <Icon className="w-4 h-4" style={{ color: stepColor }} />
                   </div>
-                  <h3 className="font-bold text-white text-base mb-2">{step.title}</h3>
-                  <p className="text-[12.5px] text-white/40 leading-relaxed">{step.desc}</p>
+                  <h3 className="font-bold text-[#050505] dark:text-white text-base mb-2">{step.title}</h3>
+                  <p className="text-[12.5px] text-[#65676B] dark:text-white/40 leading-relaxed">{step.desc}</p>
                 </div>
               </FadeUp>
             );
@@ -852,12 +825,12 @@ const TESTIMONIALS = [
   {
     quote: "SocialPulse AI is the only analytics platform that actually feels designed for enterprise marketing teams. The AI is genuinely useful, not just a gimmick.",
     name: "Alex Morgan", role: "Head of Growth", company: "Series C SaaS",
-    initials: "AM", color: "#C8A14A",
+    initials: "AM", color: "#0866FF",
   },
   {
     quote: "Our content team went from spending 4 hours a day on captions and scheduling to 30 minutes. The predictive posting time alone pays for itself.",
     name: "Priya Shah", role: "Marketing Director", company: "Luma Inc.",
-    initials: "PS", color: "#8B5CF6",
+    initials: "PS", color: "#7C3AED",
   },
   {
     quote: "The dashboard is polished enough for a board presentation but fast enough for the team to use every morning. That balance is incredibly rare.",
@@ -868,15 +841,15 @@ const TESTIMONIALS = [
 
 function Testimonials() {
   return (
-    <section className="py-24 px-6 border-t border-white/[0.05]">
+    <section className="py-24 px-6 border-t border-black/5 dark:border-white/[0.05]">
       <div className="max-w-6xl mx-auto">
         <FadeUp className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/[0.08] bg-white/[0.04] mb-6">
-            <Star className="w-3.5 h-3.5 text-[#C8A14A] fill-[#C8A14A]" />
-            <span className="text-[10.5px] font-bold tracking-[0.15em] text-white/50 uppercase">What customers say</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#0866FF]/20 bg-[#0866FF]/10 mb-6">
+            <Star className="w-3.5 h-3.5 text-[#0866FF] fill-[#0866FF]" />
+            <span className="text-[10.5px] font-bold tracking-[0.15em] text-[#0866FF] uppercase">What customers say</span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight">
-            Loved by <span style={{ color: "#C8A14A" }}>marketing leaders.</span>
+          <h2 className="text-4xl md:text-5xl font-black text-[#050505] dark:text-white tracking-tight">
+            Loved by <span className="meta-gradient-text">marketing leaders.</span>
           </h2>
         </FadeUp>
 
@@ -888,22 +861,22 @@ function Testimonials() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-              className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-7 flex flex-col justify-between hover:border-white/[0.14] transition-all"
+              className="bg-white dark:bg-white/[0.03] border border-black/5 dark:border-white/[0.07] rounded-2xl p-7 flex flex-col justify-between hover:border-[#0866FF]/30 transition-all shadow-sm"
             >
               <div>
                 <div className="flex gap-0.5 mb-5">
-                  {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="w-3.5 h-3.5 fill-[#C8A14A] text-[#C8A14A]" />)}
+                  {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="w-3.5 h-3.5 fill-[#0866FF] text-[#0866FF]" />)}
                 </div>
-                <p className="text-[13.5px] text-white/60 leading-relaxed italic">"{t.quote}"</p>
+                <p className="text-[13.5px] text-[#050505] dark:text-white/60 leading-relaxed italic">"{t.quote}"</p>
               </div>
-              <div className="flex items-center gap-3 pt-6 mt-6 border-t border-white/[0.06]">
+              <div className="flex items-center gap-3 pt-6 mt-6 border-t border-black/5 dark:border-white/[0.06]">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-black"
                   style={{ background: `${t.color}20`, color: t.color, border: `1px solid ${t.color}30` }}>
                   {t.initials}
                 </div>
                 <div>
-                  <div className="text-sm font-bold text-white">{t.name}</div>
-                  <div className="text-[11px] text-white/35">{t.role} · {t.company}</div>
+                  <div className="text-sm font-bold text-[#050505] dark:text-white">{t.name}</div>
+                  <div className="text-[11px] text-[#65676B] dark:text-white/35">{t.role} · {t.company}</div>
                 </div>
               </div>
             </motion.div>
@@ -942,30 +915,30 @@ const PLANS = [
 function Pricing({ onLaunch }: { onLaunch: () => void }) {
   const [annual, setAnnual] = useState(true);
   return (
-    <section id="pricing" className="py-24 px-6 border-t border-white/[0.05]">
+    <section id="pricing" className="py-24 px-6 border-t border-black/5 dark:border-white/[0.05]">
       <div className="max-w-5xl mx-auto">
         <FadeUp className="text-center mb-14">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/[0.08] bg-white/[0.04] mb-6">
-            <Layers className="w-3.5 h-3.5 text-[#C8A14A]" />
-            <span className="text-[10.5px] font-bold tracking-[0.15em] text-white/50 uppercase">Transparent Pricing</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#0866FF]/20 bg-[#0866FF]/10 mb-6">
+            <Layers className="w-3.5 h-3.5 text-[#0866FF]" />
+            <span className="text-[10.5px] font-bold tracking-[0.15em] text-[#0866FF] uppercase">Transparent Pricing</span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight">
-            Invest in <span style={{ color: "#C8A14A" }}>predictable growth.</span>
+          <h2 className="text-4xl md:text-5xl font-black text-[#050505] dark:text-white tracking-tight">
+            Invest in <span className="meta-gradient-text">predictable growth.</span>
           </h2>
           {/* Billing toggle */}
-          <div className="mt-8 inline-flex items-center gap-2 p-1.5 rounded-full bg-white/[0.04] border border-white/[0.08]">
+          <div className="mt-8 inline-flex items-center gap-2 p-1.5 rounded-full bg-[#F0F2F5] dark:bg-white/[0.04] border border-black/5 dark:border-white/[0.08]">
             {[false, true].map((isAnnual) => (
               <button
                 key={String(isAnnual)}
                 onClick={() => setAnnual(isAnnual)}
                 className={`px-5 py-2 rounded-full text-[12px] font-bold transition-all ${
                   annual === isAnnual
-                    ? "bg-gradient-to-r from-[#C8A14A] to-[#9F7A2F] text-black shadow-lg"
-                    : "text-white/40 hover:text-white/70"
+                    ? "bg-[#0866FF] text-white shadow-md"
+                    : "text-[#65676B] dark:text-white/40 hover:text-[#050505]"
                 }`}
               >
                 {isAnnual ? (
-                  <span className="flex items-center gap-1.5">Annual <span className="text-[9px] bg-black/30 px-1.5 py-0.5 rounded-full">SAVE 20%</span></span>
+                  <span className="flex items-center gap-1.5">Annual <span className="text-[9px] bg-white/20 text-white px-1.5 py-0.5 rounded-full">SAVE 20%</span></span>
                 ) : "Monthly"}
               </button>
             ))}
@@ -982,29 +955,29 @@ function Pricing({ onLaunch }: { onLaunch: () => void }) {
               transition={{ delay: i * 0.1, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
               className={`relative rounded-2xl p-7 flex flex-col justify-between border transition-all ${
                 plan.highlight
-                  ? "bg-gradient-to-b from-[#C8A14A]/10 to-transparent border-[#C8A14A]/40 shadow-[0_0_50px_rgba(200,161,74,0.15)]"
-                  : "bg-white/[0.03] border-white/[0.07] hover:border-white/[0.14]"
+                  ? "bg-white dark:bg-[#242526] border-[#0866FF] shadow-lg shadow-blue-500/10 ring-2 ring-[#0866FF]/20"
+                  : "bg-white dark:bg-white/[0.03] border-black/5 dark:border-white/[0.07] hover:border-[#0866FF]/30"
               }`}
             >
               {plan.badge && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#C8A14A] to-[#9F7A2F] text-black text-[10px] font-black uppercase tracking-wider px-4 py-1 rounded-full flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 fill-black" /> {plan.badge}
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#0866FF] text-white text-[10px] font-black uppercase tracking-wider px-4 py-1 rounded-full shadow-md flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 fill-white" /> {plan.badge}
                 </div>
               )}
               <div>
-                <h3 className="text-xl font-bold text-white mb-1">{plan.name}</h3>
-                <p className="text-[11.5px] text-white/35 mb-5">{plan.desc}</p>
+                <h3 className="text-xl font-bold text-[#050505] dark:text-white mb-1">{plan.name}</h3>
+                <p className="text-[11.5px] text-[#65676B] dark:text-white/35 mb-5">{plan.desc}</p>
                 <div className="flex items-baseline gap-1 mb-6">
-                  <span className="text-4xl font-black text-white">
+                  <span className="text-4xl font-black text-[#050505] dark:text-white">
                     ${annual ? plan.price_y : plan.price_m}
                   </span>
-                  <span className="text-white/30 text-sm">/ month</span>
+                  <span className="text-[#65676B] dark:text-white/30 text-sm">/ month</span>
                 </div>
                 <div className="space-y-2.5">
                   {plan.features.map((f) => (
-                    <div key={f} className="flex items-center gap-2.5 text-[12.5px] text-white/55">
-                      <div className="w-4 h-4 rounded-full bg-[#C8A14A]/15 flex items-center justify-center flex-shrink-0">
-                        <Check className="w-2.5 h-2.5 text-[#C8A14A]" />
+                    <div key={f} className="flex items-center gap-2.5 text-[12.5px] text-[#050505] dark:text-white/55">
+                      <div className="w-4 h-4 rounded-full bg-[#0866FF]/10 flex items-center justify-center flex-shrink-0">
+                        <Check className="w-2.5 h-2.5 text-[#0866FF]" />
                       </div>
                       {f}
                     </div>
@@ -1017,8 +990,8 @@ function Pricing({ onLaunch }: { onLaunch: () => void }) {
                 whileTap={{ scale: 0.98 }}
                 className={`mt-7 w-full py-3.5 rounded-xl text-[13px] font-bold flex items-center justify-center gap-2 transition-all ${
                   plan.highlight
-                    ? "bg-gradient-to-r from-[#C8A14A] to-[#9F7A2F] text-black shadow-[0_0_20px_rgba(200,161,74,0.35)]"
-                    : "bg-white/[0.06] border border-white/[0.1] text-white hover:bg-white/[0.1]"
+                    ? "bg-[#0866FF] hover:bg-[#1877F2] text-white shadow-md shadow-blue-500/25"
+                    : "bg-[#F0F2F5] dark:bg-white/[0.06] border border-black/5 dark:border-white/[0.1] text-[#050505] dark:text-white hover:bg-[#E4E6EB]"
                 }`}
               >
                 Get Started <ArrowRight className="w-4 h-4" />
@@ -1037,47 +1010,44 @@ function Pricing({ onLaunch }: { onLaunch: () => void }) {
 
 function FinalCTA({ onLaunch }: { onLaunch: () => void }) {
   return (
-    <section id="enterprise" className="py-28 px-6 border-t border-white/[0.05]">
+    <section id="enterprise" className="py-28 px-6 border-t border-black/5 dark:border-white/[0.05]">
       <div className="max-w-4xl mx-auto text-center">
         <FadeUp>
           {/* Glow */}
           <div className="relative inline-block mb-8">
-            <div className="absolute inset-0 blur-3xl bg-[#C8A14A]/20 rounded-full scale-150" />
-            <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-[#C8A14A] to-[#9F7A2F] flex items-center justify-center mx-auto shadow-[0_0_40px_rgba(200,161,74,0.5)]">
-              <Zap className="w-8 h-8 fill-black text-black" />
+            <div className="absolute inset-0 blur-3xl bg-[#0866FF]/20 rounded-full scale-150" />
+            <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#0866FF] to-[#7C3AED] flex items-center justify-center mx-auto shadow-lg shadow-blue-500/30">
+              <Zap className="w-8 h-8 fill-white text-white" />
             </div>
           </div>
 
-          <h2 className="text-5xl md:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.04]">
+          <h2 className="text-5xl md:text-6xl lg:text-7xl font-black text-[#050505] dark:text-white tracking-tight leading-[1.04]">
             Ready to grow<br />
-            <span style={{
-              background: "linear-gradient(135deg, #D7B45D, #C8A14A, #9F7A2F)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-            }}>
+            <span className="meta-gradient-text">
               intelligently?
             </span>
           </h2>
-          <p className="mt-6 text-white/40 text-xl max-w-xl mx-auto leading-relaxed">
+          <p className="mt-6 text-[#65676B] dark:text-white/40 text-xl max-w-xl mx-auto leading-relaxed">
             Join thousands of marketing teams using SocialPulse AI to grow faster, smarter, and at scale.
           </p>
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
             <motion.button
               onClick={onLaunch}
-              whileHover={{ scale: 1.05, y: -3 }}
+              whileHover={{ scale: 1.04, y: -3 }}
               whileTap={{ scale: 0.97 }}
-              className="group flex items-center gap-2.5 bg-gradient-to-r from-[#C8A14A] to-[#9F7A2F] text-black px-9 py-4.5 rounded-full font-black text-sm shadow-[0_0_40px_rgba(200,161,74,0.4)] hover:shadow-[0_0_60px_rgba(200,161,74,0.6)] transition-all"
+              className="group flex items-center gap-2.5 bg-[#0866FF] hover:bg-[#1877F2] text-white px-9 py-4 rounded-full font-black text-sm shadow-lg shadow-blue-500/25 transition-all"
             >
-              <Zap className="w-4 h-4 fill-black" />
+              <Zap className="w-4 h-4 fill-white" />
               Launch Workspace — Free
               <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </motion.button>
           </div>
 
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-6 text-[12px] text-white/25">
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-6 text-[12px] text-[#65676B] dark:text-white/25">
             {["No credit card required", "14-day free trial", "Cancel anytime"].map((t) => (
               <span key={t} className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> {t}
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#31A24C]" /> {t}
               </span>
             ))}
           </div>
@@ -1125,35 +1095,35 @@ function Footer({ onLaunch }: { onLaunch: () => void }) {
   ];
 
   return (
-    <footer className="border-t border-white/[0.05] py-16 px-6 bg-[#040406]">
+    <footer className="border-t border-black/5 dark:border-white/[0.05] py-16 px-6 bg-[#FFFFFF] dark:bg-[#18191A]">
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-10 mb-12">
           {/* Brand */}
           <div className="col-span-2 space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#C8A14A] to-[#9F7A2F] flex items-center justify-center shadow-[0_0_16px_rgba(200,161,74,0.3)]">
-                <Zap className="w-4 h-4 fill-black text-black" />
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#0866FF] to-[#7C3AED] flex items-center justify-center shadow-md shadow-blue-500/20">
+                <Zap className="w-4 h-4 fill-white text-white" />
               </div>
-              <span className="font-black text-white text-sm">
-                SocialPulse <span className="text-[#C8A14A]">AI</span>
+              <span className="font-black text-[#050505] dark:text-white text-sm">
+                SocialPulse <span className="text-[#0866FF]">AI</span>
               </span>
             </div>
-            <p className="text-[12.5px] text-white/30 leading-relaxed max-w-xs">
+            <p className="text-[12.5px] text-[#65676B] dark:text-white/30 leading-relaxed max-w-xs">
               Enterprise-grade AI platform for social media analytics, content generation, scheduling and predictive growth intelligence.
             </p>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/8 text-emerald-400 text-[11px] font-semibold">
-              <PulseDot color="#10B981" />
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#31A24C]/25 bg-[#31A24C]/8 text-[#31A24C] text-[11px] font-semibold">
+              <PulseDot color="#31A24C" />
               All systems operational
             </div>
           </div>
 
           {navCols.map((col) => (
             <div key={col.title} className="space-y-3">
-              <h4 className="text-[10.5px] font-bold uppercase tracking-[0.15em] text-[#C8A14A]">{col.title}</h4>
+              <h4 className="text-[10.5px] font-bold uppercase tracking-[0.15em] text-[#0866FF]">{col.title}</h4>
               <ul className="space-y-2">
                 {col.links.map((l) => (
                   <li key={l.label}>
-                    <a href={l.href} className="text-[12.5px] text-white/30 hover:text-white/70 transition-colors">
+                    <a href={l.href} className="text-[12.5px] text-[#65676B] dark:text-white/30 hover:text-[#0866FF] dark:hover:text-white/70 transition-colors">
                       {l.label}
                     </a>
                   </li>
@@ -1163,11 +1133,11 @@ function Footer({ onLaunch }: { onLaunch: () => void }) {
           ))}
         </div>
 
-        <div className="pt-8 border-t border-white/[0.05] flex flex-col sm:flex-row items-center justify-between gap-4 text-[11.5px] text-white/20">
+        <div className="pt-8 border-t border-black/5 dark:border-white/[0.05] flex flex-col sm:flex-row items-center justify-between gap-4 text-[11.5px] text-[#8A8D91] dark:text-white/20">
           <p>© {new Date().getFullYear()} SocialPulse AI Inc. All rights reserved.</p>
           <button
             onClick={onLaunch}
-            className="flex items-center gap-1.5 text-[#C8A14A]/60 hover:text-[#C8A14A] transition-colors font-semibold"
+            className="flex items-center gap-1.5 text-[#0866FF] hover:underline transition-colors font-semibold"
           >
             Launch Workspace <ArrowRight className="w-3 h-3" />
           </button>
@@ -1186,7 +1156,7 @@ export default function LandingPage() {
   const handleLaunch = useCallback(() => router.push("/login"), [router]);
 
   return (
-    <div className="relative min-h-screen bg-[#060608] text-white overflow-x-hidden font-sans">
+    <div className="relative min-h-screen bg-[#FFFFFF] dark:bg-[#18191A] text-[#050505] dark:text-white overflow-x-hidden font-sans">
       {/* Persistent background */}
       <MeshBackground />
       <Particles />

@@ -1,16 +1,14 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, ArrowRight, Zap, ArrowLeft, Loader2, CheckCircle2, AlertCircle, Sparkles, Mail } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Eye, EyeOff, ArrowRight, Zap, ArrowLeft, Loader2, CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast, Toaster } from "sonner";
 import { socialPulseApi, setAuthTokens } from "@/lib/api";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 // ─── Validation schemas ──────────────────────────────────────────────────────
 const loginSchema = z.object({
@@ -28,61 +26,53 @@ const registerSchema = z.object({
 type LoginData = z.infer<typeof loginSchema>;
 type RegisterData = z.infer<typeof registerSchema>;
 
-// ─── Aurora background ────────────────────────────────────────────────────────
-function AuroraBackground({ mouseX, mouseY }: { mouseX: number; mouseY: number }) {
+// ─── Clean Grid Mesh Background with Apple/Meta Ambient Glows ────────────────
+function ReferenceGridBackground({ mouse }: { mouse: { x: number; y: number } }) {
   return (
-    <div className="absolute inset-0 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-[#fafaf8] via-white to-[#f5f3ee]" />
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+      {/* Base White Surface */}
+      <div className="absolute inset-0 bg-[#FAFBFD] dark:bg-[#121316]" />
+
+      {/* Warm Gold Ambient Glow on Top Right (Exact match to reference) */}
       <motion.div
-        className="absolute -top-20 -right-20 w-[500px] h-[500px] rounded-full opacity-25"
+        className="absolute -top-32 -right-32 w-[700px] h-[700px] rounded-full opacity-40 dark:opacity-20"
         style={{
-          background: "radial-gradient(circle, #C8A14A 0%, transparent 70%)",
-          x: mouseX * 0.03,
-          y: mouseY * 0.03,
+          background: "radial-gradient(circle, rgba(245, 230, 200, 0.6) 0%, rgba(245, 230, 200, 0.15) 50%, transparent 75%)",
+          x: mouse.x * 0.02,
+          y: mouse.y * 0.02,
         }}
-        animate={{ scale: [1, 1.15, 1] }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+        animate={{ scale: [1, 1.08, 1] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
       />
+
+      {/* Soft Purple/Blue Ambient Glow on Bottom Left */}
       <motion.div
-        className="absolute -bottom-24 -left-24 w-[450px] h-[450px] rounded-full opacity-15"
+        className="absolute -bottom-40 -left-40 w-[600px] h-[600px] rounded-full opacity-30 dark:opacity-15"
         style={{
-          background: "radial-gradient(circle, #8B5CF6 0%, transparent 70%)",
-          x: mouseX * -0.02,
-          y: mouseY * -0.02,
+          background: "radial-gradient(circle, rgba(230, 220, 255, 0.6) 0%, rgba(230, 220, 255, 0.1) 50%, transparent 75%)",
+          x: mouse.x * -0.015,
+          y: mouse.y * -0.015,
         }}
-        animate={{ scale: [1, 1.2, 1] }}
-        transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 4 }}
+        animate={{ scale: [1, 1.12, 1] }}
+        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 3 }}
       />
+
+      {/* Precise Light Grid Pattern (Exact match to reference image) */}
       <div
-        className="absolute inset-0 opacity-[0.03]"
+        className="absolute inset-0 opacity-[0.045] dark:opacity-[0.06]"
         style={{
           backgroundImage: `
-            linear-gradient(to right, #111 1px, transparent 1px),
-            linear-gradient(to bottom, #111 1px, transparent 1px)
+            linear-gradient(to right, #000000 1px, transparent 1px),
+            linear-gradient(to bottom, #000000 1px, transparent 1px)
           `,
-          backgroundSize: "48px 48px",
+          backgroundSize: "36px 36px",
         }}
       />
     </div>
   );
 }
 
-// ─── Social OAuth button ─────────────────────────────────────────────────────
-function OAuthButton({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
-  return (
-    <motion.button
-      type="button"
-      onClick={onClick}
-      whileHover={{ scale: 1.02, y: -1 }}
-      whileTap={{ scale: 0.98 }}
-      className="flex items-center justify-center gap-2.5 w-full py-2.5 px-4 rounded-xl border border-[#ECECEC] bg-white text-[#333] text-[13px] font-medium shadow-sm hover:border-[#C8A14A] hover:shadow-md transition-all"
-    >
-      {icon}
-      {label}
-    </motion.button>
-  );
-}
-
+// ─── Icons for Social Auth Buttons ──────────────────────────────────────────
 const GoogleIcon = () => (
   <svg className="w-4 h-4" viewBox="0 0 24 24">
     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -93,7 +83,7 @@ const GoogleIcon = () => (
 );
 
 const GitHubIcon = () => (
-  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+  <svg className="w-4 h-4 text-black dark:text-white" viewBox="0 0 24 24" fill="currentColor">
     <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
   </svg>
 );
@@ -101,9 +91,9 @@ const GitHubIcon = () => (
 const MicrosoftIcon = () => (
   <svg className="w-4 h-4" viewBox="0 0 24 24">
     <path fill="#f25022" d="M1 1h10v10H1z"/>
-    <path fill="#00a4ef" d="M13 1h10v10H13z"/>
+    <path fill="#00a4ef" d="M13 1h10v10H1z"/>
     <path fill="#7fba00" d="M1 13h10v10H1z"/>
-    <path fill="#ffb900" d="M13 13h10v10H13z"/>
+    <path fill="#ffb900" d="M13 13h10v10H1z"/>
   </svg>
 );
 
@@ -114,7 +104,7 @@ const LinkedInIcon = () => (
 );
 
 const AppleIcon = () => (
-  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+  <svg className="w-4 h-4 text-black dark:text-white" viewBox="0 0 24 24" fill="currentColor">
     <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/>
   </svg>
 );
@@ -131,7 +121,7 @@ function AnimatedInput({
 
   return (
     <div className="space-y-1.5">
-      <label htmlFor={id} className="block text-[12px] font-semibold text-[#444] uppercase tracking-wider">{label}</label>
+      <label htmlFor={id} className="block text-[11px] font-bold text-[#666666] dark:text-[#A0A0A0] uppercase tracking-wider">{label}</label>
       <div className="relative">
         <motion.input
           id={id}
@@ -139,22 +129,25 @@ function AnimatedInput({
           placeholder={placeholder}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          animate={{ borderColor: error ? "#EF4444" : focused ? "#C8A14A" : "#ECECEC" }}
-          transition={{ duration: 0.2 }}
-          className="w-full py-2.5 px-3.5 rounded-xl border bg-white/90 text-[#111] text-[13.5px] placeholder:text-[#aaa] outline-none shadow-sm transition-all"
+          animate={{
+            borderColor: error ? "#FA383E" : focused ? "#0866FF" : "#E5E5EA",
+            boxShadow: focused ? "0 0 0 3px rgba(8, 102, 255, 0.12)" : "none",
+          }}
+          transition={{ duration: 0.15 }}
+          className="w-full py-3 px-4 rounded-2xl border bg-white dark:bg-[#1C1C1E] text-[#111111] dark:text-[#E5E5EA] text-[14px] placeholder:text-[#A0A0A0] outline-none transition-all"
           {...rest}
         />
         {isPass && (
           <button
             type="button"
             onClick={() => setShowPass(!showPass)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#888] hover:text-[#333] transition-colors p-1"
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#888888] hover:text-[#111111] dark:hover:text-white transition-colors p-1"
           >
             {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
         )}
       </div>
-      {error && <p className="text-[11px] text-red-500 font-medium mt-1">{error}</p>}
+      {error && <p className="text-[11px] text-[#FA383E] font-semibold mt-1">{error}</p>}
     </div>
   );
 }
@@ -256,7 +249,6 @@ export default function LoginPage() {
     const providerLower = provider.toLowerCase();
 
     try {
-      // Probe backend availability first (fast timeout)
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 3000);
       const probe = await fetch(`${backendUrl}/health`, {
@@ -266,18 +258,16 @@ export default function LoginPage() {
       }).catch(() => null);
       clearTimeout(timeoutId);
 
-      // If backend is reachable, do real OAuth redirect
       if (probe !== null) {
         window.location.href = `${backendUrl}/auth/${providerLower}/login`;
         return;
       }
     } catch {
-      // Backend not reachable — fall through to demo mode
+      // Fallback
     }
 
-    // Demo / offline fallback: simulate OAuth success instantly
     toast.loading(`Signing in with ${provider}…`, { id: "oauth-loading" });
-    await new Promise((r) => setTimeout(r, 1200));
+    await new Promise((r) => setTimeout(r, 1000));
     const mockToken = `sp_oauth_${providerLower}_${Date.now()}`;
     setAuthTokens(mockToken, `sp_refresh_${providerLower}_${Date.now()}`);
     toast.dismiss("oauth-loading");
@@ -292,7 +282,7 @@ export default function LoginPage() {
     if (!forgotEmail) return;
     try {
       await socialPulseApi.forgotPassword(forgotEmail);
-      toast.success("Password reset instructions dispatched to your email");
+      toast.success("Password reset instructions sent to your email");
       setShowForgotModal(false);
       setForgotEmail("");
     } catch {
@@ -309,42 +299,46 @@ export default function LoginPage() {
   ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative font-sans overflow-hidden py-10">
+    <div className="min-h-screen flex items-center justify-center relative font-sans overflow-hidden py-12 px-4">
       <Toaster position="top-center" richColors />
-      <AuroraBackground mouseX={mouse.x} mouseY={mouse.y} />
+      <ReferenceGridBackground mouse={mouse} />
 
+      {/* Back to Home Top Navigation Link (Exact match to reference) */}
       <motion.a
         href="/"
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.3 }}
-        className="absolute top-6 left-6 flex items-center gap-1.5 text-[13px] text-[#666] hover:text-[#111] transition-colors z-10 font-semibold"
+        transition={{ delay: 0.2 }}
+        className="absolute top-6 left-6 flex items-center gap-1.5 text-[13px] text-[#555555] dark:text-[#A0A0A0] hover:text-[#111111] dark:hover:text-white transition-colors z-10 font-medium"
       >
         <ArrowLeft className="w-4 h-4" /> Back to home
       </motion.a>
 
+      {/* Floating 3D Rounded White Card (Exact match to reference image) */}
       <motion.div
-        initial={{ opacity: 0, y: 30, scale: 0.96 }}
+        initial={{ opacity: 0, y: 24, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 w-full max-w-md mx-4"
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="relative z-10 w-full max-w-[480px]"
       >
-        <div className="bg-white/80 backdrop-blur-2xl rounded-3xl border border-white/60 shadow-[0_32px_80px_rgba(17,17,17,0.12)] p-8 md:p-10">
+        <div className="bg-white dark:bg-[#18181B] rounded-[32px] border border-black/[0.06] dark:border-white/[0.08] shadow-[0_25px_70px_-15px_rgba(0,0,0,0.07)] dark:shadow-[0_25px_70px_-15px_rgba(0,0,0,0.5)] p-8 sm:p-10 transition-all">
+          
+          {/* Header Bar inside card: Brand + Demo Pill */}
           <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#C8A14A] to-[#9F7A2F] flex items-center justify-center shadow-md">
-                <Zap className="w-4.5 h-4.5 text-white fill-white" />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#D97706] text-white flex items-center justify-center shadow-sm">
+                <Zap className="w-5 h-5 fill-white" />
               </div>
-              <span className="font-bold text-[#111] text-sm tracking-tight">SocialPulse AI</span>
+              <span className="font-extrabold text-[#111111] dark:text-white text-base tracking-tight">SocialPulse AI</span>
             </div>
 
-            {/* Quick Demo Login Button */}
+            {/* Floating Warm Demo Button Pill (Exact match to reference) */}
             <button
               onClick={handleDemoLogin}
               disabled={demoLoading}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-[#9F7A2F] bg-[#C8A14A]/10 border border-[#C8A14A]/30 rounded-xl hover:bg-[#C8A14A]/20 transition"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] font-semibold text-[#855B14] dark:text-[#F3C882] bg-[#FAF3E6] dark:bg-[#322718] border border-[#E9D7B8] dark:border-[#523F23] rounded-full hover:bg-[#F3E7D3] transition-all shadow-xs"
             >
-              {demoLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+              {demoLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-[#B47818]" />}
               Use Demo Account
             </button>
           </div>
@@ -353,89 +347,99 @@ export default function LoginPage() {
             {success ? (
               <motion.div
                 key="success"
-                initial={{ opacity: 0, scale: 0.8 }}
+                initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="flex flex-col items-center py-8 gap-4"
+                className="flex flex-col items-center py-10 gap-4"
               >
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center"
+                  className="w-16 h-16 rounded-full bg-[#E7F8ED] flex items-center justify-center"
                 >
-                  <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+                  <CheckCircle2 className="w-8 h-8 text-[#31A24C]" />
                 </motion.div>
                 <div className="text-center">
-                  <p className="font-bold text-[#111]">Authentication successful!</p>
-                  <p className="text-[13px] text-[#666] mt-1">Initializing your workspace…</p>
+                  <p className="font-extrabold text-[#111111] dark:text-white text-lg">Authentication successful!</p>
+                  <p className="text-sm text-[#666666] dark:text-[#A0A0A0] mt-1">Launching your workspace telemetry…</p>
                 </div>
               </motion.div>
             ) : (
               <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <div className="flex mb-6 p-1 bg-[#F5F5F5] rounded-xl">
+                
+                {/* iOS-Style Segmented Control Tabs (Exact match to reference) */}
+                <div className="flex mb-8 p-1 bg-[#F2F2F7] dark:bg-[#27272A] rounded-2xl">
                   {(["login", "register"] as const).map((m) => (
                     <button
                       key={m}
                       onClick={() => { setMode(m); setApiError(""); }}
-                      className={`flex-1 py-2 rounded-lg text-[13px] font-semibold transition-all ${mode === m ? "bg-white text-[#111] shadow-sm" : "text-[#888] hover:text-[#444]"}`}
+                      className={`flex-1 py-2.5 rounded-xl text-[13px] font-bold transition-all relative ${
+                        mode === m
+                          ? "bg-white dark:bg-[#18181B] text-[#111111] dark:text-white shadow-sm"
+                          : "text-[#777777] dark:text-[#999999] hover:text-[#111111]"
+                      }`}
                     >
                       {m === "login" ? "Sign In" : "Create Account"}
                     </button>
                   ))}
                 </div>
 
+                {/* Form Title & Subtitle */}
                 <div className="mb-6">
-                  <h1 className="text-[22px] font-black text-[#111] tracking-tight">
+                  <h1 className="text-2xl sm:text-3xl font-black text-[#111111] dark:text-white tracking-tight">
                     {mode === "login" ? "Welcome back" : "Create your account"}
                   </h1>
-                  <p className="text-[13px] text-[#888] mt-1">
+                  <p className="text-xs sm:text-sm text-[#777777] dark:text-[#A0A0A0] mt-1 font-normal">
                     {mode === "login" ? "Sign in to your enterprise workspace" : "Join 4,200+ teams on SocialPulse AI"}
                   </p>
                 </div>
 
-                <div className="space-y-2 mb-5">
+                {/* Social OAuth Buttons (Exact capsule style matching reference image) */}
+                <div className="space-y-2.5 mb-6">
                   {OAUTH_BUTTONS.map((btn) => (
                     <motion.button
                       key={btn.label}
                       type="button"
                       onClick={() => handleOAuth(btn.provider)}
                       disabled={!!oauthLoading}
-                      whileHover={!oauthLoading ? { scale: 1.02, y: -1 } : {}}
-                      whileTap={!oauthLoading ? { scale: 0.98 } : {}}
-                      className="flex items-center justify-center gap-2.5 w-full py-2.5 px-4 rounded-xl border border-[#ECECEC] bg-white text-[#333] text-[13px] font-medium shadow-sm hover:border-[#C8A14A] hover:shadow-md transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                      whileHover={!oauthLoading ? { scale: 1.01, y: -1 } : {}}
+                      whileTap={!oauthLoading ? { scale: 0.99 } : {}}
+                      className="flex items-center justify-center gap-3 w-full py-3 px-5 rounded-full border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-[#111111] dark:text-white text-[13px] font-semibold shadow-2xs hover:border-[#0866FF] hover:shadow-xs transition-all disabled:opacity-60"
                     >
                       {oauthLoading === btn.provider ? (
-                        <Loader2 className="w-4 h-4 animate-spin text-[#C8A14A]" />
+                        <Loader2 className="w-4 h-4 animate-spin text-[#0866FF]" />
                       ) : btn.icon}
                       {oauthLoading === btn.provider ? `Signing in with ${btn.provider}…` : btn.label}
                     </motion.button>
                   ))}
                 </div>
 
-                <div className="relative flex items-center gap-3 mb-5">
-                  <div className="flex-1 h-px bg-[#ECECEC]" />
-                  <span className="text-[11px] text-[#bbb] font-medium uppercase tracking-wider">or</span>
-                  <div className="flex-1 h-px bg-[#ECECEC]" />
+                {/* OR Divider Line */}
+                <div className="relative flex items-center gap-3 mb-6">
+                  <div className="flex-1 h-px bg-[#E5E5EA] dark:bg-[#333336]" />
+                  <span className="text-[10px] text-[#A0A0A0] font-bold uppercase tracking-widest">OR</span>
+                  <div className="flex-1 h-px bg-[#E5E5EA] dark:bg-[#333336]" />
                 </div>
 
+                {/* Input Form with AnimatePresence tab switching */}
                 <AnimatePresence mode="wait">
                   {mode === "login" ? (
                     <motion.form
                       key="login"
-                      initial={{ opacity: 0, x: -12 }}
+                      initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 12 }}
-                      transition={{ duration: 0.25 }}
+                      exit={{ opacity: 0, x: 10 }}
+                      transition={{ duration: 0.2 }}
                       onSubmit={loginForm.handleSubmit(handleLogin)}
                       className="space-y-4"
                     >
                       <AnimatedInput
-                        label="Email" id="email" placeholder="you@company.com"
+                        label="EMAIL" id="email" placeholder="you@company.com"
                         error={loginForm.formState.errors.email?.message}
                         rest={{ ...loginForm.register("email") }}
                       />
                       <AnimatedInput
-                        label="Password" id="password" type="password" placeholder="••••••••"
+                        label="PASSWORD" id="password" type="password" placeholder="••••••••"
                         error={loginForm.formState.errors.password?.message}
                         rest={{ ...loginForm.register("password") }}
                       />
@@ -444,7 +448,7 @@ export default function LoginPage() {
                         <button
                           type="button"
                           onClick={() => setShowForgotModal(true)}
-                          className="text-[12px] text-[#C8A14A] hover:text-[#9F7A2F] font-medium transition-colors"
+                          className="text-[12px] text-[#0866FF] hover:underline font-semibold transition-colors"
                         >
                           Forgot password?
                         </button>
@@ -452,20 +456,20 @@ export default function LoginPage() {
 
                       {apiError && (
                         <motion.div
-                          initial={{ opacity: 0, y: -8 }}
+                          initial={{ opacity: 0, y: -6 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-[12px] text-red-600"
+                          className="flex items-center gap-2 p-3 bg-[#FEF2F2] dark:bg-[#3B1719] border border-[#FCA5A5] rounded-xl text-[12px] text-[#FA383E] font-medium"
                         >
-                          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" /> {apiError}
+                          <AlertCircle className="w-4 h-4 flex-shrink-0" /> {apiError}
                         </motion.div>
                       )}
 
                       <motion.button
                         type="submit"
                         disabled={loading}
-                        whileHover={{ scale: loading ? 1 : 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="w-full flex items-center justify-center gap-2 bg-[#111] text-white py-3.5 rounded-xl font-bold text-[13px] shadow-[0_4px_20px_rgba(17,17,17,0.15)] hover:bg-[#222] transition-all disabled:opacity-60"
+                        whileHover={{ scale: loading ? 1 : 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                        className="w-full flex items-center justify-center gap-2 bg-[#111111] dark:bg-white text-white dark:text-[#111111] py-3.5 rounded-full font-extrabold text-[14px] shadow-md hover:bg-[#222222] dark:hover:bg-[#E5E5EA] transition-all disabled:opacity-60"
                       >
                         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Sign In <ArrowRight className="w-4 h-4" /></>}
                       </motion.button>
@@ -473,58 +477,58 @@ export default function LoginPage() {
                   ) : (
                     <motion.form
                       key="register"
-                      initial={{ opacity: 0, x: 12 }}
+                      initial={{ opacity: 0, x: 10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -12 }}
-                      transition={{ duration: 0.25 }}
+                      exit={{ opacity: 0, x: -10 }}
+                      transition={{ duration: 0.2 }}
                       onSubmit={registerForm.handleSubmit(handleRegister)}
                       className="space-y-4"
                     >
                       <AnimatedInput
-                        label="Full Name" id="full_name" placeholder="Alex Morgan"
+                        label="FULL NAME" id="full_name" placeholder="Alex Morgan"
                         error={registerForm.formState.errors.full_name?.message}
                         rest={{ ...registerForm.register("full_name") }}
                       />
                       <AnimatedInput
-                        label="Company / Workspace" id="organization_name" placeholder="Acme Corp"
+                        label="COMPANY / WORKSPACE" id="organization_name" placeholder="Acme Corp"
                         error={registerForm.formState.errors.organization_name?.message}
                         rest={{ ...registerForm.register("organization_name") }}
                       />
                       <AnimatedInput
-                        label="Work Email" id="reg_email" placeholder="you@company.com"
+                        label="WORK EMAIL" id="reg_email" placeholder="you@company.com"
                         error={registerForm.formState.errors.email?.message}
                         rest={{ ...registerForm.register("email") }}
                       />
                       <AnimatedInput
-                        label="Password" id="reg_password" type="password" placeholder="Min. 8 characters"
+                        label="PASSWORD" id="reg_password" type="password" placeholder="Min. 8 characters"
                         error={registerForm.formState.errors.password?.message}
                         rest={{ ...registerForm.register("password") }}
                       />
 
                       {apiError && (
                         <motion.div
-                          initial={{ opacity: 0, y: -8 }}
+                          initial={{ opacity: 0, y: -6 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-[12px] text-red-600"
+                          className="flex items-center gap-2 p-3 bg-[#FEF2F2] dark:bg-[#3B1719] border border-[#FCA5A5] rounded-xl text-[12px] text-[#FA383E] font-medium"
                         >
-                          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" /> {apiError}
+                          <AlertCircle className="w-4 h-4 flex-shrink-0" /> {apiError}
                         </motion.div>
                       )}
 
                       <motion.button
                         type="submit"
                         disabled={loading}
-                        whileHover={{ scale: loading ? 1 : 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#C8A14A] to-[#9F7A2F] text-white py-3.5 rounded-xl font-bold text-[13px] shadow-[0_4px_20px_rgba(200,161,74,0.3)] hover:opacity-90 transition-all disabled:opacity-60"
+                        whileHover={{ scale: loading ? 1 : 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                        className="w-full flex items-center justify-center gap-2 bg-[#0866FF] text-white py-3.5 rounded-full font-extrabold text-[14px] shadow-md hover:bg-[#1877F2] transition-all disabled:opacity-60"
                       >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Create Account & Verify Email <ArrowRight className="w-4 h-4" /></>}
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Create Account <ArrowRight className="w-4 h-4" /></>}
                       </motion.button>
 
-                      <p className="text-center text-[11px] text-[#bbb]">
+                      <p className="text-center text-[11px] text-[#888888]">
                         By creating an account you agree to our{" "}
-                        <a href="#" className="text-[#C8A14A] hover:underline">Terms</a> and{" "}
-                        <a href="#" className="text-[#C8A14A] hover:underline">Privacy Policy</a>.
+                        <a href="#" className="text-[#0866FF] hover:underline">Terms</a> and{" "}
+                        <a href="#" className="text-[#0866FF] hover:underline">Privacy Policy</a>.
                       </p>
                     </motion.form>
                   )}
@@ -541,16 +545,16 @@ export default function LoginPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
             >
               <motion.div
                 initial={{ scale: 0.95, y: 10 }}
                 animate={{ scale: 1, y: 0 }}
                 exit={{ scale: 0.95, y: 10 }}
-                className="bg-white rounded-3xl p-6 max-w-sm w-full border border-[#ECECEC] shadow-2xl"
+                className="bg-white dark:bg-[#1C1C1E] rounded-3xl p-6 sm:p-8 max-w-sm w-full border border-black/10 dark:border-white/10 shadow-2xl"
               >
-                <h3 className="text-lg font-bold text-[#111]">Forgot Password?</h3>
-                <p className="text-[13px] text-[#777] mt-1 mb-4">
+                <h3 className="text-xl font-bold text-[#111111] dark:text-white">Forgot Password?</h3>
+                <p className="text-xs text-[#666666] dark:text-[#A0A0A0] mt-1 mb-5">
                   Enter your email address to receive password reset instructions.
                 </p>
                 <form onSubmit={handleForgotPassword} className="space-y-4">
@@ -560,19 +564,19 @@ export default function LoginPage() {
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
                     placeholder="you@company.com"
-                    className="w-full px-4 py-2.5 border border-[#ECECEC] rounded-xl text-[14px] outline-none focus:border-[#C8A14A]"
+                    className="w-full px-4 py-3 border border-[#E5E5EA] dark:border-[#333336] rounded-2xl text-[14px] outline-none focus:border-[#0866FF]"
                   />
-                  <div className="flex gap-2">
+                  <div className="flex gap-2.5">
                     <button
                       type="button"
                       onClick={() => setShowForgotModal(false)}
-                      className="flex-1 py-2 text-[13px] font-semibold text-[#666] bg-[#FAFAF8] rounded-xl hover:bg-[#F0F0F0]"
+                      className="flex-1 py-2.5 text-[13px] font-semibold text-[#666666] dark:text-[#A0A0A0] bg-[#F2F2F7] dark:bg-[#27272A] rounded-xl hover:bg-[#E5E5EA]"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="flex-1 py-2 text-[13px] font-bold text-white bg-[#111] rounded-xl hover:bg-[#333]"
+                      className="flex-1 py-2.5 text-[13px] font-bold text-white bg-[#0866FF] rounded-xl hover:bg-[#1877F2]"
                     >
                       Send Reset Link
                     </button>
@@ -583,9 +587,9 @@ export default function LoginPage() {
           )}
         </AnimatePresence>
 
-        <p className="text-center mt-5 text-[12px] text-[#aaa]">
+        <p className="text-center mt-6 text-xs text-[#888888]">
           Enterprise SSO?{" "}
-          <a href="mailto:enterprise@socialpulse.ai" className="text-[#C8A14A] hover:underline font-medium">Contact sales →</a>
+          <a href="mailto:enterprise@socialpulse.ai" className="text-[#0866FF] hover:underline font-semibold">Contact sales →</a>
         </p>
       </motion.div>
     </div>

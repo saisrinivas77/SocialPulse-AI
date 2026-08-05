@@ -83,7 +83,7 @@ const PlatformLogo: React.FC<{ platform: string; className?: string }> = ({ plat
       );
     default:
       return (
-        <div className={`rounded-xl bg-[#C8A14A] text-white flex items-center justify-center p-2 ${className}`}>
+        <div className={`rounded-xl bg-[#0866FF] text-white flex items-center justify-center p-2 ${className}`}>
           <Zap className="w-full h-full" />
         </div>
       );
@@ -128,26 +128,26 @@ export const SocialAccountsView: React.FC = () => {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#ECE8E1] dark:border-[#262623] pb-6"
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-black/5 dark:border-white/10 pb-6"
       >
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-semibold uppercase tracking-widest text-[#C8A14A]">
+            <span className="text-xs font-semibold uppercase tracking-widest text-[#0866FF]">
               OAuth & Telemetry Gateways
             </span>
-            <span className="luxury-badge text-[9px] px-2 py-0.5 rounded-full">8 Supported Networks</span>
+            <span className="apple-badge text-[9px] px-2 py-0.5 rounded-full">8 Supported Networks</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#111111] dark:text-[#FAFAF8]">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#050505] dark:text-[#E4E6EB]">
             Connected Social Accounts
           </h1>
-          <p className="text-sm text-[#5B5B5B] dark:text-[#A0A09B] mt-1">
+          <p className="text-sm text-[#65676B] dark:text-[#B0B3B8] mt-1">
             Manage enterprise API keys, token health, rate limits, and real-time syncing pipelines.
           </p>
         </div>
 
         <button
           onClick={() => toast.info("Opening Enterprise OAuth Gateway modal...")}
-          className="btn-gold-primary px-5 py-2.5 text-xs flex items-center gap-2"
+          className="px-5 py-2.5 rounded-full bg-[#0866FF] hover:bg-[#1877F2] text-white font-semibold text-xs shadow-md flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           <span>Connect New Platform</span>
@@ -162,8 +162,8 @@ export const SocialAccountsView: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.05 }}
-            className={`luxury-card p-6 flex flex-col justify-between h-full space-y-4 ${
-              account.connected ? "luxury-card-gold-line" : "opacity-80"
+            className={`apple-card p-6 flex flex-col justify-between h-full space-y-4 ${
+              account.connected ? "border-[#0866FF]/40 shadow-blue-500/10" : "opacity-80"
             }`}
           >
             <div>
@@ -172,43 +172,43 @@ export const SocialAccountsView: React.FC = () => {
                   {/* Official Platform Logo Icon */}
                   <PlatformLogo platform={account.platform} className="w-10 h-10 shrink-0 shadow-xs" />
                   <div>
-                    <h3 className="text-sm font-bold text-[#111111] dark:text-[#FAFAF8]">
+                    <h3 className="text-sm font-bold text-[#050505] dark:text-[#E4E6EB]">
                       {account.platform}
                     </h3>
-                    <p className="text-xs text-[#5B5B5B] dark:text-[#A0A09B]">
+                    <p className="text-xs text-[#65676B] dark:text-[#B0B3B8]">
                       {account.username}
                     </p>
                   </div>
                 </div>
 
                 <span
-                  className={`w-3 h-3 rounded-full border-2 border-white dark:border-[#0C0C0B] ${
-                    account.connected ? "bg-[#22C55E]" : "bg-[#8A8A8A]"
+                  className={`w-3 h-3 rounded-full border-2 border-white dark:border-[#18191A] ${
+                    account.connected ? "bg-[#31A24C]" : "bg-[#8A8D91]"
                   }`}
                   title={account.connected ? "Active OAuth Token" : "Disconnected"}
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2 p-3 rounded-2xl bg-[#FAFAF8] dark:bg-[#141413] border border-[#ECE8E1] dark:border-[#262623] text-xs">
+              <div className="grid grid-cols-2 gap-2 p-3 rounded-2xl bg-[#F0F2F5] dark:bg-[#3A3B3C] border border-black/5 dark:border-white/10 text-xs">
                 <div>
-                  <span className="text-[10px] text-[#8A8A8A] block">Followers</span>
-                  <span className="font-extrabold text-[#111111] dark:text-[#FAFAF8]">
+                  <span className="text-[10px] text-[#8A8D91] block">Followers</span>
+                  <span className="font-extrabold text-[#050505] dark:text-[#E4E6EB]">
                     {account.followers}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-[#8A8A8A] block">Sync Health</span>
-                  <span className="font-extrabold text-[#C8A14A]">
+                  <span className="text-[10px] text-[#8A8D91] block">Sync Health</span>
+                  <span className="font-extrabold text-[#0866FF]">
                     {account.connected ? `${account.health}%` : "--"}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-2 pt-2 border-t border-[#ECE8E1] dark:border-[#262623]">
-              <div className="flex items-center justify-between text-[11px] text-[#8A8A8A]">
+            <div className="space-y-2 pt-2 border-t border-black/5 dark:border-white/10">
+              <div className="flex items-center justify-between text-[11px] text-[#8A8D91]">
                 <span>Status:</span>
-                <span className="font-semibold text-[#111111] dark:text-[#FAFAF8]">
+                <span className="font-semibold text-[#050505] dark:text-[#E4E6EB]">
                   {account.lastSynced}
                 </span>
               </div>
@@ -219,9 +219,9 @@ export const SocialAccountsView: React.FC = () => {
                     <button
                       onClick={() => handleSyncNow(account.id, account.platform)}
                       disabled={activeSyncingId === account.id}
-                      className="flex-1 py-2 rounded-xl border border-[#ECE8E1] dark:border-[#262623] bg-white dark:bg-[#1C1C1A] text-xs font-semibold text-[#111111] dark:text-[#FAFAF8] hover:border-[#C8A14A] flex items-center justify-center gap-1.5 transition-all"
+                      className="flex-1 py-2 rounded-xl border border-black/5 dark:border-white/10 bg-white dark:bg-[#242526] text-xs font-semibold text-[#050505] dark:text-[#E4E6EB] hover:border-[#0866FF] flex items-center justify-center gap-1.5 transition-all"
                     >
-                      <RefreshCw className={`w-3.5 h-3.5 text-[#C8A14A] ${activeSyncingId === account.id ? "animate-spin" : ""}`} />
+                      <RefreshCw className={`w-3.5 h-3.5 text-[#0866FF] ${activeSyncingId === account.id ? "animate-spin" : ""}`} />
                       <span>{activeSyncingId === account.id ? "Syncing..." : "Sync Now"}</span>
                     </button>
 

@@ -20,20 +20,44 @@ const workspaceSchema = z.object({
 
 type WorkspaceData = z.infer<typeof workspaceSchema>;
 
+// ─── Reference Grid Background ─────────────────────────────────────────────
+function ReferenceGridBackground() {
+  return (
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+      <div className="absolute inset-0 bg-[#FAFBFD] dark:bg-[#121316]" />
+      <div
+        className="absolute -top-32 -right-32 w-[700px] h-[700px] rounded-full opacity-40 dark:opacity-20"
+        style={{ background: "radial-gradient(circle, rgba(245, 230, 200, 0.6) 0%, rgba(245, 230, 200, 0.15) 50%, transparent 75%)" }}
+      />
+      <div
+        className="absolute -bottom-40 -left-40 w-[600px] h-[600px] rounded-full opacity-30 dark:opacity-15"
+        style={{ background: "radial-gradient(circle, rgba(230, 220, 255, 0.6) 0%, rgba(230, 220, 255, 0.1) 50%, transparent 75%)" }}
+      />
+      <div
+        className="absolute inset-0 opacity-[0.045] dark:opacity-[0.06]"
+        style={{
+          backgroundImage: `linear-gradient(to right, #000000 1px, transparent 1px), linear-gradient(to bottom, #000000 1px, transparent 1px)`,
+          backgroundSize: "36px 36px",
+        }}
+      />
+    </div>
+  );
+}
+
 // ─── Progress bar ─────────────────────────────────────────────────────────────
 function ProgressBar({ step, total }: { step: number; total: number }) {
   return (
     <div className="w-full space-y-2">
-      <div className="flex justify-between text-[11px] font-semibold text-[#888] uppercase tracking-wider">
+      <div className="flex justify-between text-[11px] font-bold text-[#666666] dark:text-[#A0A0A0] uppercase tracking-wider">
         <span>Step {step} of {total}</span>
         <span>{Math.round((step / total) * 100)}% Complete</span>
       </div>
-      <div className="h-1 w-full bg-[#F0F0F0] rounded-full overflow-hidden">
+      <div className="h-1.5 w-full bg-[#E5E5EA] dark:bg-[#27272A] rounded-full overflow-hidden">
         <motion.div
-          className="h-full bg-gradient-to-r from-[#C8A14A] to-[#D7B45D] rounded-full"
+          className="h-full bg-gradient-to-r from-[#0866FF] to-[#7C3AED] rounded-full"
           initial={{ width: `${((step - 1) / total) * 100}%` }}
           animate={{ width: `${(step / total) * 100}%` }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
         />
       </div>
     </div>
@@ -49,9 +73,9 @@ function StepDots({ step, total }: { step: number; total: number }) {
           key={s}
           animate={{
             width: s === step ? 24 : 8,
-            backgroundColor: s < step ? "#22C55E" : s === step ? "#C8A14A" : "#E5E5E5",
+            backgroundColor: s < step ? "#31A24C" : s === step ? "#0866FF" : "#E5E5EA",
           }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           className="h-2 rounded-full"
         />
       ))}
@@ -59,11 +83,9 @@ function StepDots({ step, total }: { step: number; total: number }) {
   );
 }
 
-// ─── Industry options ─────────────────────────────────────────────────────────
 const INDUSTRIES = ["Technology", "E-Commerce", "Media & Entertainment", "Finance", "Healthcare", "Education", "Retail", "Agency", "Other"];
 const COMPANY_SIZES = ["Just me", "2–10", "11–50", "51–200", "201–1000", "1000+"];
 
-// ─── Goals ───────────────────────────────────────────────────────────────────
 const GOALS = [
   { id: "engagement", label: "Increase Engagement", icon: "📈", desc: "Boost likes, comments and shares" },
   { id: "schedule", label: "Schedule Content", icon: "🗓️", desc: "Plan and automate posts" },
@@ -73,7 +95,6 @@ const GOALS = [
   { id: "brand", label: "Brand Monitoring", icon: "🛡️", desc: "Monitor mentions and sentiment" },
 ];
 
-// ─── Role options ─────────────────────────────────────────────────────────────
 const ROLES = ["Admin", "Content Lead", "Analyst", "Reviewer", "Viewer"];
 
 // ─── Step 1: Workspace creation ───────────────────────────────────────────────
@@ -84,75 +105,71 @@ function Step1Workspace({ onNext }: { onNext: (data: WorkspaceData) => void }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 30 }}
+      initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -30 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      exit={{ opacity: 0, x: -20 }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
     >
-      <div className="mb-8">
-        <div className="w-12 h-12 rounded-2xl bg-[#C8A14A]/10 flex items-center justify-center mb-4">
-          <Building2 className="w-6 h-6 text-[#C8A14A]" />
+      <div className="mb-6">
+        <div className="w-12 h-12 rounded-2xl bg-[#0866FF]/10 text-[#0866FF] flex items-center justify-center mb-4">
+          <Building2 className="w-6 h-6" />
         </div>
-        <h2 className="text-2xl font-black text-[#111] tracking-tight">Set up your workspace</h2>
-        <p className="text-[14px] text-[#888] mt-1.5">This takes less than 60 seconds. You can always change this later.</p>
+        <h2 className="text-2xl font-black text-[#111111] dark:text-white tracking-tight">Set up your workspace</h2>
+        <p className="text-sm text-[#777777] dark:text-[#A0A0A0] mt-1">This takes less than 60 seconds. You can change this anytime.</p>
       </div>
 
-      <form onSubmit={handleSubmit(onNext)} className="space-y-5">
-        {/* Workspace name */}
+      <form onSubmit={handleSubmit(onNext)} className="space-y-4">
         <div className="space-y-1.5">
-          <label className="block text-[11px] font-semibold text-[#444] uppercase tracking-wider">Workspace Name</label>
+          <label className="block text-[11px] font-bold text-[#666666] dark:text-[#A0A0A0] uppercase tracking-wider">Workspace Name</label>
           <input
             {...register("name")}
             placeholder="Acme Corp"
-            className="w-full px-4 py-3 rounded-xl border border-[#ECECEC] bg-white text-[#111] text-[13px] outline-none focus:border-[#C8A14A] focus:shadow-[0_0_0_3px_rgba(200,161,74,0.12)] transition-all placeholder:text-[#ccc]"
+            className="w-full px-4 py-3 rounded-2xl border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-[#111111] dark:text-white text-sm outline-none focus:border-[#0866FF] transition-all"
           />
-          {errors.name && <p className="text-[11px] text-red-500">{errors.name.message}</p>}
+          {errors.name && <p className="text-[11px] text-[#FA383E] font-medium">{errors.name.message}</p>}
         </div>
 
-        {/* Logo upload placeholder */}
         <div className="space-y-1.5">
-          <label className="block text-[11px] font-semibold text-[#444] uppercase tracking-wider">Workspace Logo <span className="text-[#ccc] normal-case font-normal">— optional</span></label>
-          <div className="border-2 border-dashed border-[#ECECEC] rounded-xl p-6 text-center cursor-pointer hover:border-[#C8A14A] hover:bg-[#FAFAF8] transition-all group">
-            <Upload className="w-6 h-6 text-[#ccc] group-hover:text-[#C8A14A] mx-auto mb-2 transition-colors" />
-            <p className="text-[12px] text-[#bbb] group-hover:text-[#888] transition-colors">Click to upload or drag & drop</p>
-            <p className="text-[10px] text-[#ddd] mt-0.5">PNG, JPG up to 2MB</p>
+          <label className="block text-[11px] font-bold text-[#666666] dark:text-[#A0A0A0] uppercase tracking-wider">Workspace Logo <span className="text-[#A0A0A0] normal-case font-normal">— optional</span></label>
+          <div className="border-2 border-dashed border-[#E5E5EA] dark:border-[#333336] rounded-2xl p-5 text-center cursor-pointer hover:border-[#0866FF] hover:bg-[#0866FF]/5 transition-all group">
+            <Upload className="w-6 h-6 text-[#A0A0A0] group-hover:text-[#0866FF] mx-auto mb-1.5 transition-colors" />
+            <p className="text-xs text-[#777777] group-hover:text-[#111111] dark:group-hover:text-white transition-colors">Click to upload or drag & drop</p>
+            <p className="text-[10px] text-[#A0A0A0] mt-0.5">PNG, JPG up to 2MB</p>
           </div>
         </div>
 
-        {/* Industry */}
         <div className="space-y-1.5">
-          <label className="block text-[11px] font-semibold text-[#444] uppercase tracking-wider">Industry</label>
+          <label className="block text-[11px] font-bold text-[#666666] dark:text-[#A0A0A0] uppercase tracking-wider">Industry</label>
           <select
             {...register("industry")}
-            className="w-full px-4 py-3 rounded-xl border border-[#ECECEC] bg-white text-[#111] text-[13px] outline-none focus:border-[#C8A14A] transition-all appearance-none"
+            className="w-full px-4 py-3 rounded-2xl border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-[#111111] dark:text-white text-sm outline-none focus:border-[#0866FF] transition-all appearance-none"
           >
             <option value="">Select your industry</option>
             {INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
           </select>
-          {errors.industry && <p className="text-[11px] text-red-500">{errors.industry.message}</p>}
+          {errors.industry && <p className="text-[11px] text-[#FA383E] font-medium">{errors.industry.message}</p>}
         </div>
 
-        {/* Company size */}
         <div className="space-y-1.5">
-          <label className="block text-[11px] font-semibold text-[#444] uppercase tracking-wider">Team Size</label>
+          <label className="block text-[11px] font-bold text-[#666666] dark:text-[#A0A0A0] uppercase tracking-wider">Team Size</label>
           <div className="grid grid-cols-3 gap-2">
             {COMPANY_SIZES.map(size => (
               <label key={size} className="relative cursor-pointer">
                 <input {...register("company_size")} type="radio" value={size} className="peer sr-only" />
-                <div className="p-2.5 rounded-xl border border-[#ECECEC] text-center text-[12px] font-medium text-[#666] peer-checked:border-[#C8A14A] peer-checked:bg-[#C8A14A]/5 peer-checked:text-[#C8A14A] hover:border-[#C8A14A]/50 transition-all">
+                <div className="p-2.5 rounded-xl border border-[#E5E5EA] dark:border-[#333336] text-center text-xs font-semibold text-[#666666] dark:text-[#A0A0A0] peer-checked:border-[#0866FF] peer-checked:bg-[#0866FF]/10 peer-checked:text-[#0866FF] hover:border-[#0866FF]/50 transition-all">
                   {size}
                 </div>
               </label>
             ))}
           </div>
-          {errors.company_size && <p className="text-[11px] text-red-500">{errors.company_size.message}</p>}
+          {errors.company_size && <p className="text-[11px] text-[#FA383E] font-medium">{errors.company_size.message}</p>}
         </div>
 
         <motion.button
           type="submit"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="w-full flex items-center justify-center gap-2 bg-[#111] text-white py-3.5 rounded-xl font-bold text-[13px] shadow-md hover:bg-[#222] transition-colors mt-2"
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
+          className="w-full flex items-center justify-center gap-2 bg-[#0866FF] text-white py-3.5 rounded-full font-extrabold text-sm shadow-md hover:bg-[#1877F2] transition-colors mt-2"
         >
           Continue <ArrowRight className="w-4 h-4" />
         </motion.button>
@@ -172,17 +189,17 @@ function Step2Invite({ onNext, onSkip }: { onNext: () => void; onSkip: () => voi
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 30 }}
+      initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -30 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      exit={{ opacity: 0, x: -20 }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
     >
-      <div className="mb-8">
-        <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center mb-4">
-          <Users className="w-6 h-6 text-blue-500" />
+      <div className="mb-6">
+        <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#0866FF] flex items-center justify-center mb-4">
+          <Users className="w-6 h-6" />
         </div>
-        <h2 className="text-2xl font-black text-[#111] tracking-tight">Invite your team</h2>
-        <p className="text-[14px] text-[#888] mt-1.5">Collaborate with colleagues. You can always do this later.</p>
+        <h2 className="text-2xl font-black text-[#111111] dark:text-white tracking-tight">Invite your team</h2>
+        <p className="text-sm text-[#777777] dark:text-[#A0A0A0] mt-1">Collaborate with colleagues. You can always do this later.</p>
       </div>
 
       <div className="space-y-3 mb-5">
@@ -198,12 +215,12 @@ function Step2Invite({ onNext, onSkip }: { onNext: () => void; onSkip: () => voi
               value={inv.email}
               onChange={e => updateRow(i, "email", e.target.value)}
               placeholder="colleague@company.com"
-              className="flex-1 px-4 py-2.5 rounded-xl border border-[#ECECEC] bg-white text-[#111] text-[13px] outline-none focus:border-[#C8A14A] transition-all placeholder:text-[#ccc]"
+              className="flex-1 px-4 py-3 rounded-2xl border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-[#111111] dark:text-white text-xs outline-none focus:border-[#0866FF] transition-all"
             />
             <select
               value={inv.role}
               onChange={e => updateRow(i, "role", e.target.value)}
-              className="w-32 px-3 py-2.5 rounded-xl border border-[#ECECEC] bg-white text-[#111] text-[12px] outline-none focus:border-[#C8A14A] transition-all"
+              className="w-32 px-3 py-3 rounded-2xl border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-[#111111] dark:text-white text-xs outline-none focus:border-[#0866FF] transition-all"
             >
               {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
             </select>
@@ -211,22 +228,22 @@ function Step2Invite({ onNext, onSkip }: { onNext: () => void; onSkip: () => voi
         ))}
       </div>
 
-      <button onClick={addRow} className="text-[12px] text-[#C8A14A] font-semibold hover:text-[#9F7A2F] transition-colors mb-6">
-        + Add another
+      <button onClick={addRow} className="text-xs text-[#0866FF] font-bold hover:underline mb-6 block">
+        + Add another teammate
       </button>
 
       <div className="flex gap-3">
         <button
           onClick={onSkip}
-          className="flex-1 py-3.5 rounded-xl border border-[#ECECEC] text-[13px] font-semibold text-[#666] hover:border-[#ccc] hover:text-[#333] transition-all"
+          className="flex-1 py-3.5 rounded-full border border-[#E5E5EA] dark:border-[#333336] text-xs font-bold text-[#666666] dark:text-[#A0A0A0] hover:bg-[#F2F2F7] transition-all"
         >
           Skip for now
         </button>
         <motion.button
           onClick={onNext}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="flex-1 flex items-center justify-center gap-2 bg-[#111] text-white py-3.5 rounded-xl font-bold text-[13px] shadow-md hover:bg-[#222] transition-colors"
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
+          className="flex-1 flex items-center justify-center gap-2 bg-[#0866FF] text-white py-3.5 rounded-full font-extrabold text-xs shadow-md hover:bg-[#1877F2] transition-colors"
         >
           Send Invites <ArrowRight className="w-4 h-4" />
         </motion.button>
@@ -244,46 +261,42 @@ function Step3Goals({ onNext, loading }: { onNext: (goals: string[]) => void; lo
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 30 }}
+      initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -30 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      exit={{ opacity: 0, x: -20 }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
     >
-      <div className="mb-8">
-        <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center mb-4">
-          <Target className="w-6 h-6 text-emerald-500" />
+      <div className="mb-6">
+        <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#31A24C] flex items-center justify-center mb-4">
+          <Target className="w-6 h-6" />
         </div>
-        <h2 className="text-2xl font-black text-[#111] tracking-tight">What are your goals?</h2>
-        <p className="text-[14px] text-[#888] mt-1.5">Select all that apply. We'll personalize your workspace.</p>
+        <h2 className="text-2xl font-black text-[#111111] dark:text-white tracking-tight">What are your primary goals?</h2>
+        <p className="text-sm text-[#777777] dark:text-[#A0A0A0] mt-1">Select all that apply. We will customize your workspace.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mb-8">
+      <div className="grid grid-cols-2 gap-3 mb-6">
         {GOALS.map(goal => {
           const isSelected = selected.includes(goal.id);
           return (
             <motion.button
               key={goal.id}
               onClick={() => toggle(goal.id)}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
               className={`relative text-left p-4 rounded-2xl border transition-all ${
                 isSelected
-                  ? "border-[#C8A14A] bg-[#C8A14A]/5 shadow-[0_0_0_1px_rgba(200,161,74,0.2)]"
-                  : "border-[#ECECEC] bg-white hover:border-[#ddd]"
+                  ? "border-[#0866FF] bg-[#0866FF]/10 shadow-xs"
+                  : "border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] hover:border-[#0866FF]/50"
               }`}
             >
               {isSelected && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute top-3 right-3"
-                >
-                  <CheckCircle2 className="w-4 h-4 text-[#C8A14A]" />
-                </motion.div>
+                <div className="absolute top-3 right-3">
+                  <CheckCircle2 className="w-4 h-4 text-[#0866FF]" />
+                </div>
               )}
-              <div className="text-2xl mb-2">{goal.icon}</div>
-              <div className="text-[13px] font-bold text-[#111]">{goal.label}</div>
-              <div className="text-[11px] text-[#888] mt-0.5">{goal.desc}</div>
+              <div className="text-xl mb-2">{goal.icon}</div>
+              <div className="text-xs font-bold text-[#111111] dark:text-white">{goal.label}</div>
+              <div className="text-[11px] text-[#777777] dark:text-[#A0A0A0] mt-0.5">{goal.desc}</div>
             </motion.button>
           );
         })}
@@ -292,14 +305,14 @@ function Step3Goals({ onNext, loading }: { onNext: (goals: string[]) => void; lo
       <motion.button
         onClick={() => onNext(selected)}
         disabled={loading}
-        whileHover={{ scale: loading ? 1 : 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#C8A14A] to-[#9F7A2F] text-white py-3.5 rounded-xl font-bold text-[13px] shadow-[0_4px_20px_rgba(200,161,74,0.3)] hover:opacity-90 transition-all disabled:opacity-60"
+        whileHover={{ scale: loading ? 1 : 1.01 }}
+        whileTap={{ scale: 0.99 }}
+        className="w-full flex items-center justify-center gap-2 bg-[#0866FF] text-white py-3.5 rounded-full font-extrabold text-sm shadow-md hover:bg-[#1877F2] transition-all disabled:opacity-60"
       >
         {loading ? (
           <><Loader2 className="w-4 h-4 animate-spin" /> Creating workspace…</>
         ) : (
-          <>Launch SocialPulse AI <Zap className="w-4 h-4 fill-white" /></>
+          <>Launch Workspace Telemetry <Zap className="w-4 h-4 fill-white" /></>
         )}
       </motion.button>
     </motion.div>
@@ -324,7 +337,6 @@ export default function OnboardingPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem("sp_access_token");
-      // Try to create workspace via API; fall through gracefully if endpoint doesn't exist
       await axios.post(`${API_URL}/api/v1/workspaces`, {
         name: workspaceData?.name,
         industry: workspaceData?.industry,
@@ -332,7 +344,7 @@ export default function OnboardingPage() {
         goals,
       }, { headers: { Authorization: `Bearer ${token}` } });
     } catch {
-      // workspace API may not exist yet — proceed to init anyway
+      // Fallback to init
     } finally {
       router.push("/init");
     }
@@ -341,38 +353,31 @@ export default function OnboardingPage() {
   const TOTAL_STEPS = 3;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fafaf8] via-white to-[#f5f3ee] flex items-center justify-center px-4 font-sans">
-      {/* Background texture */}
-      <div
-        className="pointer-events-none fixed inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage: `linear-gradient(to right, #C8A14A 1px, transparent 1px), linear-gradient(to bottom, #C8A14A 1px, transparent 1px)`,
-          backgroundSize: "48px 48px",
-        }}
-      />
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 relative font-sans overflow-hidden">
+      <ReferenceGridBackground />
 
       <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 24, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-lg"
+        className="w-full max-w-[500px] z-10"
       >
-        {/* Logo */}
-        <div className="flex items-center gap-2.5 mb-8">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#C8A14A] to-[#9F7A2F] flex items-center justify-center shadow-md">
-            <Zap className="w-4 h-4 text-white fill-white" />
+        {/* Brand */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-9 h-9 rounded-2xl bg-[#D97706] text-white flex items-center justify-center shadow-xs">
+            <Zap className="w-4.5 h-4.5 fill-white" />
           </div>
-          <span className="font-bold text-[#111] text-sm">SocialPulse AI</span>
+          <span className="font-extrabold text-[#111111] dark:text-white text-base tracking-tight">SocialPulse AI</span>
         </div>
 
-        {/* Progress */}
+        {/* Progress bar */}
         <div className="mb-6 space-y-3">
           <ProgressBar step={step} total={TOTAL_STEPS} />
           <StepDots step={step} total={TOTAL_STEPS} />
         </div>
 
-        {/* Card */}
-        <div className="bg-white/90 backdrop-blur-xl rounded-3xl border border-[#ECECEC] shadow-[0_24px_80px_rgba(17,17,17,0.08)] p-8">
+        {/* Floating rounded white card */}
+        <div className="bg-white dark:bg-[#18181B] rounded-[32px] border border-black/[0.06] dark:border-white/[0.08] shadow-[0_25px_70px_-15px_rgba(0,0,0,0.07)] p-8 sm:p-10 transition-all">
           <AnimatePresence mode="wait">
             {step === 1 && <Step1Workspace key="step1" onNext={handleStep1} />}
             {step === 2 && <Step2Invite key="step2" onNext={handleStep2} onSkip={handleStep2} />}
@@ -380,16 +385,13 @@ export default function OnboardingPage() {
           </AnimatePresence>
         </div>
 
-        {/* Back button */}
         {step > 1 && (
-          <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+          <button
             onClick={() => setStep(s => s - 1)}
-            className="mt-4 flex items-center gap-1.5 text-[12px] text-[#aaa] hover:text-[#666] transition-colors"
+            className="mt-4 flex items-center gap-1.5 text-xs text-[#777777] dark:text-[#A0A0A0] hover:text-[#111111] transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Go back
-          </motion.button>
+          </button>
         )}
       </motion.div>
     </div>

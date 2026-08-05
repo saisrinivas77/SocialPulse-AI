@@ -39,8 +39,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased`}>
-        <div className="sp-noise" aria-hidden="true" />
+      <body className={`${inter.variable} font-sans antialiased bg-[#FFFFFF] dark:bg-[#18191A] text-[#050505] dark:text-[#E4E6EB]`}>
         {children}
       </body>
     </html>

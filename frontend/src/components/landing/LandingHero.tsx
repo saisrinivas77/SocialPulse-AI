@@ -4,82 +4,82 @@ import React from "react";
 import { motion } from "framer-motion";
 import { useAppStore } from "@/store/useAppStore";
 import { AICore3D } from "@/components/3d/AICore3D";
-import { ArrowRight, Play, Star, ChevronDown, Zap, Sparkles } from "lucide-react";
+import { ArrowRight, Play, ChevronDown, Zap, Sparkles } from "lucide-react";
 
 export const LandingHero: React.FC = () => {
   const { setCurrentView } = useAppStore();
 
   return (
-    <section className="relative min-h-[95vh] flex flex-col items-center justify-center pt-8 pb-16 px-4 sm:px-6 lg:px-8">
+    <section className="relative min-h-[90vh] flex flex-col items-center justify-center pt-12 pb-16 px-4 sm:px-6 lg:px-8 bg-white dark:bg-[#18191A]">
       {/* Kicker Badge */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-amber-500/30 bg-amber-500/10 backdrop-blur-md mb-6"
+        transition={{ duration: 0.5 }}
+        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#0866FF]/20 bg-[#0866FF]/5 dark:bg-[#0866FF]/10 backdrop-blur-md mb-6"
       >
-        <Sparkles className="w-4 h-4 text-amber-400 fill-amber-400 animate-pulse" />
-        <span className="text-[11px] font-extrabold uppercase tracking-widest text-amber-300">
-          AI OPERATING SYSTEM FOR SOCIAL MEDIA
+        <Sparkles className="w-3.5 h-3.5 text-[#0866FF]" />
+        <span className="text-[11px] font-semibold tracking-wide uppercase text-[#0866FF]">
+          AI Operating System for Social Media
         </span>
       </motion.div>
 
       {/* Hero Headline & Subtitle */}
-      <div className="max-w-5xl text-center space-y-6 z-10">
+      <div className="max-w-4xl text-center space-y-6 z-10">
         <motion.h1
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1 }}
-          className="text-6xl sm:text-7xl lg:text-8xl font-black tracking-tight leading-[1.02]"
+          transition={{ duration: 0.7, delay: 0.1 }}
+          className="text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight leading-[1.05] text-[#050505] dark:text-[#E4E6EB]"
         >
-          <span className="block text-white">Understand.</span>
-          <span className="block gold-gradient-text">Engage.</span>
-          <span className="block text-white">Grow.</span>
+          <span>Understand. </span>
+          <span className="meta-gradient-text">Engage. </span>
+          <span>Grow.</span>
         </motion.h1>
 
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.25 }}
-          className="max-w-2xl mx-auto text-base sm:text-xl font-light text-gray-300 tracking-wide leading-relaxed"
+          transition={{ duration: 0.7, delay: 0.2 }}
+          className="max-w-2xl mx-auto text-base sm:text-xl font-normal text-[#65676B] dark:text-[#B0B3B8] leading-relaxed"
         >
-          SocialPulse AI turns your social media telemetry into predictive growth strategies with custom neural models and luxury analytics.
+          SocialPulse AI turns your social media telemetry into predictive growth strategies with custom neural models and real-time intelligence.
         </motion.p>
 
         {/* CTA Buttons */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.35 }}
-          className="flex flex-wrap items-center justify-center gap-5 pt-2"
+          transition={{ duration: 0.7, delay: 0.3 }}
+          className="flex flex-wrap items-center justify-center gap-4 pt-2"
         >
           <button
             onClick={() => setCurrentView("overview")}
-            className="btn-magnetic btn-gold px-8 py-4 text-sm font-extrabold flex items-center gap-3 shadow-[0_0_35px_rgba(255,215,0,0.4)]"
+            className="px-7 py-3.5 rounded-full bg-[#0866FF] hover:bg-[#1877F2] text-white text-sm font-semibold flex items-center gap-2.5 shadow-lg shadow-blue-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all"
           >
-            <Zap className="w-5 h-5 fill-black" />
+            <Zap className="w-4 h-4 fill-white" />
             <span>Launch AI OS</span>
             <ArrowRight className="w-4 h-4" />
           </button>
 
           <a
             href="#ai-features"
-            className="btn-magnetic btn-glass px-8 py-4 text-sm font-bold flex items-center gap-3 text-white border-amber-500/30 hover:border-amber-400"
+            className="px-7 py-3.5 rounded-full bg-[#F0F2F5] dark:bg-[#242526] hover:bg-[#E4E6EB] dark:hover:bg-[#3A3B3C] text-sm font-semibold flex items-center gap-2.5 text-[#050505] dark:text-[#E4E6EB] transition-all border border-black/5 dark:border-white/10"
           >
-            <div className="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400">
-              <Play className="w-3 h-3 fill-amber-400 ml-0.5" />
+            <div className="w-5 h-5 rounded-full bg-[#0866FF]/10 flex items-center justify-center text-[#0866FF]">
+              <Play className="w-2.5 h-2.5 fill-[#0866FF] ml-0.5" />
             </div>
             <span>Watch Product Demo</span>
           </a>
         </motion.div>
       </div>
 
-      {/* Floating 3D AI Processor Core Canvas with Orbiting Social Icons */}
+      {/* Floating 3D AI Processor Core Canvas */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
+        initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 1, delay: 0.4 }}
-        className="w-full max-w-6xl mt-4 z-10"
+        transition={{ duration: 0.8, delay: 0.35 }}
+        className="w-full max-w-5xl mt-6 z-10"
       >
         <AICore3D />
       </motion.div>
@@ -87,12 +87,12 @@ export const LandingHero: React.FC = () => {
       {/* Scroll Down Indicator */}
       <motion.a
         href="#trusted-companies"
-        animate={{ y: [0, 8, 0] }}
+        animate={{ y: [0, 6, 0] }}
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        className="mt-6 flex flex-col items-center gap-2 text-gray-400 hover:text-amber-400 transition-colors cursor-pointer z-10"
+        className="mt-6 flex flex-col items-center gap-1.5 text-[#65676B] dark:text-[#B0B3B8] hover:text-[#0866FF] transition-colors cursor-pointer z-10"
       >
-        <span className="text-[10px] uppercase tracking-widest font-bold">Scroll to explore AI OS</span>
-        <ChevronDown className="w-4 h-4 text-amber-400" />
+        <span className="text-[10px] uppercase tracking-wider font-semibold">Scroll to explore</span>
+        <ChevronDown className="w-4 h-4 text-[#0866FF]" />
       </motion.a>
     </section>
   );

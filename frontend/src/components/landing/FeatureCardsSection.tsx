@@ -30,7 +30,7 @@ const features = [
   },
   {
     icon: BarChart3,
-    title: "Luxury Real-Time Analytics",
+    title: "Real-Time Analytics",
     description:
       "Executive level charts tracking reach, engagement density, audience growth rate, and follower demographic shifts.",
     badge: "Analytics",
@@ -44,7 +44,7 @@ const features = [
   },
   {
     icon: ShieldCheck,
-    title: "Enterprise Social Security",
+    title: "Enterprise Security",
     description:
       "Multi-brand workspace isolation, fine-grained RBAC roles, OAuth token encryption, and full audit log history.",
     badge: "Security",
@@ -58,7 +58,7 @@ const features = [
   },
   {
     icon: FileSpreadsheet,
-    title: "Instant Executive Reports",
+    title: "Executive Reports",
     description:
       "Export publication-ready PDF summaries, raw CSV datasets, and formatted Excel sheets with a single click.",
     badge: "Reporting",
@@ -74,59 +74,56 @@ const features = [
 
 export const FeatureCardsSection: React.FC = () => {
   return (
-    <section id="features" className="py-24 relative z-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+    <section id="features" className="py-20 relative z-10 bg-white dark:bg-[#18191A]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         {/* Section Header */}
-        <div className="text-center space-y-4 max-w-3xl mx-auto">
-          <span className="text-xs uppercase tracking-widest text-amber-400 font-bold bg-amber-500/10 px-4 py-1.5 rounded-full border border-amber-500/20">
-            Engineered For Excellence
+        <div className="text-center space-y-3 max-w-2xl mx-auto">
+          <span className="text-xs uppercase tracking-wider text-[#0866FF] font-semibold bg-[#0866FF]/10 px-3.5 py-1 rounded-full border border-[#0866FF]/20">
+            Engineered For Precision
           </span>
-          <h2 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white">
-            Everything you need to <span className="gold-gradient-text">dominate social</span>
+          <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-[#050505] dark:text-[#E4E6EB]">
+            Everything you need to <span className="meta-gradient-text">scale growth</span>
           </h2>
-          <p className="text-gray-400 text-lg">
-            Built for enterprise brands, elite agencies, and modern marketing leaders.
+          <p className="text-[#65676B] dark:text-[#B0B3B8] text-base">
+            Built for enterprise brands, creator studios, and modern marketing leaders.
           </p>
         </div>
 
         {/* Feature Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           {features.map((item, idx) => {
             const Icon = item.icon;
             return (
               <motion.div
                 key={idx}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: idx * 0.08 }}
-                whileHover={{ y: -8, scale: 1.02 }}
-                className="glass-card p-6 flex flex-col justify-between relative group cursor-pointer overflow-hidden border-amber-500/15 hover:border-amber-500/40"
+                transition={{ duration: 0.4, delay: idx * 0.05 }}
+                whileHover={{ y: -4 }}
+                className="apple-card p-6 flex flex-col justify-between relative group cursor-pointer bg-white dark:bg-[#242526]"
               >
-                {/* Background Glow */}
-                <div className="absolute -right-12 -top-12 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/25 transition-all" />
-
-                <div className="space-y-5 relative z-10">
+                <div className="space-y-4 relative z-10">
                   <div className="flex items-center justify-between">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400/20 to-amber-600/10 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-110 group-hover:text-amber-300 transition-all">
-                      <Icon className="w-6 h-6" />
+                    <div className="w-11 h-11 rounded-2xl bg-[#0866FF]/10 text-[#0866FF] flex items-center justify-center group-hover:bg-[#0866FF] group-hover:text-white transition-all duration-200">
+                      <Icon className="w-5 h-5" />
                     </div>
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-amber-400/80 bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/20">
+                    <span className="text-[10px] uppercase font-semibold tracking-wider text-[#0866FF] bg-[#0866FF]/10 px-2.5 py-0.5 rounded-full">
                       {item.badge}
                     </span>
                   </div>
 
-                  <h3 className="text-xl font-bold text-white group-hover:text-amber-300 transition-colors">
+                  <h3 className="text-lg font-bold text-[#050505] dark:text-[#E4E6EB] group-hover:text-[#0866FF] transition-colors">
                     {item.title}
                   </h3>
 
-                  <p className="text-sm text-gray-400 leading-relaxed font-light">
+                  <p className="text-xs text-[#65676B] dark:text-[#B0B3B8] leading-relaxed">
                     {item.description}
                   </p>
                 </div>
 
-                <div className="pt-6 flex items-center text-xs font-semibold text-amber-400 group-hover:translate-x-1 transition-transform">
-                  <span>Explore feature →</span>
+                <div className="pt-4 flex items-center text-xs font-semibold text-[#0866FF] group-hover:translate-x-1 transition-transform">
+                  <span>Learn more →</span>
                 </div>
               </motion.div>
             );

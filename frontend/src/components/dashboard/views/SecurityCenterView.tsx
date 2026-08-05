@@ -111,7 +111,7 @@ export function SecurityCenterView() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 text-[#C8A14A] animate-spin" />
+        <Loader2 className="w-8 h-8 text-[#0866FF] animate-spin" />
       </div>
     );
   }
@@ -119,13 +119,13 @@ export function SecurityCenterView() {
   return (
     <div className="space-y-8 font-sans pb-12">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#ECECEC] pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-black/5 dark:border-white/10 pb-6">
         <div>
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-7 h-7 text-[#C8A14A]" />
-            <h1 className="text-2xl font-black text-[#111] tracking-tight">Security & Identity Center</h1>
+            <ShieldCheck className="w-7 h-7 text-[#0866FF]" />
+            <h1 className="text-2xl font-black text-[#050505] dark:text-[#E4E6EB] tracking-tight">Security & Identity Center</h1>
           </div>
-          <p className="text-[14px] text-[#777] mt-1">
+          <p className="text-[14px] text-[#65676B] dark:text-[#B0B3B8] mt-1">
             Manage single sign-on providers, active login devices, session revocation, and security policies.
           </p>
         </div>
@@ -133,13 +133,13 @@ export function SecurityCenterView() {
         <div className="flex items-center gap-3">
           <button
             onClick={loadSecurityData}
-            className="flex items-center gap-2 px-4 py-2 text-[13px] font-semibold text-[#555] bg-white border border-[#ECECEC] rounded-xl hover:bg-[#FAFAF8] transition"
+            className="flex items-center gap-2 px-4 py-2 text-[13px] font-semibold text-[#65676B] dark:text-[#B0B3B8] bg-white dark:bg-[#242526] border border-black/5 dark:border-white/10 rounded-xl hover:bg-[#F0F2F5] transition"
           >
             <RefreshCw className="w-4 h-4" /> Refresh Status
           </button>
           <button
             onClick={handleLogoutAll}
-            className="flex items-center gap-2 px-4 py-2 text-[13px] font-semibold text-red-600 bg-red-50 border border-red-200 rounded-xl hover:bg-red-100 transition"
+            className="flex items-center gap-2 px-4 py-2 text-[13px] font-semibold text-red-600 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl hover:bg-red-100 transition"
           >
             <LogOut className="w-4 h-4" /> Logout All Devices
           </button>
@@ -148,21 +148,21 @@ export function SecurityCenterView() {
 
       {/* Security Health Stats Banner */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-6 rounded-2xl bg-white border border-[#ECECEC] shadow-sm relative overflow-hidden">
+        <div className="p-6 rounded-2xl bg-white dark:bg-[#242526] border border-black/5 dark:border-white/10 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-[12px] font-bold uppercase tracking-wider text-[#888]">Security Score</span>
+            <span className="text-[12px] font-bold uppercase tracking-wider text-[#8A8D91]">Security Score</span>
             <ShieldCheck className="w-5 h-5 text-emerald-500" />
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-[#111]">{overview?.security_score || 95}/100</span>
+            <span className="text-3xl font-black text-[#050505] dark:text-[#E4E6EB]">{overview?.security_score || 95}/100</span>
             <span className="text-[12px] font-semibold text-emerald-600">Enterprise Grade</span>
           </div>
-          <p className="text-[12px] text-[#888] mt-2">Protected by JWT token rotation & PKCE OAuth validation.</p>
+          <p className="text-[12px] text-[#8A8D91] mt-2">Protected by JWT token rotation & PKCE OAuth validation.</p>
         </div>
 
-        <div className="p-6 rounded-2xl bg-white border border-[#ECECEC] shadow-sm">
+        <div className="p-6 rounded-2xl bg-white dark:bg-[#242526] border border-black/5 dark:border-white/10 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-[12px] font-bold uppercase tracking-wider text-[#888]">Email Verification</span>
+            <span className="text-[12px] font-bold uppercase tracking-wider text-[#8A8D91]">Email Verification</span>
             {overview?.is_verified ? (
               <CheckCircle2 className="w-5 h-5 text-emerald-500" />
             ) : (
@@ -170,31 +170,31 @@ export function SecurityCenterView() {
             )}
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-black text-[#111]">
+            <span className="text-2xl font-black text-[#050505] dark:text-[#E4E6EB]">
               {overview?.is_verified ? "Verified Account" : "Pending Verification"}
             </span>
           </div>
-          <p className="text-[12px] text-[#888] mt-2">{overview?.email}</p>
+          <p className="text-[12px] text-[#8A8D91] mt-2">{overview?.email}</p>
         </div>
 
-        <div className="p-6 rounded-2xl bg-white border border-[#ECECEC] shadow-sm">
+        <div className="p-6 rounded-2xl bg-white dark:bg-[#242526] border border-black/5 dark:border-white/10 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-[12px] font-bold uppercase tracking-wider text-[#888]">Active Sessions</span>
-            <Smartphone className="w-5 h-5 text-[#C8A14A]" />
+            <span className="text-[12px] font-bold uppercase tracking-wider text-[#8A8D91]">Active Sessions</span>
+            <Smartphone className="w-5 h-5 text-[#0866FF]" />
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-[#111]">{sessions.length} Devices</span>
+            <span className="text-3xl font-black text-[#050505] dark:text-[#E4E6EB]">{sessions.length} Devices</span>
           </div>
-          <p className="text-[12px] text-[#888] mt-2">Track real-time device telemetry & IP addresses.</p>
+          <p className="text-[12px] text-[#8A8D91] mt-2">Track real-time device telemetry & IP addresses.</p>
         </div>
       </div>
 
       {/* Connected Login Providers */}
-      <div className="p-6 rounded-2xl bg-white border border-[#ECECEC] shadow-sm space-y-4">
-        <h2 className="text-lg font-bold text-[#111] flex items-center gap-2">
-          <UserCheck className="w-5 h-5 text-[#C8A14A]" /> Single Sign-On (SSO) & OAuth Login Providers
+      <div className="p-6 rounded-2xl bg-white dark:bg-[#242526] border border-black/5 dark:border-white/10 shadow-sm space-y-4">
+        <h2 className="text-lg font-bold text-[#050505] dark:text-[#E4E6EB] flex items-center gap-2">
+          <UserCheck className="w-5 h-5 text-[#0866FF]" /> Single Sign-On (SSO) & OAuth Login Providers
         </h2>
-        <p className="text-[13px] text-[#777]">
+        <p className="text-[13px] text-[#65676B] dark:text-[#B0B3B8]">
           Connect modern identity providers to log into SocialPulse AI with one click.
         </p>
 

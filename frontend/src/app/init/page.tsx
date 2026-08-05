@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { motion, AnimatePresence, useMotionValue, animate } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Zap } from "lucide-react";
 
@@ -23,7 +23,6 @@ function NeuralNetwork() {
     resize();
     window.addEventListener("resize", resize);
 
-    // Generate nodes
     const W = canvas.offsetWidth;
     const H = canvas.offsetHeight;
     const nodes = Array.from({ length: 36 }, () => ({
@@ -42,7 +41,6 @@ function NeuralNetwork() {
       ctx.clearRect(0, 0, W, H);
       frame++;
 
-      // Update positions
       nodes.forEach(n => {
         n.x += n.vx;
         n.y += n.vy;
@@ -51,7 +49,6 @@ function NeuralNetwork() {
         if (n.y < 0 || n.y > H) n.vy *= -1;
       });
 
-      // Draw connections
       for (let i = 0; i < nodes.length; i++) {
         for (let j = i + 1; j < nodes.length; j++) {
           const dx = nodes[i].x - nodes[j].x;
@@ -59,45 +56,40 @@ function NeuralNetwork() {
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < 120) {
             const alpha = (1 - dist / 120) * 0.25;
-            // Pulse along active connections
             const pulse = Math.sin(frame * 0.03 + i * 0.5) * 0.5 + 0.5;
             ctx.beginPath();
-            ctx.strokeStyle = `rgba(200, 161, 74, ${alpha * (0.4 + pulse * 0.6)})`;
+            ctx.strokeStyle = `rgba(8, 102, 255, ${alpha * (0.4 + pulse * 0.6)})`;
             ctx.lineWidth = alpha * 1.5;
             ctx.moveTo(nodes[i].x, nodes[i].y);
             ctx.lineTo(nodes[j].x, nodes[j].y);
             ctx.stroke();
 
-            // Animated packet along connection
             if (Math.random() < 0.001) {
               const t = (frame * 0.05) % 1;
               const px = nodes[i].x + (nodes[j].x - nodes[i].x) * t;
               const py = nodes[i].y + (nodes[j].y - nodes[i].y) * t;
               ctx.beginPath();
               ctx.arc(px, py, 2, 0, Math.PI * 2);
-              ctx.fillStyle = `rgba(200, 161, 74, 0.9)`;
+              ctx.fillStyle = `rgba(8, 102, 255, 0.9)`;
               ctx.fill();
             }
           }
         }
       }
 
-      // Draw nodes
       nodes.forEach(n => {
         const pulse = Math.sin(n.pulse) * 0.4 + 0.8;
-        // Glow
         const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 6);
-        grad.addColorStop(0, `rgba(200, 161, 74, ${0.3 * pulse})`);
-        grad.addColorStop(1, "rgba(200, 161, 74, 0)");
+        grad.addColorStop(0, `rgba(8, 102, 255, ${0.3 * pulse})`);
+        grad.addColorStop(1, "rgba(8, 102, 255, 0)");
         ctx.beginPath();
         ctx.arc(n.x, n.y, n.r * 6, 0, Math.PI * 2);
         ctx.fillStyle = grad;
         ctx.fill();
 
-        // Core dot
         ctx.beginPath();
         ctx.arc(n.x, n.y, n.r * pulse, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(200, 161, 74, ${0.7 + 0.3 * pulse})`;
+        ctx.fillStyle = `rgba(8, 102, 255, ${0.7 + 0.3 * pulse})`;
         ctx.fill();
       });
 
@@ -126,7 +118,6 @@ const STEPS = [
   "Almost there — final touches…",
 ];
 
-// ─── Animated counter ─────────────────────────────────────────────────────────
 function AnimatedCounter({ value }: { value: number }) {
   const [display, setDisplay] = useState(0);
   useEffect(() => {
@@ -144,7 +135,6 @@ function AnimatedCounter({ value }: { value: number }) {
   return <>{display}</>;
 }
 
-// ─── Main init page ───────────────────────────────────────────────────────────
 export default function InitPage() {
   const router = useRouter();
   const [progress, setProgress] = useState(0);
@@ -152,7 +142,7 @@ export default function InitPage() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    const totalDuration = 3000; // ms
+    const totalDuration = 3000;
     const interval = 60;
     const increment = (interval / totalDuration) * 100;
     const stepInterval = totalDuration / STEPS.length;
@@ -179,7 +169,6 @@ export default function InitPage() {
     };
   }, []);
 
-  // Navigate to dashboard when done
   useEffect(() => {
     if (done) {
       const t = setTimeout(() => router.push("/dashboard"), 800);
@@ -188,20 +177,20 @@ export default function InitPage() {
   }, [done, router]);
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center relative overflow-hidden font-sans">
-      {/* Light grid */}
+    <div className="min-h-screen bg-[#FAFBFD] dark:bg-[#121316] flex flex-col items-center justify-center relative overflow-hidden font-sans">
+      {/* Light grid matching reference */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.035]"
+        className="pointer-events-none absolute inset-0 opacity-[0.045] dark:opacity-[0.06]"
         style={{
-          backgroundImage: `linear-gradient(to right, #C8A14A 1px, transparent 1px), linear-gradient(to bottom, #C8A14A 1px, transparent 1px)`,
-          backgroundSize: "48px 48px",
+          backgroundImage: `linear-gradient(to right, #000000 1px, transparent 1px), linear-gradient(to bottom, #000000 1px, transparent 1px)`,
+          backgroundSize: "36px 36px",
         }}
       />
 
       {/* Ambient blob */}
       <motion.div
         className="pointer-events-none absolute inset-0"
-        style={{ background: "radial-gradient(ellipse 800px 600px at 50% 50%, rgba(200,161,74,0.07) 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(ellipse 800px 600px at 50% 50%, rgba(8,102,255,0.08) 0%, transparent 70%)" }}
         animate={{ scale: [1, 1.05, 1] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
       />
@@ -213,12 +202,12 @@ export default function InitPage() {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center text-center px-6 max-w-lg">
-        {/* Logo */}
+        {/* Floating rounded icon */}
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.7, type: "spring", stiffness: 200, damping: 20 }}
-          className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#C8A14A] to-[#9F7A2F] flex items-center justify-center shadow-[0_20px_60px_rgba(200,161,74,0.35)] mb-8"
+          transition={{ duration: 0.6, type: "spring", stiffness: 200, damping: 20 }}
+          className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-[#0866FF] to-[#7C3AED] flex items-center justify-center shadow-lg shadow-blue-500/25 mb-8"
         >
           <motion.div
             animate={{ rotate: done ? 0 : 360 }}
@@ -228,45 +217,42 @@ export default function InitPage() {
           </motion.div>
         </motion.div>
 
-        {/* Headline */}
         <motion.h1
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="text-3xl font-black text-[#111] tracking-tight"
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="text-3xl font-black text-[#111111] dark:text-white tracking-tight"
         >
           {done ? "Your workspace is ready!" : "Launching SocialPulse AI…"}
         </motion.h1>
 
-        {/* Step label */}
         <AnimatePresence mode="wait">
           <motion.p
             key={stepIdx}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3 }}
-            className="mt-3 text-[14px] text-[#888] font-medium"
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.25 }}
+            className="mt-3 text-sm text-[#666666] dark:text-[#A0A0A0] font-medium"
           >
             {done ? "Redirecting to your dashboard…" : STEPS[stepIdx]}
           </motion.p>
         </AnimatePresence>
 
         {/* Progress bar */}
-        <div className="mt-10 w-full space-y-2">
-          <div className="flex justify-between items-center">
-            <span className="text-[11px] font-semibold text-[#888] uppercase tracking-widest">Progress</span>
-            <span className="text-[13px] font-black text-[#111]">
+        <div className="mt-8 w-full space-y-2">
+          <div className="flex justify-between items-center text-xs">
+            <span className="font-bold text-[#666666] dark:text-[#A0A0A0] uppercase tracking-wider">Progress</span>
+            <span className="font-black text-[#111111] dark:text-white">
               <AnimatedCounter value={Math.round(progress)} />%
             </span>
           </div>
-          <div className="h-1.5 w-full bg-[#F0F0F0] rounded-full overflow-hidden">
+          <div className="h-1.5 w-full bg-[#E5E5EA] dark:bg-[#27272A] rounded-full overflow-hidden">
             <motion.div
-              className="h-full rounded-full"
+              className="h-full rounded-full bg-gradient-to-r from-[#0866FF] to-[#7C3AED]"
               style={{
-                background: "linear-gradient(to right, #C8A14A, #D7B45D)",
                 width: `${progress}%`,
-                boxShadow: "0 0 12px rgba(200,161,74,0.4)",
+                boxShadow: "0 0 12px rgba(8, 102, 255, 0.4)",
               }}
               transition={{ type: "spring", stiffness: 60, damping: 12 }}
             />
@@ -279,32 +265,31 @@ export default function InitPage() {
             <motion.div
               key={i}
               animate={{
-                backgroundColor: i < stepIdx ? "#22C55E" : i === stepIdx ? "#C8A14A" : "#E5E5E5",
+                backgroundColor: i < stepIdx ? "#31A24C" : i === stepIdx ? "#0866FF" : "#E5E5EA",
                 scale: i === stepIdx ? 1.3 : 1,
               }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.25 }}
               className="w-1.5 h-1.5 rounded-full"
             />
           ))}
         </div>
 
-        {/* Success checkmark */}
         <AnimatePresence>
           {done && (
             <motion.div
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className="mt-8 w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center"
+              className="mt-8 w-12 h-12 rounded-full bg-[#E7F8ED] border border-[#31A24C]/30 flex items-center justify-center"
             >
-              <svg className="w-6 h-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <svg className="w-6 h-6 text-[#31A24C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <motion.path
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   d="M5 13l4 4L19 7"
                   initial={{ pathLength: 0 }}
                   animate={{ pathLength: 1 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
+                  transition={{ duration: 0.4, delay: 0.1 }}
                 />
               </svg>
             </motion.div>
