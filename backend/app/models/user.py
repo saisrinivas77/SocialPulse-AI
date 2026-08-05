@@ -50,8 +50,6 @@ class User(Base):
     phone_number: Mapped[str | None] = mapped_column(String(20), nullable=True)
     bio: Mapped[str | None] = mapped_column(String(500), nullable=True)
     profile_image: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    provider: Mapped[str] = mapped_column(String(50), default="email", nullable=False)
-    provider_user_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     role: Mapped[UserRole] = mapped_column(
         SQLEnum(UserRole), default=UserRole.USER, nullable=False
     )
@@ -130,6 +128,22 @@ class User(Base):
     @avatar_url.setter
     def avatar_url(self, value: str | None) -> None:
         self.profile_image = value
+
+    @property
+    def provider(self) -> str:
+        return getattr(self, "_provider_val", "email")
+
+    @provider.setter
+    def provider(self, value: str) -> None:
+        self._provider_val = value
+
+    @property
+    def provider_user_id(self) -> str | None:
+        return getattr(self, "_provider_user_id_val", None)
+
+    @provider_user_id.setter
+    def provider_user_id(self, value: str | None) -> None:
+        self._provider_user_id_val = value
 
     def __repr__(self) -> str:
         return f"<User {self.email}>"
