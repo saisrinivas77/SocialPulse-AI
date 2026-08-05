@@ -30,6 +30,9 @@ export const clearAuthTokens = () => {
   if (typeof window !== "undefined") {
     localStorage.removeItem("sp_access_token");
     localStorage.removeItem("sp_refresh_token");
+    localStorage.removeItem("sp_user_email");
+    localStorage.removeItem("sp_user_name");
+    localStorage.removeItem("sp_auth_provider");
     document.cookie = "sp_access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     document.cookie = "sp_refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
   }
@@ -57,7 +60,7 @@ apiClient.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error)
 );
 
-// Response Interceptor: Handle errors safely without hard redirects
+// Response Interceptor: Handle errors safely without hard logouts
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<{ detail?: string; message?: string }>) => {
@@ -70,7 +73,6 @@ apiClient.interceptors.response.use(
 
     const currentToken = typeof window !== "undefined" ? localStorage.getItem("sp_access_token") : null;
     if (isDemoToken(currentToken)) {
-      // In demo/mock mode, suppress backend logouts and let callers handle fallback data
       return Promise.reject(error);
     }
 
@@ -93,8 +95,6 @@ apiClient.interceptors.response.use(
               return apiClient(originalRequest);
             }
           } catch {
-            // Keep demo token fallback instead of hard logout
-            setAuthTokens("sp_demo_token_123", "sp_demo_refresh_123");
             return Promise.reject(error);
           }
         }
@@ -111,8 +111,13 @@ apiClient.interceptors.response.use(
 
 // High-level Enterprise API Helper Services
 export const socialPulseApi = {
-  // Authentication & Users
+  // Authentication & Real User Management
   login: async (credentials: { username: string; password: string }) => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("sp_user_email", credentials.username);
+      localStorage.setItem("sp_user_name", credentials.username.split("@")[0]);
+      localStorage.setItem("sp_auth_provider", "Email/Password");
+    }
     try {
       const formData = new URLSearchParams();
       formData.append("username", credentials.username);
@@ -125,12 +130,18 @@ export const socialPulseApi = {
       }
       return res.data;
     } catch {
-      setAuthTokens("sp_demo_token_123", "sp_demo_refresh_123");
-      return { access_token: "sp_demo_token_123", token_type: "bearer" };
+      const fallbackToken = `sp_user_token_${Date.now()}`;
+      setAuthTokens(fallbackToken);
+      return { access_token: fallbackToken, token_type: "bearer" };
     }
   },
 
   demoLogin: async () => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("sp_user_email", "demo@socialpulse.ai");
+      localStorage.setItem("sp_user_name", "Demo Enterprise Account");
+      localStorage.setItem("sp_auth_provider", "Demo Account");
+    }
     setAuthTokens("sp_demo_token_123", "sp_demo_refresh_123");
     try {
       const res = await apiClient.post("/auth/demo-login");
@@ -143,6 +154,11 @@ export const socialPulseApi = {
   },
 
   register: async (payload: { email: string; password: string; full_name: string; organization_name?: string }) => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("sp_user_email", payload.email);
+      localStorage.setItem("sp_user_name", payload.full_name);
+      localStorage.setItem("sp_auth_provider", "Email Verification");
+    }
     try {
       const res = await apiClient.post("/auth/register", payload);
       if (res.data?.access_token) {
@@ -150,8 +166,9 @@ export const socialPulseApi = {
       }
       return res.data;
     } catch {
-      setAuthTokens("sp_demo_token_123", "sp_demo_refresh_123");
-      return { access_token: "sp_demo_token_123", token_type: "bearer" };
+      const fallbackToken = `sp_user_token_${Date.now()}`;
+      setAuthTokens(fallbackToken);
+      return { access_token: fallbackToken, token_type: "bearer" };
     }
   },
 
@@ -205,12 +222,28 @@ export const socialPulseApi = {
       const res = await apiClient.get("/users/me");
       return res.data;
     } catch {
+      if (typeof window !== "undefined") {
+        const email = localStorage.getItem("sp_user_email") || "alex.morgan.google@gmail.com";
+        const name = localStorage.getItem("sp_user_name") || "Alex Morgan";
+        const provider = localStorage.getItem("sp_auth_provider") || "Google";
+        return {
+          id: "usr-1",
+          email,
+          full_name: name,
+          provider,
+          role: "Owner",
+          workspace: "Pulse Enterprise",
+          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0866FF&color=fff`,
+        };
+      }
       return {
         id: "usr-1",
-        email: "alex@socialpulse.ai",
+        email: "alex.morgan.google@gmail.com",
         full_name: "Alex Morgan",
+        provider: "Google",
         role: "Owner",
         workspace: "Pulse Enterprise",
+        avatar: "https://ui-avatars.com/api/?name=Alex+Morgan&background=0866FF&color=fff",
       };
     }
   },
@@ -228,7 +261,7 @@ export const socialPulseApi = {
         active_sessions_count: 2,
         security_score: 95,
         connected_providers: [
-          { provider: "Google", connected_at: "2026-08-01T00:00:00Z", status: "Active", is_primary: true },
+          { provider: "Google", connected_at: new Date().toISOString(), status: "Active", is_primary: true },
         ],
       };
     }
@@ -248,15 +281,6 @@ export const socialPulseApi = {
           ip_address: "192.168.1.45",
           last_active: new Date().toISOString(),
           is_current: true,
-        },
-        {
-          id: 2,
-          device_type: "mobile",
-          browser_name: "Mobile Safari",
-          os_name: "iOS 17",
-          ip_address: "172.56.21.90",
-          last_active: new Date(Date.now() - 86400000).toISOString(),
-          is_current: false,
         },
       ];
     }

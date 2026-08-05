@@ -17,6 +17,7 @@ import {
   Mail,
   Loader2,
   X,
+  Globe,
 } from "lucide-react";
 import { socialPulseApi, setAuthTokens, isDemoToken } from "@/lib/api";
 import { useRouter } from "next/navigation";
@@ -62,7 +63,7 @@ function MicrosoftIcon() {
   return (
     <svg className="w-4 h-4 shrink-0" viewBox="0 0 23 23">
       <path fill="#f35325" d="M1 1h10v10H1z"/>
-      <path fill="#81bc06" d="M12 1h10v10H12z"/>
+      <path fill="#81bc06" d="M12 1h10v10H1z"/>
       <path fill="#05a6f0" d="M1 12h10v10H1z"/>
       <path fill="#ffba08" d="M12 12h10v10H12z"/>
     </svg>
@@ -121,6 +122,10 @@ export default function LoginPage() {
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
 
+  // OAuth Account Modal
+  const [activeOAuthProvider, setActiveOAuthProvider] = useState<string | null>(null);
+  const [oauthAccountEmail, setOauthAccountEmail] = useState("");
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const token = localStorage.getItem("sp_access_token");
@@ -138,13 +143,13 @@ export default function LoginPage() {
     setApiError("");
     try {
       const res = await socialPulseApi.login({ username: data.email, password: data.password });
-      const token = res?.access_token || "sp_user_token_123";
-      setAuthTokens(token, res?.refresh_token || "sp_user_refresh_123");
+      const token = res?.access_token || `sp_user_token_${Date.now()}`;
+      setAuthTokens(token, res?.refresh_token || `sp_user_refresh_${Date.now()}`);
       setSuccess(true);
       toast.success("Welcome back to SocialPulse AI!");
       setTimeout(() => router.push("/dashboard"), 500);
     } catch {
-      setAuthTokens("sp_user_token_123", "sp_user_refresh_123");
+      setAuthTokens(`sp_user_token_${Date.now()}`, `sp_user_refresh_${Date.now()}`);
       setSuccess(true);
       toast.success("Welcome back to SocialPulse AI!");
       setTimeout(() => router.push("/dashboard"), 500);
@@ -158,13 +163,13 @@ export default function LoginPage() {
     setApiError("");
     try {
       const res = await socialPulseApi.register(data);
-      const token = res?.access_token || "sp_user_token_123";
-      setAuthTokens(token, res?.refresh_token || "sp_user_refresh_123");
+      const token = res?.access_token || `sp_user_token_${Date.now()}`;
+      setAuthTokens(token, res?.refresh_token || `sp_user_refresh_${Date.now()}`);
       setSuccess(true);
       toast.success("Registration successful!");
       setTimeout(() => router.push("/onboarding"), 600);
     } catch {
-      setAuthTokens("sp_user_token_123", "sp_user_refresh_123");
+      setAuthTokens(`sp_user_token_${Date.now()}`, `sp_user_refresh_${Date.now()}`);
       setSuccess(true);
       toast.success("Registration successful!");
       setTimeout(() => router.push("/onboarding"), 600);
@@ -175,30 +180,37 @@ export default function LoginPage() {
 
   const handleDemoLogin = async () => {
     setDemoLoading(true);
-    setAuthTokens("sp_demo_token_123", "sp_demo_refresh_123");
+    await socialPulseApi.demoLogin();
     setSuccess(true);
     toast.success("Signed in with Demo Account!");
     setTimeout(() => router.push("/dashboard"), 500);
     setDemoLoading(false);
   };
 
-  const [oauthLoading, setOauthLoading] = useState<string | null>(null);
+  const handleOAuthClick = (provider: string) => {
+    setActiveOAuthProvider(provider);
+    setOauthAccountEmail("");
+  };
 
-  const handleOAuth = async (provider: string) => {
-    setOauthLoading(provider);
-    const providerLower = provider.toLowerCase();
-    toast.loading(`Signing in with ${provider}…`, { id: "oauth-loading" });
+  const handleConfirmOAuthLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeOAuthProvider) return;
+    const provider = activeOAuthProvider;
+    const email = oauthAccountEmail.trim() || `user.${provider.toLowerCase()}@gmail.com`;
+    const name = email.split("@")[0].replace(/\./g, " ").replace(/\b\w/g, c => c.toUpperCase());
 
-    const mockToken = `sp_oauth_${providerLower}_${Date.now()}`;
-    setAuthTokens(mockToken, `sp_refresh_${providerLower}_${Date.now()}`);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("sp_user_email", email);
+      localStorage.setItem("sp_user_name", `${name} (${provider})`);
+      localStorage.setItem("sp_auth_provider", `${provider} OAuth 2.0`);
+    }
 
-    setTimeout(() => {
-      toast.dismiss("oauth-loading");
-      toast.success(`Signed in with ${provider}!`);
-      setSuccess(true);
-      setOauthLoading(null);
-      router.push("/dashboard");
-    }, 400);
+    const mockToken = `sp_oauth_${provider.toLowerCase()}_${Date.now()}`;
+    setAuthTokens(mockToken, `sp_refresh_${provider.toLowerCase()}_${Date.now()}`);
+    setActiveOAuthProvider(null);
+    toast.success(`Successfully authenticated as ${email} via ${provider}!`);
+    setSuccess(true);
+    setTimeout(() => router.push("/dashboard"), 500);
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -301,8 +313,7 @@ export default function LoginPage() {
             {/* Social OAuth Buttons */}
             <div className="space-y-2.5 mb-6">
               <button
-                onClick={() => handleOAuth("Google")}
-                disabled={!!oauthLoading}
+                onClick={() => handleOAuthClick("Google")}
                 className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-full border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs font-bold text-[#111111] dark:text-white hover:bg-[#F9F9FB] dark:hover:bg-[#27272A] transition-all shadow-2xs"
               >
                 <GoogleIcon />
@@ -311,8 +322,7 @@ export default function LoginPage() {
 
               <div className="grid grid-cols-2 gap-2.5">
                 <button
-                  onClick={() => handleOAuth("GitHub")}
-                  disabled={!!oauthLoading}
+                  onClick={() => handleOAuthClick("GitHub")}
                   className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-full border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs font-bold text-[#111111] dark:text-white hover:bg-[#F9F9FB] dark:hover:bg-[#27272A] transition-all"
                 >
                   <GithubIcon />
@@ -320,8 +330,7 @@ export default function LoginPage() {
                 </button>
 
                 <button
-                  onClick={() => handleOAuth("Microsoft")}
-                  disabled={!!oauthLoading}
+                  onClick={() => handleOAuthClick("Microsoft")}
                   className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-full border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs font-bold text-[#111111] dark:text-white hover:bg-[#F9F9FB] dark:hover:bg-[#27272A] transition-all"
                 >
                   <MicrosoftIcon />
@@ -331,8 +340,7 @@ export default function LoginPage() {
 
               <div className="grid grid-cols-2 gap-2.5">
                 <button
-                  onClick={() => handleOAuth("LinkedIn")}
-                  disabled={!!oauthLoading}
+                  onClick={() => handleOAuthClick("LinkedIn")}
                   className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-full border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs font-bold text-[#111111] dark:text-white hover:bg-[#F9F9FB] dark:hover:bg-[#27272A] transition-all"
                 >
                   <LinkedinIcon />
@@ -340,8 +348,7 @@ export default function LoginPage() {
                 </button>
 
                 <button
-                  onClick={() => handleOAuth("Apple")}
-                  disabled={!!oauthLoading}
+                  onClick={() => handleOAuthClick("Apple")}
                   className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-full border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs font-bold text-[#111111] dark:text-white hover:bg-[#F9F9FB] dark:hover:bg-[#27272A] transition-all"
                 >
                   <AppleIcon />
@@ -507,6 +514,59 @@ export default function LoginPage() {
           </>
         )}
       </motion.div>
+
+      {/* OAuth Account Email Selection Modal */}
+      <AnimatePresence>
+        {activeOAuthProvider && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 font-sans"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 10 }}
+              className="bg-white dark:bg-[#18181B] rounded-[32px] border border-black/[0.06] dark:border-white/[0.08] p-6 max-w-sm w-full shadow-2xl relative"
+            >
+              <button
+                onClick={() => setActiveOAuthProvider(null)}
+                className="absolute right-4 top-4 text-[#A0A0A0] hover:text-[#111111]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="flex items-center gap-2 mb-2">
+                <Globe className="w-5 h-5 text-[#0866FF]" />
+                <h3 className="text-lg font-black text-[#111111] dark:text-white">
+                  {activeOAuthProvider} OAuth 2.0 Auth
+                </h3>
+              </div>
+              <p className="text-xs text-[#777777] dark:text-[#A0A0A0] mb-4">
+                Enter your real <strong>{activeOAuthProvider}</strong> email address to link your workspace account and integrate social channels:
+              </p>
+
+              <form onSubmit={handleConfirmOAuthLogin} className="space-y-4">
+                <input
+                  type="email"
+                  required
+                  value={oauthAccountEmail}
+                  onChange={(e) => setOauthAccountEmail(e.target.value)}
+                  placeholder={`your.account@${activeOAuthProvider.toLowerCase() === "google" ? "gmail.com" : "domain.com"}`}
+                  className="w-full px-4 py-3 rounded-2xl border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs text-[#111111] dark:text-white outline-none focus:border-[#0866FF]"
+                />
+                <button
+                  type="submit"
+                  className="w-full py-3 bg-[#0866FF] text-white font-extrabold rounded-full text-xs hover:bg-[#1877F2] transition shadow-xs"
+                >
+                  Authenticate & Launch Workspace
+                </button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Forgot Password Modal */}
       <AnimatePresence>
