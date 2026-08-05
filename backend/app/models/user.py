@@ -50,7 +50,6 @@ class User(Base):
     phone_number: Mapped[str | None] = mapped_column(String(20), nullable=True)
     bio: Mapped[str | None] = mapped_column(String(500), nullable=True)
     profile_image: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     provider: Mapped[str] = mapped_column(String(50), default="email", nullable=False)
     provider_user_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     role: Mapped[UserRole] = mapped_column(
@@ -123,6 +122,14 @@ class User(Base):
     @property
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}".strip()
+
+    @property
+    def avatar_url(self) -> str | None:
+        return self.profile_image
+
+    @avatar_url.setter
+    def avatar_url(self, value: str | None) -> None:
+        self.profile_image = value
 
     def __repr__(self) -> str:
         return f"<User {self.email}>"
