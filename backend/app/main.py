@@ -69,6 +69,12 @@ async def create_database_tables() -> None:
         logger.warning(f"Could not connect to database on startup: {e}")
 
 
+@app.get("/", include_in_schema=False)
+async def root_redirect():
+    """Redirect root path to interactive OpenAPI documentation."""
+    return RedirectResponse(url="/api/v1/docs")
+
+
 @app.get("/health", tags=["Health"])
 @app.get("/api/v1/health", tags=["Health"])
 async def health_check():
