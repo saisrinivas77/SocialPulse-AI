@@ -6,7 +6,7 @@ import { CheckCircle2, RefreshCw, ExternalLink, Zap, ArrowRight } from "lucide-r
 import { useRouter } from "next/navigation";
 import axios from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 function ReferenceGridBackground() {
   return (
