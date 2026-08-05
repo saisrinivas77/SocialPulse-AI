@@ -120,6 +120,18 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const urlAccessToken = params.get("access_token");
+      const urlRefreshToken = params.get("refresh_token");
+
+      if (urlAccessToken) {
+        setAuthTokens(urlAccessToken, urlRefreshToken || "");
+        toast.success("Successfully authenticated with Google!");
+        setSuccess(true);
+        setTimeout(() => router.replace("/dashboard"), 300);
+        return;
+      }
+
       const token = localStorage.getItem("sp_access_token");
       if (token) {
         router.replace("/dashboard");
