@@ -188,8 +188,7 @@ export default function LoginPage() {
   };
 
   const handleOAuthClick = (provider: string) => {
-    setActiveOAuthProvider(provider);
-    setOauthAccountEmail("");
+    router.push(`/auth/oauth-select?provider=${encodeURIComponent(provider)}`);
   };
 
   const handleConfirmOAuthLogin = (e: React.FormEvent) => {
