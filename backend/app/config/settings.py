@@ -216,11 +216,38 @@ class Settings(BaseSettings):
     MAX_PAGE_SIZE: int = 100
 
     # ==========================================================
-    # SOCIAL PROVIDER
+    # SOCIAL PROVIDERS & OAUTH CREDENTIALS
     # ==========================================================
+
+    DEMO_MODE: bool = False
+
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: SecretStr = SecretStr("")
+    YOUTUBE_API_KEY: str = ""
+
+    GITHUB_CLIENT_ID: str = ""
+    GITHUB_CLIENT_SECRET: SecretStr = SecretStr("")
+
+    MICROSOFT_CLIENT_ID: str = ""
+    MICROSOFT_CLIENT_SECRET: SecretStr = SecretStr("")
+    MICROSOFT_TENANT_ID: str = ""
+
+    LINKEDIN_CLIENT_ID: str = ""
+    LINKEDIN_CLIENT_SECRET: SecretStr = SecretStr("")
 
     META_APP_ID: str = ""
     META_APP_SECRET: SecretStr = SecretStr("")
+
+    TWITTER_CLIENT_ID: str = ""
+    TWITTER_CLIENT_SECRET: SecretStr = SecretStr("")
+
+    TIKTOK_CLIENT_ID: str = ""
+    TIKTOK_CLIENT_SECRET: SecretStr = SecretStr("")
+
+    PINTEREST_CLIENT_ID: str = ""
+    PINTEREST_CLIENT_SECRET: SecretStr = SecretStr("")
+
+    RESEND_API_KEY: SecretStr = SecretStr("")
 
 
 @lru_cache
