@@ -60,6 +60,16 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
+export const isDemoToken = (token: string | null): boolean => {
+  if (!token) return false;
+  return (
+    token.startsWith("sp_demo_") ||
+    token.startsWith("sp_mock_") ||
+    token.startsWith("sp_oauth_") ||
+    token === "demo"
+  );
+};
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<{ detail?: string; message?: string }>) => {
@@ -70,10 +80,17 @@ apiClient.interceptors.response.use(
       error.message ||
       "An unexpected server error occurred";
 
+    // Check if the current user is using a demo or mock token
+    const currentToken = typeof window !== "undefined" ? localStorage.getItem("sp_access_token") : null;
+    if (isDemoToken(currentToken)) {
+      // In demo mode, suppress backend 401 logouts and allow fallback mock data in callers
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       if (typeof window !== "undefined") {
         const refreshToken = localStorage.getItem("sp_refresh_token");
-        if (refreshToken) {
+        if (refreshToken && !isDemoToken(refreshToken)) {
           if (isRefreshing) {
             return new Promise((resolve, reject) => {
               failedQueue.push({ resolve, reject });
@@ -124,6 +141,7 @@ apiClient.interceptors.response.use(
           localStorage.removeItem("sp_access_token");
           if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
             toast.error("Session expired. Please log in again.");
+            window.location.href = "/login";
           }
         }
       }
