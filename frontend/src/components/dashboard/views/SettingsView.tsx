@@ -22,6 +22,28 @@ export const SettingsView: React.FC = () => {
   const { currentWorkspace, setIsUpgradeModalOpen } = useAppStore();
   const [activeTab, setActiveTab] = useState<"profile" | "billing" | "workspace" | "api" | "security" | "integrations">("profile");
 
+  const [profile, setProfile] = useState({
+    name: "User",
+    email: "user@socialpulse.ai",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80",
+  });
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedName = localStorage.getItem("sp_user_name");
+      const storedEmail = localStorage.getItem("sp_user_email");
+      const storedAvatar = localStorage.getItem("sp_user_avatar");
+      if (storedName || storedEmail) {
+        const name = storedName || storedEmail?.split("@")[0] || "User";
+        setProfile({
+          name,
+          email: storedEmail || "user@socialpulse.ai",
+          avatar: storedAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0866FF&color=fff`,
+        });
+      }
+    }
+  }, []);
+
   const [apiKeys, setApiKeys] = useState([
     { id: "key-1", name: "Production Pipeline Key", secret: "sp_live_9482910842...", created: "Jul 12, 2026" },
     { id: "key-2", name: "Zapier Automation Hook", secret: "sp_live_7104928104...", created: "Jun 04, 2026" },
@@ -98,8 +120,8 @@ export const SettingsView: React.FC = () => {
           <h3 className="text-base font-bold text-[#050505] dark:text-[#E4E6EB]">User Profile Information</h3>
           <div className="flex items-center gap-4">
             <img
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80"
-              alt="Alex Morgan"
+              src={profile.avatar}
+              alt={profile.name}
               className="w-16 h-16 rounded-full object-cover border-2 border-[#0866FF]"
             />
             <button className="px-4 py-2 rounded-xl border border-black/5 dark:border-white/10 text-xs font-semibold text-[#050505] dark:text-[#E4E6EB] hover:border-[#0866FF]">
@@ -112,7 +134,8 @@ export const SettingsView: React.FC = () => {
               <label className="text-xs font-semibold text-[#65676B] dark:text-[#B0B3B8] block mb-1">Full Name</label>
               <input
                 type="text"
-                defaultValue="Alex Morgan"
+                value={profile.name}
+                onChange={(e) => setProfile({ ...profile, name: e.target.value })}
                 className="w-full p-3 rounded-xl bg-[#F0F2F5] dark:bg-[#242526] border border-black/5 dark:border-white/10 text-xs text-[#050505] dark:text-[#E4E6EB]"
               />
             </div>
@@ -120,7 +143,8 @@ export const SettingsView: React.FC = () => {
               <label className="text-xs font-semibold text-[#65676B] dark:text-[#B0B3B8] block mb-1">Email Address</label>
               <input
                 type="email"
-                defaultValue="alex@socialpulse.ai"
+                value={profile.email}
+                onChange={(e) => setProfile({ ...profile, email: e.target.value })}
                 className="w-full p-3 rounded-xl bg-[#F0F2F5] dark:bg-[#242526] border border-black/5 dark:border-white/10 text-xs text-[#050505] dark:text-[#E4E6EB]"
               />
             </div>

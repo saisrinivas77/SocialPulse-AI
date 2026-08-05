@@ -25,6 +25,38 @@ const permissionsMatrix = [
 
 export const TeamView: React.FC = () => {
   const { teamMembers, setIsInviteTeamModalOpen } = useAppStore();
+  const [currentUser, setCurrentUser] = React.useState({
+    name: "User",
+    email: "user@socialpulse.ai",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80",
+  });
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedName = localStorage.getItem("sp_user_name");
+      const storedEmail = localStorage.getItem("sp_user_email");
+      const storedAvatar = localStorage.getItem("sp_user_avatar");
+      if (storedName || storedEmail) {
+        const name = storedName || storedEmail?.split("@")[0] || "User";
+        setCurrentUser({
+          name,
+          email: storedEmail || "user@socialpulse.ai",
+          avatar: storedAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0866FF&color=fff`,
+        });
+      }
+    }
+  }, []);
+
+  const displayMembers = teamMembers.map((m) =>
+    m.role === "Owner"
+      ? {
+          ...m,
+          name: currentUser.name,
+          email: currentUser.email,
+          avatar: currentUser.avatar,
+        }
+      : m
+  );
 
   return (
     <div className="space-y-8 pb-12">
@@ -67,7 +99,7 @@ export const TeamView: React.FC = () => {
         </div>
 
         <div className="divide-y divide-black/5 dark:divide-white/10">
-          {teamMembers.map((member) => (
+          {displayMembers.map((member) => (
             <div key={member.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <img

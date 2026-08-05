@@ -98,11 +98,11 @@ export const SocialAccountsView: React.FC = () => {
   const { socialAccounts, toggleAccountConnection } = useAppStore();
   const [activeSyncingId, setActiveSyncingId] = useState<string | null>(null);
   const [showConnectModal, setShowConnectModal] = useState(false);
-  const [userEmail, setUserEmail] = useState("alex.morgan.google@gmail.com");
+  const [userEmail, setUserEmail] = useState("user@socialpulse.ai");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const email = localStorage.getItem("sp_user_email") || "alex.morgan.google@gmail.com";
+      const email = localStorage.getItem("sp_user_email") || "user@socialpulse.ai";
       setUserEmail(email);
     }
   }, []);

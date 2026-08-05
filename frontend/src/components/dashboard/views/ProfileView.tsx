@@ -1,9 +1,46 @@
 "use client";
 
-import React from "react";
-import { User, ShieldCheck, Award, Zap, CheckCircle2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { User, Award, Zap } from "lucide-react";
+import { socialPulseApi } from "@/lib/api";
 
 export const ProfileView: React.FC = () => {
+  const [profile, setProfile] = useState({
+    name: "User",
+    email: "user@socialpulse.ai",
+    role: "Workspace Owner",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedName = localStorage.getItem("sp_user_name");
+      const storedEmail = localStorage.getItem("sp_user_email");
+      const storedAvatar = localStorage.getItem("sp_user_avatar");
+      if (storedName || storedEmail) {
+        const name = storedName || storedEmail?.split("@")[0] || "User";
+        setProfile({
+          name,
+          email: storedEmail || "user@socialpulse.ai",
+          role: "Workspace Owner",
+          avatar: storedAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0866FF&color=fff`,
+        });
+      }
+    }
+
+    socialPulseApi.getCurrentUser().then((u) => {
+      if (u && u.email) {
+        const name = u.full_name || u.username || u.email.split("@")[0];
+        setProfile({
+          name,
+          email: u.email,
+          role: "Workspace Owner",
+          avatar: u.avatar_url || u.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0866FF&color=fff`,
+        });
+      }
+    });
+  }, []);
+
   return (
     <div className="space-y-8 animate-fade-in pb-12">
       <div>
@@ -17,14 +54,14 @@ export const ProfileView: React.FC = () => {
         {/* Profile Card */}
         <div className="glass-card p-6 border-amber-500/20 text-center space-y-4">
           <img
-            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"
-            alt="Alex Morgan"
+            src={profile.avatar}
+            alt={profile.name}
             className="w-24 h-24 rounded-full object-cover border-2 border-amber-400 mx-auto shadow-[0_0_20px_rgba(255,215,0,0.3)]"
           />
           <div>
-            <h2 className="text-xl font-extrabold text-white">Alex Morgan</h2>
-            <p className="text-xs text-amber-400 font-semibold">Head of Social Media</p>
-            <p className="text-[11px] text-gray-400 mt-1">alex@socialpulse.ai</p>
+            <h2 className="text-xl font-extrabold text-white">{profile.name}</h2>
+            <p className="text-xs text-amber-400 font-semibold">{profile.role}</p>
+            <p className="text-[11px] text-gray-400 mt-1">{profile.email}</p>
           </div>
           <div className="inline-flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-full text-xs font-bold text-amber-300">
             <Zap className="w-3.5 h-3.5 fill-amber-400" /> Enterprise Pro Member

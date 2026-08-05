@@ -54,17 +54,35 @@ export const TopNavbar: React.FC = () => {
   });
 
   useEffect(() => {
-    socialPulseApi.getCurrentUser().then((user) => {
-      if (user) {
+    if (typeof window !== "undefined") {
+      const storedName = localStorage.getItem("sp_user_name");
+      const storedEmail = localStorage.getItem("sp_user_email");
+      const storedAvatar = localStorage.getItem("sp_user_avatar");
+      const storedProvider = localStorage.getItem("sp_auth_provider");
+
+      if (storedName || storedEmail) {
+        const name = storedName || storedEmail?.split("@")[0] || "User";
+        const email = storedEmail || "user@socialpulse.ai";
         setUserProfile({
-          name: user.full_name || "Alex Morgan",
-          email: user.email || "alex.morgan.google@gmail.com",
-          provider: user.provider || "Google",
+          name,
+          email,
+          provider: storedProvider || "OAuth 2.0",
+          avatar: storedAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0866FF&color=fff`,
+        });
+      }
+    }
+
+    socialPulseApi.getCurrentUser().then((user) => {
+      if (user && user.email) {
+        const name = user.full_name || user.username || user.email.split("@")[0];
+        setUserProfile({
+          name,
+          email: user.email,
+          provider: user.provider ? `${user.provider.toUpperCase()} OAuth` : "Google OAuth",
           avatar:
-            user.avatar ||
-            `https://ui-avatars.com/api/?name=${encodeURIComponent(
-              user.full_name || "Alex Morgan"
-            )}&background=0866FF&color=fff`,
+            user.avatar_url ||
+            user.profile_image ||
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0866FF&color=fff`,
         });
       }
     });
