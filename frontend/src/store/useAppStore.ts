@@ -111,6 +111,8 @@ export interface AppState {
   // Social Accounts
   socialAccounts: SocialAccount[];
   toggleAccountConnection: (id: string) => void;
+  updateAccountUsername: (id: string, username: string) => void;
+  loadUserAccounts: () => void;
 
   // AI Studio
   activeAiTool: string;
@@ -281,8 +283,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   ],
 
   toggleAccountConnection: (id) =>
-    set((state) => ({
-      socialAccounts: state.socialAccounts.map((acc) =>
+    set((state) => {
+      const updated = state.socialAccounts.map((acc) =>
         acc.id === id
           ? {
               ...acc,
@@ -291,8 +293,45 @@ export const useAppStore = create<AppState>((set, get) => ({
               health: !acc.connected ? 100 : 0,
             }
           : acc
-      ),
-    })),
+      );
+      if (typeof window !== "undefined") {
+        localStorage.setItem("sp_user_social_accounts", JSON.stringify(updated));
+      }
+      return { socialAccounts: updated };
+    }),
+
+  updateAccountUsername: (id, username) =>
+    set((state) => {
+      const updated = state.socialAccounts.map((acc) =>
+        acc.id === id
+          ? {
+              ...acc,
+              username,
+              connected: true,
+              lastSynced: "Just now",
+              health: 100,
+            }
+          : acc
+      );
+      if (typeof window !== "undefined") {
+        localStorage.setItem("sp_user_social_accounts", JSON.stringify(updated));
+      }
+      return { socialAccounts: updated };
+    }),
+
+  loadUserAccounts: () => {
+    if (typeof window !== "undefined") {
+      const raw = localStorage.getItem("sp_user_social_accounts");
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            set({ socialAccounts: parsed });
+          }
+        } catch (e) {}
+      }
+    }
+  },
 
   activeAiTool: "caption",
   setActiveAiTool: (tool) => set({ activeAiTool: tool }),

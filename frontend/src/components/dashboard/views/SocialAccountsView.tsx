@@ -95,12 +95,15 @@ const PlatformLogo: React.FC<{ platform: string; className?: string }> = ({ plat
 };
 
 export const SocialAccountsView: React.FC = () => {
-  const { socialAccounts, toggleAccountConnection } = useAppStore();
+  const { socialAccounts, toggleAccountConnection, updateAccountUsername, loadUserAccounts } = useAppStore();
   const [activeSyncingId, setActiveSyncingId] = useState<string | null>(null);
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [userEmail, setUserEmail] = useState("user@socialpulse.ai");
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+  const [customHandleInput, setCustomHandleInput] = useState("");
 
   useEffect(() => {
+    loadUserAccounts();
     if (typeof window !== "undefined") {
       const email = localStorage.getItem("sp_user_email") || "user@socialpulse.ai";
       setUserEmail(email);
@@ -132,6 +135,15 @@ export const SocialAccountsView: React.FC = () => {
     } else {
       toast.info(`Disconnected ${platform} channel.`);
     }
+  };
+
+  const handleAuthorizeCustomHandle = (accId: string, platform: string) => {
+    const handleToUse = customHandleInput.trim() || (userEmail ? `@${userEmail.split("@")[0]}` : `@user_${platform.toLowerCase()}`);
+    updateAccountUsername(accId, handleToUse);
+    toast.success(`Successfully linked ${platform} account (${handleToUse})! Live telemetry activated.`);
+    setCustomHandleInput("");
+    setSelectedAccountId(null);
+    setShowConnectModal(false);
   };
 
   return (
@@ -290,39 +302,73 @@ export const SocialAccountsView: React.FC = () => {
                 <ShieldCheck className="w-5 h-5 text-[#0866FF]" />
                 <h3 className="text-xl font-black text-[#111111] dark:text-white">Connect Social Channel</h3>
               </div>
-              <p className="text-xs text-[#777777] dark:text-[#A0A0A0] mb-6">
-                Authorize channel integration using your authenticated account: <strong className="text-[#0866FF]">{userEmail}</strong>
+              <p className="text-xs text-[#777777] dark:text-[#A0A0A0] mb-4">
+                Authorize channel integration using your account: <strong className="text-[#0866FF]">{userEmail}</strong>
               </p>
 
-              <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
-                {socialAccounts.map((acc) => (
-                  <div
-                    key={acc.id}
-                    className="flex items-center justify-between p-3.5 rounded-2xl border border-black/[0.06] dark:border-white/[0.08] bg-[#FAFBFD] dark:bg-[#121316]"
-                  >
-                    <div className="flex items-center gap-3">
-                      <PlatformLogo platform={acc.platform} className="w-8 h-8 shrink-0" />
-                      <div>
-                        <h4 className="text-xs font-bold text-[#111111] dark:text-white">{acc.platform}</h4>
-                        <p className="text-[10px] text-[#777777]">{acc.connected ? "Connected" : "Available to Link"}</p>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        handleConnectToggle(acc.id, acc.platform, acc.connected);
-                        setShowConnectModal(false);
-                      }}
-                      className={`px-4 py-1.5 rounded-full text-xs font-extrabold transition-all ${
-                        acc.connected
-                          ? "bg-[#FEF2F2] text-[#FA383E]"
-                          : "bg-[#0866FF] hover:bg-[#1877F2] text-white shadow-xs"
-                      }`}
+              <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+                {socialAccounts.map((acc) => {
+                  const isSelected = selectedAccountId === acc.id;
+                  return (
+                    <div
+                      key={acc.id}
+                      className="p-3.5 rounded-2xl border border-black/[0.06] dark:border-white/[0.08] bg-[#FAFBFD] dark:bg-[#121316] space-y-3"
                     >
-                      {acc.connected ? "Disconnect" : "Connect"}
-                    </button>
-                  </div>
-                ))}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <PlatformLogo platform={acc.platform} className="w-8 h-8 shrink-0" />
+                          <div>
+                            <h4 className="text-xs font-bold text-[#111111] dark:text-white">{acc.platform}</h4>
+                            <p className="text-[10px] text-[#777777]">
+                              {acc.connected ? `Connected as ${acc.username}` : "Available to Link"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            if (acc.connected) {
+                              handleConnectToggle(acc.id, acc.platform, true);
+                            } else {
+                              setSelectedAccountId(isSelected ? null : acc.id);
+                              setCustomHandleInput(`@${userEmail.split("@")[0]}`);
+                            }
+                          }}
+                          className={`px-4 py-1.5 rounded-full text-xs font-extrabold transition-all ${
+                            acc.connected
+                              ? "bg-[#FEF2F2] text-[#FA383E]"
+                              : "bg-[#0866FF] hover:bg-[#1877F2] text-white shadow-xs"
+                          }`}
+                        >
+                          {acc.connected ? "Disconnect" : isSelected ? "Cancel" : "Connect"}
+                        </button>
+                      </div>
+
+                      {isSelected && !acc.connected && (
+                        <div className="pt-2 border-t border-black/5 dark:border-white/10 space-y-2">
+                          <label className="text-[11px] font-semibold text-[#777777] block">
+                            Enter your {acc.platform} handle or account username:
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={customHandleInput}
+                              onChange={(e) => setCustomHandleInput(e.target.value)}
+                              placeholder={`e.g. @${userEmail.split("@")[0]}`}
+                              className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#18181B] border border-black/10 dark:border-white/15 text-xs text-[#111111] dark:text-white"
+                            />
+                            <button
+                              onClick={() => handleAuthorizeCustomHandle(acc.id, acc.platform)}
+                              className="px-4 py-2 rounded-xl bg-[#0866FF] text-white font-bold text-xs shrink-0 hover:bg-[#1877F2]"
+                            >
+                              Authorize
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </motion.div>
           </motion.div>
