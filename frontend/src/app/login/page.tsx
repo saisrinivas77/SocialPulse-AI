@@ -78,14 +78,6 @@ function LinkedinIcon() {
   );
 }
 
-function AppleIcon() {
-  return (
-    <svg className="w-4 h-4 shrink-0 fill-current" viewBox="0 0 24 24">
-      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.32c.66-.8 1.12-1.92.99-3.04-.97.04-2.14.65-2.83 1.45-.62.72-1.16 1.87-1.01 2.98 1.09.08 2.19-.59 2.85-1.39z"/>
-    </svg>
-  );
-}
-
 function ReferenceGridBackground() {
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -319,10 +311,10 @@ export default function LoginPage() {
                 <span>Continue with Google</span>
               </button>
 
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   onClick={() => handleOAuthClick("GitHub")}
-                  className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-full border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs font-bold text-[#111111] dark:text-white hover:bg-[#F9F9FB] dark:hover:bg-[#27272A] transition-all"
+                  className="flex items-center justify-center gap-1.5 py-2.5 px-2.5 rounded-full border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs font-bold text-[#111111] dark:text-white hover:bg-[#F9F9FB] dark:hover:bg-[#27272A] transition-all"
                 >
                   <GithubIcon />
                   <span>GitHub</span>
@@ -330,28 +322,18 @@ export default function LoginPage() {
 
                 <button
                   onClick={() => handleOAuthClick("Microsoft")}
-                  className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-full border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs font-bold text-[#111111] dark:text-white hover:bg-[#F9F9FB] dark:hover:bg-[#27272A] transition-all"
+                  className="flex items-center justify-center gap-1.5 py-2.5 px-2.5 rounded-full border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs font-bold text-[#111111] dark:text-white hover:bg-[#F9F9FB] dark:hover:bg-[#27272A] transition-all"
                 >
                   <MicrosoftIcon />
                   <span>Microsoft</span>
                 </button>
-              </div>
 
-              <div className="grid grid-cols-2 gap-2.5">
                 <button
                   onClick={() => handleOAuthClick("LinkedIn")}
-                  className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-full border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs font-bold text-[#111111] dark:text-white hover:bg-[#F9F9FB] dark:hover:bg-[#27272A] transition-all"
+                  className="flex items-center justify-center gap-1.5 py-2.5 px-2.5 rounded-full border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs font-bold text-[#111111] dark:text-white hover:bg-[#F9F9FB] dark:hover:bg-[#27272A] transition-all"
                 >
                   <LinkedinIcon />
                   <span>LinkedIn</span>
-                </button>
-
-                <button
-                  onClick={() => handleOAuthClick("Apple")}
-                  className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-full border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs font-bold text-[#111111] dark:text-white hover:bg-[#F9F9FB] dark:hover:bg-[#27272A] transition-all"
-                >
-                  <AppleIcon />
-                  <span>Apple</span>
                 </button>
               </div>
             </div>

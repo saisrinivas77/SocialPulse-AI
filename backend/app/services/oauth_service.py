@@ -17,7 +17,6 @@ class OAuthIntegrationService:
         self.google_client_id = os.getenv("GOOGLE_CLIENT_ID", "google_dev_client_id")
         self.microsoft_client_id = os.getenv("MICROSOFT_CLIENT_ID", "microsoft_dev_client_id")
         self.github_client_id = os.getenv("GITHUB_CLIENT_ID", "github_dev_client_id")
-        self.apple_client_id = os.getenv("APPLE_CLIENT_ID", "apple_dev_client_id")
         self.linkedin_client_id = os.getenv("LINKEDIN_CLIENT_ID", "linkedin_dev_client_id")
 
         # Social Channel OAuth Credentials
@@ -54,10 +53,6 @@ class OAuthIntegrationService:
         elif p == "linkedin":
             scope = urllib.parse.quote("openid profile email", safe="")
             return f"https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id={self.linkedin_client_id}&redirect_uri={encoded_redirect}&scope={scope}&state={state}"
-
-        elif p == "apple":
-            scope = urllib.parse.quote("name email", safe="")
-            return f"https://appleid.apple.com/auth/authorize?client_id={self.apple_client_id}&redirect_uri={encoded_redirect}&response_type=code%20id_token&scope={scope}&state={state}&response_mode=form_post"
 
         else:
             return f"{self.frontend_url}/login?error=unsupported_provider"
