@@ -180,7 +180,10 @@ export default function LoginPage() {
   };
 
   const handleOAuthClick = (provider: string) => {
-    router.push(`/auth/oauth-select?provider=${encodeURIComponent(provider)}`);
+    const providerLower = provider.toLowerCase();
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+    toast.loading(`Connecting to official ${provider} OAuth gateway...`, { id: "oauth-redirect" });
+    window.location.href = `${apiBase}/auth/${providerLower}/login`;
   };
 
   const handleConfirmOAuthLogin = (e: React.FormEvent) => {
