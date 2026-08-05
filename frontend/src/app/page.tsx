@@ -106,14 +106,23 @@ function MeshBackground() {
 
 /** Floating particles */
 function Particles() {
-  const pts = Array.from({ length: 40 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: 0.8 + Math.random() * 2,
-    delay: Math.random() * 8,
-    dur: 12 + Math.random() * 18,
-  }));
+  const [pts, setPts] = useState<Array<{ id: number; x: number; y: number; size: number; delay: number; dur: number }>>([]);
+
+  useEffect(() => {
+    setPts(
+      Array.from({ length: 40 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: 0.8 + Math.random() * 2,
+        delay: Math.random() * 8,
+        dur: 12 + Math.random() * 18,
+      }))
+    );
+  }, []);
+
+  if (pts.length === 0) return null;
+
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden z-0">
       {pts.map((p) => (
