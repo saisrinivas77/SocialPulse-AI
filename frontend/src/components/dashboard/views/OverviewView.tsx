@@ -44,8 +44,11 @@ const performanceData = [
 ];
 
 export const OverviewView: React.FC = () => {
-  const { setCurrentView, posts, setIsCreatePostModalOpen } = useAppStore();
+  const { setCurrentView, posts, setIsCreatePostModalOpen, socialAccounts } = useAppStore();
   const [timeframe, setTimeframe] = useState("7d");
+
+  const connectedAccounts = socialAccounts.filter((a) => a.connected);
+  const connectedCount = connectedAccounts.length;
 
   // TanStack Query for Live Dashboard Telemetry
   const { data: metrics, isLoading, refetch } = useQuery({
@@ -152,7 +155,9 @@ export const OverviewView: React.FC = () => {
             Good morning, Alex.
           </h1>
           <p className="text-sm text-[#65676B] dark:text-[#B0B3B8] mt-1">
-            SocialPulse AI engine is monitoring 8 connected channels. Engagement is up 28.6% this week.
+            {connectedCount > 0
+              ? `SocialPulse AI engine is monitoring ${connectedCount} connected channel${connectedCount === 1 ? "" : "s"}. Engagement is up 28.6% this week.`
+              : "No social accounts connected to this workspace. Connect your first channel to unlock live telemetry."}
           </p>
         </div>
 
@@ -183,6 +188,32 @@ export const OverviewView: React.FC = () => {
           </button>
         </div>
       </motion.div>
+
+      {/* Zero Connected Accounts Empty State */}
+      {connectedCount === 0 && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white dark:bg-[#18181B] border border-black/[0.06] dark:border-white/[0.08] rounded-[28px] p-8 text-center space-y-4 shadow-xs"
+        >
+          <div className="w-14 h-14 rounded-2xl bg-[#0866FF]/10 text-[#0866FF] flex items-center justify-center mx-auto">
+            <Zap className="w-7 h-7" />
+          </div>
+          <h3 className="text-xl font-black text-[#111111] dark:text-white">
+            No Social Accounts Connected to Workspace
+          </h3>
+          <p className="text-xs text-[#777777] dark:text-[#A0A0A0] max-w-md mx-auto">
+            Connect your Instagram, Facebook, LinkedIn, YouTube, TikTok, Threads, Pinterest, or X channel to start fetching live telemetry, computing audience engagement, and running AI generation pipelines.
+          </p>
+          <button
+            onClick={() => setCurrentView("social-accounts")}
+            className="px-6 py-3 rounded-full bg-[#0866FF] hover:bg-[#1877F2] text-white font-extrabold text-xs shadow-md transition-all inline-flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Connect Social Channels</span>
+          </button>
+        </motion.div>
+      )}
 
       {/* 5 Animated KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
