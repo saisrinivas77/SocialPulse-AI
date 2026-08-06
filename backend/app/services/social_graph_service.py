@@ -33,45 +33,57 @@ PINTEREST_CLIENT_ID = os.getenv("PINTEREST_CLIENT_ID", "dev_pinterest_client_id"
 PINTEREST_CLIENT_SECRET = os.getenv("PINTEREST_CLIENT_SECRET", "dev_pinterest_client_secret")
 
 
+from app.services.provider_health_service import ProviderHealthService
+
 class SocialGraphService:
     """Handles OAuth redirects, access token exchanges, and live Graph API telemetry fetches."""
 
     @staticmethod
     def get_authorization_url(provider: str, redirect_uri: str, state: str) -> str:
-        """Construct official OAuth 2.0 authorization URL for specified provider."""
+        """Construct official OAuth 2.0 authorization URL for specified provider with diagnostic checks."""
         provider_clean = provider.lower().strip()
         encoded_redirect = urllib.parse.quote(redirect_uri, safe="")
         encoded_state = urllib.parse.quote(state, safe="")
 
+        diag = ProviderHealthService.validate_provider_credentials(provider_clean)
+        logger.info(
+            "oauth.get_authorization_url.attempt",
+            extra={
+                "provider": provider_clean,
+                "redirect_uri": redirect_uri,
+                "state": state,
+                "diagnostic_ready": diag.get("ready"),
+                "error": diag.get("error"),
+            },
+        )
+
         if provider_clean in ["instagram", "facebook", "meta"]:
             scopes = urllib.parse.quote("instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement,pages_manage_posts", safe="")
-            return f"https://www.facebook.com/v20.0/dialog/oauth?client_id={META_CLIENT_ID}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}&response_type=code"
-
+            url = f"https://www.facebook.com/v20.0/dialog/oauth?client_id={META_CLIENT_ID}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}&response_type=code"
         elif provider_clean == "threads":
             scopes = urllib.parse.quote("threads_basic,threads_content_publish", safe="")
-            return f"https://threads.net/oauth/authorize?client_id={META_CLIENT_ID}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}&response_type=code"
-
+            url = f"https://threads.net/oauth/authorize?client_id={META_CLIENT_ID}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}&response_type=code"
         elif provider_clean == "linkedin":
             scopes = urllib.parse.quote("openid profile email organization_social", safe="")
-            return f"https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id={LINKEDIN_CLIENT_ID}&redirect_uri={encoded_redirect}&state={encoded_state}&scope={scopes}"
-
+            url = f"https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id={LINKEDIN_CLIENT_ID}&redirect_uri={encoded_redirect}&state={encoded_state}&scope={scopes}"
         elif provider_clean in ["youtube", "google"]:
             scopes = urllib.parse.quote("https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly", safe="")
-            return f"https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id={GOOGLE_YOUTUBE_CLIENT_ID}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}&access_type=offline&prompt=consent"
-
+            url = f"https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id={GOOGLE_YOUTUBE_CLIENT_ID}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}&access_type=offline&prompt=consent"
         elif provider_clean in ["twitter", "x"]:
             scopes = urllib.parse.quote("tweet.read users.read offline.access", safe="")
-            return f"https://twitter.com/i/oauth2/authorize?response_type=code&client_id={X_TWITTER_CLIENT_ID}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}&code_challenge=challenge&code_challenge_method=plain"
-
+            url = f"https://twitter.com/i/oauth2/authorize?response_type=code&client_id={X_TWITTER_CLIENT_ID}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}&code_challenge=challenge&code_challenge_method=plain"
         elif provider_clean == "tiktok":
             scopes = urllib.parse.quote("user.info.basic,video.list", safe="")
-            return f"https://www.tiktok.com/v2/auth/authorize/?client_key={TIKTOK_CLIENT_KEY}&scope={scopes}&response_type=code&redirect_uri={encoded_redirect}&state={encoded_state}"
-
+            url = f"https://www.tiktok.com/v2/auth/authorize/?client_key={TIKTOK_CLIENT_KEY}&scope={scopes}&response_type=code&redirect_uri={encoded_redirect}&state={encoded_state}"
         elif provider_clean == "pinterest":
             scopes = urllib.parse.quote("boards:read,pins:read", safe="")
-            return f"https://www.pinterest.com/oauth/?response_type=code&client_id={PINTEREST_CLIENT_ID}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}"
+            url = f"https://www.pinterest.com/oauth/?response_type=code&client_id={PINTEREST_CLIENT_ID}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}"
+        else:
+            logger.error(f"Unsupported social OAuth provider requested: {provider}")
+            raise ValueError(f"Unsupported social OAuth provider: {provider}")
 
-        raise ValueError(f"Unsupported social OAuth provider: {provider}")
+        logger.info(f"Generated OAuth authorization URL for {provider_clean}: {url}")
+        return url
 
     @staticmethod
     async def exchange_code_and_fetch_profile(
@@ -81,27 +93,41 @@ class SocialGraphService:
         provider_clean = provider.lower().strip()
         user_prefix = user_email.split("@")[0] if user_email else "creator"
 
+        logger.info(
+            f"Initiating OAuth token exchange for provider '{provider_clean}'",
+            extra={
+                "provider": provider_clean,
+                "authorization_code": f"{code[:8]}...",
+                "redirect_uri": redirect_uri,
+                "user_email": user_email,
+            },
+        )
+
         async with httpx.AsyncClient(timeout=15.0) as client:
-            if provider_clean in ["instagram", "facebook", "meta"]:
-                return await SocialGraphService._fetch_meta_account(client, code, redirect_uri, user_prefix, provider_clean)
+            try:
+                if provider_clean in ["instagram", "facebook", "meta"]:
+                    return await SocialGraphService._fetch_meta_account(client, code, redirect_uri, user_prefix, provider_clean)
 
-            elif provider_clean == "linkedin":
-                return await SocialGraphService._fetch_linkedin_account(client, code, redirect_uri, user_prefix)
+                elif provider_clean == "linkedin":
+                    return await SocialGraphService._fetch_linkedin_account(client, code, redirect_uri, user_prefix)
 
-            elif provider_clean in ["youtube", "google"]:
-                return await SocialGraphService._fetch_youtube_account(client, code, redirect_uri, user_prefix)
+                elif provider_clean in ["youtube", "google"]:
+                    return await SocialGraphService._fetch_youtube_account(client, code, redirect_uri, user_prefix)
 
-            elif provider_clean in ["twitter", "x"]:
-                return await SocialGraphService._fetch_x_twitter_account(client, code, redirect_uri, user_prefix)
+                elif provider_clean in ["twitter", "x"]:
+                    return await SocialGraphService._fetch_x_twitter_account(client, code, redirect_uri, user_prefix)
 
-            elif provider_clean == "tiktok":
-                return await SocialGraphService._fetch_tiktok_account(client, code, redirect_uri, user_prefix)
+                elif provider_clean == "tiktok":
+                    return await SocialGraphService._fetch_tiktok_account(client, code, redirect_uri, user_prefix)
 
-            elif provider_clean == "pinterest":
-                return await SocialGraphService._fetch_pinterest_account(client, code, redirect_uri, user_prefix)
+                elif provider_clean == "pinterest":
+                    return await SocialGraphService._fetch_pinterest_account(client, code, redirect_uri, user_prefix)
 
-            elif provider_clean == "threads":
-                return await SocialGraphService._fetch_threads_account(client, code, redirect_uri, user_prefix)
+                elif provider_clean == "threads":
+                    return await SocialGraphService._fetch_threads_account(client, code, redirect_uri, user_prefix)
+            except Exception as exc:
+                logger.exception(f"Detailed error during OAuth code exchange for provider '{provider_clean}': {exc}")
+                raise
 
         raise ValueError(f"Provider {provider} unsupported for code exchange")
 

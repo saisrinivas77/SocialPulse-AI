@@ -121,12 +121,19 @@ export const SocialAccountsView: React.FC = () => {
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [userEmail, setUserEmail] = useState("saisrinivasreddy456@gmail.com");
   const [selectedAnalyticsAccount, setSelectedAnalyticsAccount] = useState<any | null>(null);
+  const [diagnosticError, setDiagnosticError] = useState<string | null>(null);
 
   useEffect(() => {
     loadUserAccounts();
     if (typeof window !== "undefined") {
       const email = localStorage.getItem("sp_user_email") || "saisrinivasreddy456@gmail.com";
       setUserEmail(email);
+      const params = new URLSearchParams(window.location.search);
+      const err = params.get("error_message") || params.get("error");
+      if (err) {
+        setDiagnosticError(decodeURIComponent(err));
+        toast.error(`OAuth Provider Error: ${decodeURIComponent(err)}`);
+      }
     }
   }, []);
 
@@ -212,6 +219,28 @@ export const SocialAccountsView: React.FC = () => {
           <span>Connect New Platform</span>
         </button>
       </motion.div>
+
+      {diagnosticError && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-start justify-between gap-4 text-amber-300 text-sm"
+        >
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-bold text-amber-200">OAuth Provider Diagnostic Message</h4>
+              <p className="mt-0.5 text-xs text-amber-300/90">{diagnosticError}</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setDiagnosticError(null)}
+            className="text-amber-400 hover:text-amber-200 text-xs font-semibold px-2 py-1 bg-amber-500/10 rounded-lg"
+          >
+            Dismiss
+          </button>
+        </motion.div>
+      )}
 
       {/* Database Channels List or Zero-State */}
       {socialAccounts.length === 0 ? (

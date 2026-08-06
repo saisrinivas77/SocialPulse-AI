@@ -39,6 +39,7 @@ const navItems: NavItem[] = [
   { view: "reports", label: "Reports", icon: FileSpreadsheet },
   { view: "team", label: "Team", icon: Users },
   { view: "security-center", label: "Security Center", icon: ShieldCheck, badge: "SECURE" },
+  { view: "provider-health", label: "Provider Health", icon: ShieldCheck, badge: "DIAGNOSTICS" },
   { view: "settings", label: "Settings", icon: Settings },
 ];
 
