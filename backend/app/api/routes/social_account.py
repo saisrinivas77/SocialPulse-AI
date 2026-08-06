@@ -76,15 +76,40 @@ async def connect_account(
 
 
 @router.get(
+    "/oauth/{provider}/authorize_url",
+    status_code=status.HTTP_200_OK,
+    summary="Get OAuth Authorization URL for authenticated user",
+)
+async def get_oauth_authorize_url(
+    provider: str,
+    workspace_id: int = Depends(get_active_workspace_id),
+    current_user: User = Depends(get_current_user),
+    service: SocialAccountService = Depends(get_social_account_service),
+):
+    """Generate signed OAuth authorization URL containing active user and workspace context."""
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    redirect_uri = f"{frontend_url}/dashboard?view=social-accounts&connected={provider}"
+    auth_url = await service.get_oauth_login_url(provider, workspace_id, redirect_uri)
+    return {
+        "provider": provider,
+        "authorization_url": auth_url,
+        "workspace_id": workspace_id,
+        "user_id": current_user.id,
+    }
+
+
+@router.get(
     "/oauth/{provider}/login",
     summary="Initiate Provider OAuth flow",
 )
 async def oauth_login(
     provider: str,
     workspace_id: int = Depends(get_active_workspace_id),
+    current_user: User = Depends(get_current_user),
     service: SocialAccountService = Depends(get_social_account_service),
 ):
-    redirect_uri = f"http://localhost:8000/api/v1/social-accounts/oauth/{provider}/callback"
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    redirect_uri = f"{frontend_url}/dashboard?view=social-accounts&connected={provider}"
     auth_url = await service.get_oauth_login_url(provider, workspace_id, redirect_uri)
     return RedirectResponse(url=auth_url)
 

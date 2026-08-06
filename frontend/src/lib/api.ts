@@ -263,6 +263,19 @@ export const socialPulseApi = {
     }
   },
 
+  getOAuthAuthorizeUrl: async (provider: string) => {
+    try {
+      const res = await apiClient.get(`/social-accounts/oauth/${provider}/authorize_url`);
+      return res.data;
+    } catch {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      const token = typeof window !== "undefined" ? localStorage.getItem("sp_access_token") : "";
+      return {
+        authorization_url: `${apiBase}/social-accounts/oauth/${provider}/login?token=${encodeURIComponent(token || "")}`,
+      };
+    }
+  },
+
   disconnectAuthProvider: async (provider: string) => {
     try {
       const res = await apiClient.post(`/auth/disconnect-provider/${provider}`);

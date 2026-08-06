@@ -130,10 +130,20 @@ export const SocialAccountsView: React.FC = () => {
     }
   }, []);
 
-  const handleOAuthConnect = (providerKey: string) => {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-    toast.info(`Redirecting to official ${providerKey.toUpperCase()} OAuth authorization flow...`);
-    window.location.href = `${apiBase}/social-accounts/oauth/${providerKey}/login`;
+  const handleOAuthConnect = async (providerKey: string) => {
+    toast.info(`Generating official ${providerKey.toUpperCase()} OAuth authorization link...`);
+    try {
+      const data = await socialPulseApi.getOAuthAuthorizeUrl(providerKey);
+      if (data?.authorization_url) {
+        window.location.href = data.authorization_url;
+      } else {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+        const token = localStorage.getItem("sp_access_token") || "";
+        window.location.href = `${apiBase}/social-accounts/oauth/${providerKey}/login?token=${encodeURIComponent(token)}`;
+      }
+    } catch {
+      toast.error(`Failed to initiate ${providerKey.toUpperCase()} OAuth connection.`);
+    }
   };
 
   const handleSyncNow = async (id: string, platform: string) => {
