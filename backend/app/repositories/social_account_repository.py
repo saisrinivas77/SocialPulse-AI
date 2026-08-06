@@ -1,65 +1,169 @@
 # app/repositories/social_account_repository.py
-"""Workspace-scoped Social Account repository implementation."""
+"""Repository for SocialAccount database queries and token encryption management."""
 
-from typing import Optional, Sequence
-from uuid import UUID
-
-from sqlalchemy import select
+import json
+from datetime import datetime
+from typing import List, Optional, Dict, Any, Tuple
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.social_account import PlatformType, SocialAccount
-from app.repositories.base import BaseRepository
+from app.models.social_account import SocialAccount, PlatformType
 from app.schemas.pagination import PaginationParams
-from app.utils.query_builder import QueryBuilder
+from app.utils.crypto import encrypt_token, decrypt_token
 
 
-class SocialAccountRepository(BaseRepository[SocialAccount]):
-    """Data access layer for connected Social Accounts."""
+class SocialAccountRepository:
+    """Async database repository for multi-tenant social account persistence."""
 
-    def __init__(self, session: AsyncSession) -> None:
-        super().__init__(SocialAccount, session)
+    def __init__(self, session: AsyncSession):
+        self.session = session
 
     async def get_by_workspace_and_id(
-        self, account_id: int, workspace_id: int, include_deleted: bool = False
+        self, account_id: int, workspace_id: int
     ) -> Optional[SocialAccount]:
-        """Fetch social account asserting workspace ownership in a single query."""
-        builder = QueryBuilder(SocialAccount)
-        builder.filter_exact(
-            {SocialAccount.id: account_id, SocialAccount.workspace_id: workspace_id}
-        )
-        builder.apply_soft_delete_filter(include_deleted)
-
-        result = await self.session.execute(builder.build())
-        return result.scalars().first()
-
-    async def get_by_external_id(
-        self, external_account_id: str, platform: PlatformType
-    ) -> Optional[SocialAccount]:
-        """Fetch social account by provider's external ID."""
+        """Fetch account by ID and workspace_id."""
         stmt = select(SocialAccount).where(
-            SocialAccount.external_account_id == external_account_id,
-            SocialAccount.platform == platform,
+            SocialAccount.id == account_id,
+            SocialAccount.workspace_id == workspace_id,
         )
         result = await self.session.execute(stmt)
-        return result.scalars().first()
+        return result.scalar_one_or_none()
+
+    async def get_by_user(self, user_id: int) -> List[SocialAccount]:
+        """Fetch all connected social accounts for a specific user."""
+        stmt = select(SocialAccount).where(SocialAccount.user_id == user_id)
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
 
     async def list_workspace_accounts(
         self,
         workspace_id: int,
-        params: PaginationParams,
+        params: Optional[PaginationParams] = None,
         platform: Optional[PlatformType] = None,
-    ) -> tuple[Sequence[SocialAccount], int]:
-        """List connected accounts in target workspace."""
-        builder = QueryBuilder(SocialAccount)
-        builder.filter_by_owner("workspace_id", workspace_id)
-        builder.apply_soft_delete_filter(include_deleted=False)
-
+    ) -> Tuple[List[SocialAccount], int]:
+        """Fetch workspace channels with pagination."""
+        query = select(SocialAccount).where(SocialAccount.workspace_id == workspace_id)
         if platform:
-            builder.filter_exact({SocialAccount.platform: platform})
+            query = query.where(SocialAccount.platform == platform)
 
-        builder.search(params.search, search_fields=["account_name", "account_handle"])
-        builder.sort(params.sort_by, params.sort_order)
+        count_query = select(func.count()).select_from(query.subquery())
+        total_res = await self.session.execute(count_query)
+        total = total_res.scalar_one_or_none() or 0
 
-        return await self.list_paginated(
-            builder, page=params.page, page_size=params.page_size
+        if params:
+            offset = (params.page - 1) * params.page_size
+            query = query.offset(offset).limit(params.page_size)
+
+        result = await self.session.execute(query)
+        return list(result.scalars().all()), total
+
+    async def get_by_provider_account(
+        self, user_id: int, platform: str, external_account_id: str
+    ) -> Optional[SocialAccount]:
+        """Get existing social account by user, provider platform, and external account ID."""
+        try:
+            platform_enum = PlatformType(platform.upper())
+        except ValueError:
+            return None
+
+        stmt = select(SocialAccount).where(
+            SocialAccount.user_id == user_id,
+            SocialAccount.platform == platform_enum,
+            SocialAccount.external_account_id == external_account_id,
         )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def create_or_update(
+        self,
+        user_id: int,
+        workspace_id: int,
+        platform_str: str,
+        external_account_id: str,
+        username: str,
+        display_name: str,
+        profile_picture: Optional[str],
+        plain_access_token: str,
+        plain_refresh_token: Optional[str],
+        token_expires_at: Optional[datetime],
+        follower_count: int = 0,
+        reach_count: int = 0,
+        posts_count: int = 0,
+        engagement_rate: float = 0.0,
+        metadata_dict: Optional[Dict[str, Any]] = None,
+    ) -> SocialAccount:
+        """Upsert connected social account with AES-256 encrypted tokens."""
+        platform_enum = PlatformType(platform_str.upper())
+        existing = await self.get_by_provider_account(user_id, platform_str, external_account_id)
+
+        encrypted_acc = encrypt_token(plain_access_token)
+        encrypted_ref = encrypt_token(plain_refresh_token) if plain_refresh_token else None
+        meta_json_str = json.dumps(metadata_dict) if metadata_dict else None
+
+        if existing:
+            existing.account_name = display_name
+            existing.account_handle = username
+            existing.avatar_url = profile_picture
+            existing.encrypted_access_token = encrypted_acc
+            if encrypted_ref:
+                existing.encrypted_refresh_token = encrypted_ref
+            existing.token_expires_at = token_expires_at
+            existing.follower_count = follower_count
+            existing.reach_count = reach_count
+            existing.posts_count = posts_count
+            existing.engagement_rate = engagement_rate
+            existing.status = "CONNECTED"
+            existing.last_synced_at = datetime.utcnow()
+            if meta_json_str:
+                existing.metadata_json = meta_json_str
+            await self.session.commit()
+            await self.session.refresh(existing)
+            return existing
+
+        new_account = SocialAccount(
+            user_id=user_id,
+            workspace_id=workspace_id,
+            platform=platform_enum,
+            external_account_id=external_account_id,
+            account_name=display_name,
+            account_handle=username,
+            avatar_url=profile_picture,
+            encrypted_access_token=encrypted_acc,
+            encrypted_refresh_token=encrypted_ref,
+            token_expires_at=token_expires_at,
+            follower_count=follower_count,
+            reach_count=reach_count,
+            posts_count=posts_count,
+            engagement_rate=engagement_rate,
+            status="CONNECTED",
+            last_synced_at=datetime.utcnow(),
+            metadata_json=meta_json_str,
+        )
+        self.session.add(new_account)
+        await self.session.commit()
+        await self.session.refresh(new_account)
+        return new_account
+
+    async def soft_disconnect_account(self, account_id: int, workspace_id: int) -> bool:
+        """Disconnect account: delete tokens, mark DISCONNECTED, keep historical analytics."""
+        account = await self.get_by_workspace_and_id(account_id, workspace_id)
+        if not account:
+            return False
+
+        account.encrypted_access_token = ""
+        account.encrypted_refresh_token = None
+        account.status = "DISCONNECTED"
+        await self.session.commit()
+        return True
+
+    async def delete_account(self, account_id: int, user_id: int) -> bool:
+        """Permanently disconnect and delete connected social account."""
+        stmt = select(SocialAccount).where(SocialAccount.id == account_id, SocialAccount.user_id == user_id)
+        result = await self.session.execute(stmt)
+        account = result.scalar_one_or_none()
+        if not account:
+            return False
+
+        await self.session.delete(account)
+        await self.session.commit()
+        return True

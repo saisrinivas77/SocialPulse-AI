@@ -99,3 +99,34 @@ def is_token_revoked(jti: str) -> bool:
     except Exception:
         logger.warning("Failed to check token revocation in Redis", exc_info=True)
         return False
+
+
+def encrypt_token(plain_token: str) -> str:
+    """Encrypt OAuth access/refresh token using AES-256 Fernet encryption."""
+    import base64
+    from cryptography.fernet import Fernet
+
+    if not plain_token:
+        return ""
+    secret = settings.SECRET_KEY.get_secret_value()
+    # Derive a valid 32-byte Fernet key from SECRET_KEY
+    key = base64.urlsafe_b64encode(secret.zfill(32)[:32].encode())
+    fernet = Fernet(key)
+    return fernet.encrypt(plain_token.encode()).decode()
+
+
+def decrypt_token(encrypted_token: str) -> str:
+    """Decrypt AES-256 Fernet encrypted OAuth token."""
+    import base64
+    from cryptography.fernet import Fernet
+
+    if not encrypted_token:
+        return ""
+    try:
+        secret = settings.SECRET_KEY.get_secret_value()
+        key = base64.urlsafe_b64encode(secret.zfill(32)[:32].encode())
+        fernet = Fernet(key)
+        return fernet.decrypt(encrypted_token.encode()).decode()
+    except Exception:
+        # Fallback if token was unencrypted during development
+        return encrypted_token

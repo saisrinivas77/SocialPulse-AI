@@ -1,35 +1,34 @@
 # app/api/routes/websocket.py
-"""WebSocket router for live notifications, telemetry streams, and team activity updates."""
+"""WebSocket router for live notifications, telemetry streams, and real-time dashboard updates."""
 
 import json
 import asyncio
 from typing import List
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
+from app.services.websocket_manager import ws_manager
+
 router = APIRouter(prefix="/ws", tags=["WebSocket Telemetry & Live Updates"])
 
-class ConnectionManager:
-    """Manages active WebSocket connections across client sessions."""
 
-    def __init__(self):
-        self.active_connections: List[WebSocket] = []
+@router.websocket("/dashboard")
+async def websocket_dashboard_endpoint(websocket: WebSocket):
+    """Real-time live dashboard stream listening for analytics.updated and sync events."""
+    await ws_manager.connect(websocket)
+    try:
+        await websocket.send_json({
+            "event": "handshake",
+            "data": {
+                "message": "Connected to SocialPulse AI Database-First Realtime Telemetry Stream",
+                "active_nodes": len(ws_manager.active_connections),
+            }
+        })
+        while True:
+            data = await websocket.receive_text()
+            await websocket.send_json({"event": "pong", "data": {"raw": data}})
+    except WebSocketDisconnect:
+        ws_manager.disconnect(websocket)
 
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.active_connections.append(websocket)
-
-    def disconnect(self, websocket: WebSocket):
-        if websocket in self.active_connections:
-            self.active_connections.remove(websocket)
-
-    async def broadcast(self, message: dict):
-        for connection in self.active_connections:
-            try:
-                await connection.send_json(message)
-            except Exception:
-                pass
-
-ws_manager = ConnectionManager()
 
 @router.websocket("/notifications")
 async def websocket_notifications_endpoint(websocket: WebSocket):
@@ -37,16 +36,18 @@ async def websocket_notifications_endpoint(websocket: WebSocket):
     await ws_manager.connect(websocket)
     try:
         await websocket.send_json({
-            "type": "INITIAL_HANDSHAKE",
-            "message": "Connected to SocialPulse AI Real-time Telemetry Stream",
-            "active_nodes": len(ws_manager.active_connections)
+            "event": "handshake",
+            "data": {
+                "message": "Connected to SocialPulse AI Real-time Telemetry Stream",
+                "active_nodes": len(ws_manager.active_connections)
+            }
         })
         while True:
             data = await websocket.receive_text()
-            # Echo back keep-alive ping
-            await websocket.send_json({"type": "PONG", "payload": data})
+            await websocket.send_json({"event": "pong", "data": {"raw": data}})
     except WebSocketDisconnect:
         ws_manager.disconnect(websocket)
+
 
 @router.websocket("/telemetry")
 async def websocket_telemetry_endpoint(websocket: WebSocket):
@@ -54,12 +55,14 @@ async def websocket_telemetry_endpoint(websocket: WebSocket):
     await ws_manager.connect(websocket)
     try:
         while True:
-            await asyncio.sleep(10)
+            await asyncio.sleep(15)
             await websocket.send_json({
-                "type": "TELEMETRY_UPDATE",
-                "followers_delta": "+12",
-                "reach_live": 2450820,
-                "active_campaigns": 4,
+                "event": "telemetry.heartbeat",
+                "data": {
+                    "followers_delta": "+12",
+                    "reach_live": 2450820,
+                    "active_campaigns": 4,
+                }
             })
     except WebSocketDisconnect:
         ws_manager.disconnect(websocket)

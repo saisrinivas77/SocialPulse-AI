@@ -304,3 +304,31 @@ async def logout_all(
     """Revoke all active sessions across all devices for the current user."""
     await auth_service.logout_all_devices(current_user.id)
     return {"message": "Logged out from all active devices."}
+
+
+@router.get(
+    "/connected-providers",
+    status_code=status.HTTP_200_OK,
+    summary="Get user connected authentication providers",
+)
+async def get_connected_providers(
+    current_user: User = Depends(get_current_user),
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    """Retrieve list of all linked authentication providers (Google, GitHub, Microsoft, LinkedIn)."""
+    return await auth_service.get_connected_oauth_providers(current_user.id)
+
+
+@router.post(
+    "/disconnect-provider/{provider}",
+    status_code=status.HTTP_200_OK,
+    summary="Disconnect authentication provider",
+)
+async def disconnect_provider(
+    provider: str,
+    current_user: User = Depends(get_current_user),
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    """Unlink an OAuth login provider from user account."""
+    success = await auth_service.disconnect_oauth_provider(current_user.id, provider)
+    return {"message": f"Successfully disconnected {provider} provider.", "success": success}

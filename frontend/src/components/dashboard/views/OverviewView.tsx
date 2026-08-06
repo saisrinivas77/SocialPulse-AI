@@ -54,6 +54,36 @@ export const OverviewView: React.FC = () => {
       const name = localStorage.getItem("sp_user_name") || localStorage.getItem("sp_user_email")?.split("@")[0] || "User";
       const firstName = name.split(" ")[0];
       setUserName(firstName);
+
+      // Connect to Database-First Real-Time Telemetry Stream
+      const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const wsHost = process.env.NEXT_PUBLIC_API_URL?.replace(/^https?:\/\//, "") || "localhost:8000/api/v1";
+      const wsUrl = `${wsProtocol}//${wsHost}/ws/dashboard`;
+
+      let socket: WebSocket | null = null;
+      try {
+        socket = new WebSocket(wsUrl);
+        socket.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.event === "analytics.updated" || data.event === "sync.completed") {
+              toast.success("Live telemetry updated from background sync worker!", { id: "ws-update" });
+              refetch();
+              loadUserAccounts();
+            }
+          } catch {
+            // ignore non-json pings
+          }
+        };
+      } catch {
+        // ws fallback
+      }
+
+      return () => {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          socket.close();
+        }
+      };
     }
   }, []);
 

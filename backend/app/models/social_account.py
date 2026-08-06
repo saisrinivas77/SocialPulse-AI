@@ -5,7 +5,7 @@ import enum
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, Enum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -58,13 +58,20 @@ class SocialAccount(Base):
     follower_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     reach_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     posts_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    engagement_rate: Mapped[float] = mapped_column(Integer, default=0, nullable=False)
+    engagement_rate: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     avatar_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     sync_health: Mapped[int] = mapped_column(Integer, default=100, nullable=False)
+    health_score: Mapped[int] = mapped_column(Integer, default=100, nullable=False)
+    rate_limit_remaining: Mapped[int] = mapped_column(Integer, default=5000, nullable=False)
+    token_status: Mapped[str] = mapped_column(String(50), default="VALID", nullable=False)  # VALID, NEEDS_RECONNECTION, EXPIRED
     status: Mapped[str] = mapped_column(String(50), default="CONNECTED", nullable=False)
     last_synced_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    next_sync_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    metadata_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     user: Mapped["User"] = relationship("User", back_populates="social_accounts")
     workspace: Mapped["Workspace"] = relationship(

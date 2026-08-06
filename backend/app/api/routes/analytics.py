@@ -102,14 +102,43 @@ async def list_analytics(
     )
 
 
+@router.get("/compare", status_code=status.HTTP_200_OK, summary="Normalized Multi-Platform Account Comparison Matrix")
+async def get_multi_platform_comparison(
+    db: DBSession, current_user: CurrentUser, timeframe: str = Query("30d", description="Timeframe filter: 7d, 30d, 90d, 1y")
+):
+    service = AnalyticsService(db)
+    return await service.get_multi_platform_comparison(current_user.id, timeframe)
+
+
+@router.get("/top-performing", status_code=status.HTTP_200_OK, summary="Top Performing Platform Leaderboard & Badges")
+async def get_top_performing_platforms(db: DBSession, current_user: CurrentUser):
+    service = AnalyticsService(db)
+    data = await service.get_multi_platform_comparison(current_user.id)
+    return data.get("badges", {})
+
+
+@router.get("/top-posts", status_code=status.HTTP_200_OK, summary="Top Combined Multi-Platform Posts")
+async def get_top_posts(db: DBSession, current_user: CurrentUser, limit: int = Query(100, ge=1, le=100)):
+    service = AnalyticsService(db)
+    return await service.get_top_combined_posts(current_user.id, limit)
+
+
+@router.get("/format-performance", status_code=status.HTTP_200_OK, summary="Content Format Performance Matrix")
+async def get_format_performance(db: DBSession, current_user: CurrentUser):
+    service = AnalyticsService(db)
+    return await service.get_content_format_performance(current_user.id)
+
+
+@router.get("/ai-comparison-insights", status_code=status.HTTP_200_OK, summary="AI Cross-Platform Comparison Insights")
+async def get_ai_comparison_insights(db: DBSession, current_user: CurrentUser):
+    service = AnalyticsService(db)
+    return await service.get_ai_comparison_insights(current_user.id)
+
+
 @router.get("/compare-accounts", status_code=status.HTTP_200_OK, summary="Compare Social Accounts")
 async def compare_accounts(db: DBSession, current_user: CurrentUser):
-    return {
-        "comparison": [
-            {"account": "Instagram", "followers": 12500, "engagement": 4.6},
-            {"account": "LinkedIn", "followers": 5400, "engagement": 6.2},
-        ]
-    }
+    service = AnalyticsService(db)
+    return await service.get_multi_platform_comparison(current_user.id)
 
 
 @router.get("/forecast", status_code=status.HTTP_200_OK, summary="Forecast Growth & Engagement")

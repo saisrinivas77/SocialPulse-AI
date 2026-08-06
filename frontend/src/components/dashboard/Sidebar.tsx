@@ -30,6 +30,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { view: "overview", label: "Dashboard", icon: LayoutDashboard },
   { view: "analytics", label: "Analytics", icon: BarChart3 },
+  { view: "compare", label: "Compare Platforms", icon: Layers, badge: "NEW" },
   { view: "posts", label: "Posts & Queue", icon: Send },
   { view: "calendar", label: "Calendar", icon: Calendar },
   { view: "ai-studio", label: "AI Studio", icon: Sparkles, badge: "AI" },

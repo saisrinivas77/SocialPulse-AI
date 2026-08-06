@@ -25,6 +25,7 @@ class SocialAccountResponse(BaseModel):
     """Response format for connected social accounts."""
 
     id: int
+    user_id: Optional[int] = None
     workspace_id: int
     platform: PlatformType
     account_name: str
@@ -39,7 +40,36 @@ class SocialAccountResponse(BaseModel):
     status: str = "CONNECTED"
     token_expires_at: Optional[datetime] = None
     last_synced_at: Optional[datetime] = None
+    metadata_json: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+
+    @property
+    def provider(self) -> str:
+        return self.platform.value if hasattr(self.platform, "value") else str(self.platform)
+
+    @property
+    def provider_account_id(self) -> str:
+        return self.external_account_id
+
+    @property
+    def username(self) -> str:
+        return self.account_handle
+
+    @property
+    def display_name(self) -> str:
+        return self.account_name
+
+    @property
+    def profile_picture(self) -> Optional[str]:
+        return self.avatar_url
+
+    @property
+    def connected_at(self) -> datetime:
+        return self.created_at
+
+    @property
+    def last_sync(self) -> Optional[datetime]:
+        return self.last_synced_at
 
     model_config = ConfigDict(from_attributes=True)

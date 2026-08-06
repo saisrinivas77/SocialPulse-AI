@@ -112,6 +112,9 @@ certs/*.pem
 certs/*.crt
 certs/*.key
 
+# Uploads
+backend/uploads/
+
 # IDE & OS
 .vscode/
 .idea/

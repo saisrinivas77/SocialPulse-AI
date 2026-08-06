@@ -13,6 +13,10 @@ from .report import Report
 from .sentiment import Sentiment
 from .session import UserSession
 from .setting import SystemSetting
+from .oauth_account import OAuthAccount
 from .social_account import PlatformType, SocialAccount
+from .sync_log import SyncLog, TokenRefreshLog
+from .audience_insight import AudienceInsight, GrowthHistory
+from .user_profile import UserProfile
 from .user import User, UserRole, UserStatus
 from .workspace import Organization, Workspace, WorkspaceMember, WorkspaceRole

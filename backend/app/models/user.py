@@ -20,6 +20,8 @@ if TYPE_CHECKING:
     from app.models.setting import SystemSetting
     from app.models.report import Report
     from app.models.session import UserSession
+    from app.models.oauth_account import OAuthAccount
+    from app.models.user_profile import UserProfile
 
 
 class UserRole(str, Enum):
@@ -71,6 +73,12 @@ class User(Base):
 
     sessions: Mapped[List["UserSession"]] = relationship(
         "UserSession", back_populates="user", cascade="all, delete-orphan"
+    )
+    oauth_accounts: Mapped[List["OAuthAccount"]] = relationship(
+        "OAuthAccount", back_populates="user", cascade="all, delete-orphan"
+    )
+    user_profile: Mapped[Optional["UserProfile"]] = relationship(
+        "UserProfile", back_populates="user", uselist=False, cascade="all, delete-orphan"
     )
 
     analytics: Mapped[List["Analytics"]] = relationship(

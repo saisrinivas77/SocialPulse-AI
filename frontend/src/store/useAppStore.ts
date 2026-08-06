@@ -4,6 +4,7 @@ export type NavView =
   | "landing"
   | "overview"
   | "analytics"
+  | "compare"
   | "ai-studio"
   | "social-accounts"
   | "calendar"
@@ -199,88 +200,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       notifications: state.notifications.map((n) => ({ ...n, read: true })),
     })),
 
-  socialAccounts: [
-    {
-      id: "acc-1",
-      platform: "Instagram",
-      username: "@socialpulse_ai",
-      followers: "64.8K",
-      connected: true,
-      lastSynced: "12 mins ago",
-      health: 99.8,
-      avatar: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80",
-    },
-    {
-      id: "acc-2",
-      platform: "LinkedIn",
-      username: "SocialPulse AI",
-      followers: "42.1K",
-      connected: true,
-      lastSynced: "25 mins ago",
-      health: 100,
-      avatar: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80",
-    },
-    {
-      id: "acc-3",
-      platform: "X",
-      username: "@SocialPulseHQ",
-      followers: "89.4K",
-      connected: true,
-      lastSynced: "Just now",
-      health: 98.5,
-      avatar: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80",
-    },
-    {
-      id: "acc-4",
-      platform: "TikTok",
-      username: "@socialpulse.official",
-      followers: "124.5K",
-      connected: true,
-      lastSynced: "1 hour ago",
-      health: 97.2,
-      avatar: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80",
-    },
-    {
-      id: "acc-5",
-      platform: "YouTube",
-      username: "SocialPulse AI Channel",
-      followers: "31.2K",
-      connected: true,
-      lastSynced: "2 hours ago",
-      health: 99.1,
-      avatar: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80",
-    },
-    {
-      id: "acc-6",
-      platform: "Facebook",
-      username: "SocialPulse Brand Page",
-      followers: "19.8K",
-      connected: true,
-      lastSynced: "3 hours ago",
-      health: 95.0,
-      avatar: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80",
-    },
-    {
-      id: "acc-7",
-      platform: "Threads",
-      username: "@socialpulse_ai",
-      followers: "15.3K",
-      connected: false,
-      lastSynced: "Disconnected",
-      health: 0,
-      avatar: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80",
-    },
-    {
-      id: "acc-8",
-      platform: "Pinterest",
-      username: "SocialPulse Design",
-      followers: "9.7K",
-      connected: false,
-      lastSynced: "Disconnected",
-      health: 0,
-      avatar: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80",
-    },
-  ],
+  socialAccounts: [],
 
   toggleAccountConnection: (id) =>
     set((state) => {
@@ -294,9 +214,6 @@ export const useAppStore = create<AppState>((set, get) => ({
             }
           : acc
       );
-      if (typeof window !== "undefined") {
-        localStorage.setItem("sp_user_social_accounts", JSON.stringify(updated));
-      }
       return { socialAccounts: updated };
     }),
 
@@ -313,23 +230,30 @@ export const useAppStore = create<AppState>((set, get) => ({
             }
           : acc
       );
-      if (typeof window !== "undefined") {
-        localStorage.setItem("sp_user_social_accounts", JSON.stringify(updated));
-      }
       return { socialAccounts: updated };
     }),
 
-  loadUserAccounts: () => {
-    if (typeof window !== "undefined") {
-      const raw = localStorage.getItem("sp_user_social_accounts");
-      if (raw) {
-        try {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            set({ socialAccounts: parsed });
-          }
-        } catch (e) {}
+  loadUserAccounts: async () => {
+    try {
+      const { socialPulseApi } = await import("@/lib/api");
+      const dbAccounts = await socialPulseApi.getSocialAccounts();
+      if (Array.isArray(dbAccounts) && dbAccounts.length > 0) {
+        const formatted = dbAccounts.map((item: any) => ({
+          id: String(item.id),
+          platform: (item.platform || item.provider || "Instagram") as any,
+          username: item.account_handle || item.username || "@connected_user",
+          followers: typeof item.follower_count === "number" ? item.follower_count.toLocaleString() : (item.followers || "0"),
+          connected: item.status === "CONNECTED",
+          lastSynced: item.last_synced_at ? new Date(item.last_synced_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now",
+          health: item.sync_health || 100,
+          avatar: item.avatar_url || item.profile_picture || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80",
+        }));
+        set({ socialAccounts: formatted });
+      } else {
+        set({ socialAccounts: [] });
       }
+    } catch {
+      set({ socialAccounts: [] });
     }
   },
 

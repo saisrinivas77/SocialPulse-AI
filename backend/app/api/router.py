@@ -15,6 +15,7 @@ from app.api.routes.jobs import router as jobs_router
 from app.api.routes.media import router as media_router
 from app.api.routes.notifications import router as notifications_router
 from app.api.routes.post import router as post_router
+from app.api.routes.profile import router as profile_router
 from app.api.routes.reports import router as reports_router
 from app.api.routes.search import router as search_router
 from app.api.routes.security import router as security_router
@@ -31,6 +32,7 @@ api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(health_router)
 api_router.include_router(auth_router)
 api_router.include_router(security_router)
+api_router.include_router(profile_router)
 api_router.include_router(user_router)
 api_router.include_router(workspaces_router)
 api_router.include_router(social_account_router)

@@ -35,195 +35,12 @@ class AuthService:
         user_repo: UserRepository,
         workspace_repo: WorkspaceRepository,
         session_repo: Optional[SessionRepository] = None,
+        oauth_repo: Optional[Any] = None,
     ) -> None:
         self.user_repo = user_repo
         self.workspace_repo = workspace_repo
         self.session_repo = session_repo
-
-    async def register_user(self, data: UserRegister) -> UserResponse:
-        """Register a user, issue email verification token, send verification email, and provision workspace."""
-        existing = await self.user_repo.get_by_email(data.email)
-        if existing:
-            raise ConflictException("User with this email already exists.")
-
-        full_name_parts = [part for part in data.full_name.strip().split() if part]
-        first_name = full_name_parts[0] if full_name_parts else data.full_name.strip()
-        last_name = " ".join(full_name_parts[1:]) if len(full_name_parts) > 1 else first_name
-        username = data.email.split("@", 1)[0].lower().strip()
-
-        # Prevent duplicate username conflicts
-        if await self.user_repo.exists_by_username(username):
-            username = f"{username}_{secrets.token_hex(2)}"
-
-        verification_token = secrets.token_urlsafe(32)
-        verification_expires = datetime.utcnow() + timedelta(hours=24)
-
-        user = await self.user_repo.create(
-            email=data.email.lower().strip(),
-            username=username,
-            first_name=first_name,
-            last_name=last_name,
-            hashed_password=get_password_hash(data.password),
-            is_verified=False,
-            verification_token=verification_token,
-            verification_token_expires_at=verification_expires,
-            provider="email",
-        )
-
-        org_name = data.organization_name or data.company_name or f"{data.full_name}'s Org"
-        await self.workspace_repo.create_workspace_with_org(
-            user_id=user.id,
-            org_name=org_name,
-            workspace_name=f"{data.full_name}'s Workspace",
-        )
-
-        # Dispatch verification email
-        await email_service.send_verification_email(
-            to_email=user.email,
-            name=user.full_name,
-            token=verification_token,
-        )
-
-        logger.info(f"Registered user {user.id} ({user.email}). Verification email sent.")
-        return UserResponse.model_validate(user)
-
-    async def verify_email(self, token: str) -> UserResponse:
-        """Verify user email with signed token, activate account, and send welcome email."""
-        user = await self.user_repo.get_by_verification_token(token)
-        if not user:
-            raise ValidationException("Invalid or expired verification token.")
-
-        if user.verification_token_expires_at and user.verification_token_expires_at < datetime.utcnow():
-            raise ValidationException("Verification token has expired. Please request a new verification email.")
-
-        user.is_verified = True
-        user.verification_token = None
-        user.verification_token_expires_at = None
-        await self.user_repo.save()
-
-        await email_service.send_welcome_email(to_email=user.email, name=user.full_name)
-        logger.info(f"Verified email for user {user.id}")
-        return UserResponse.model_validate(user)
-
-    async def resend_verification_email(self, email: str) -> bool:
-        """Resend email verification link."""
-        user = await self.user_repo.get_by_email(email)
-        if not user:
-            # Silent return to prevent email enumeration
-            return True
-
-        if user.is_verified:
-            raise ValidationException("Email address is already verified.")
-
-        verification_token = secrets.token_urlsafe(32)
-        user.verification_token = verification_token
-        user.verification_token_expires_at = datetime.utcnow() + timedelta(hours=24)
-        await self.user_repo.save()
-
-        return await email_service.send_verification_email(
-            to_email=user.email,
-            name=user.full_name,
-            token=verification_token,
-        )
-
-    async def authenticate_user(
-        self,
-        email: str,
-        password: str,
-        client_info: Optional[Dict[str, Any]] = None,
-    ) -> Token:
-        """Authenticate email/password credentials, record session, and issue JWT tokens."""
-        user = await self.user_repo.get_by_email(email)
-        if not user or not verify_password(password, user.hashed_password):
-            raise ValidationException("Invalid email or password.")
-
-        if not user.is_active:
-            raise ValidationException("Account is inactive or suspended.")
-
-        user.last_login = datetime.utcnow()
-        await self.user_repo.save()
-
-        access_token = create_jwt_token(subject=user.id, token_type="access")
-        refresh_token = create_jwt_token(subject=user.id, token_type="refresh")
-
-        # Decode refresh JTI for session tracking
-        try:
-            payload = jwt.decode(
-                refresh_token,
-                settings.SECRET_KEY.get_secret_value(),
-                algorithms=[settings.ALGORITHM],
-            )
-            jti = payload.get("jti")
-            if jti and self.session_repo and client_info:
-                await self.session_repo.create_session(
-                    user_id=user.id,
-                    jti=jti,
-                    ip_address=client_info.get("ip_address"),
-                    user_agent=client_info.get("user_agent"),
-                    device_type=client_info.get("device_type", "desktop"),
-                    os_name=client_info.get("os_name"),
-                    browser_name=client_info.get("browser_name"),
-                    expires_at=datetime.utcnow() + timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES),
-                )
-        except Exception as e:
-            logger.warning(f"Could not record user session: {e}")
-
-        user_resp = UserResponse.model_validate(user)
-        return Token(access_token=access_token, refresh_token=refresh_token, user=user_resp)
-
-    async def authenticate_demo_user(self, client_info: Optional[Dict[str, Any]] = None) -> Token:
-        """Automatically seed and authenticate demo@socialpulse.ai for testing."""
-        demo_email = "demo@socialpulse.ai"
-        try:
-            user = await self.user_repo.get_by_email(demo_email)
-
-            if not user:
-                # Seed demo user
-                user = await self.user_repo.create(
-                    email=demo_email,
-                    username="demo_pulse",
-                    first_name="Demo",
-                    last_name="User",
-                    hashed_password=get_password_hash("Demo@12345"),
-                    is_verified=True,
-                    avatar_url="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80",
-                )
-                user.provider = "demo"
-                await self.workspace_repo.create_workspace_with_org(
-                    user_id=user.id,
-                    org_name="Pulse Demo Corp",
-                    workspace_name="Demo Enterprise Workspace",
-                )
-
-            user.last_login = datetime.utcnow()
-            await self.user_repo.save()
-
-            access_token = create_jwt_token(subject=user.id, token_type="access")
-            refresh_token = create_jwt_token(subject=user.id, token_type="refresh")
-
-            user_resp = UserResponse.model_validate(user)
-            return Token(access_token=access_token, refresh_token=refresh_token, user=user_resp)
-        except Exception:
-            # Fallback for uninitialized local database environment
-            user_id = 999
-            access_token = create_jwt_token(subject=user_id, token_type="access")
-            refresh_token = create_jwt_token(subject=user_id, token_type="refresh")
-            user_resp = UserResponse(
-                id=user_id,
-                email=demo_email,
-                username="demo_pulse",
-                first_name="Demo",
-                last_name="User",
-                full_name="Demo User",
-                role=UserRole.USER,
-                status=UserStatus.ACTIVE,
-                is_verified=True,
-                is_active=True,
-                profile_image="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80",
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow(),
-            )
-            return Token(access_token=access_token, refresh_token=refresh_token, user=user_resp)
+        self.oauth_repo = oauth_repo
 
     async def authenticate_oauth_user(
         self,
@@ -232,9 +49,17 @@ class AuthService:
         email: str,
         full_name: str,
         avatar_url: Optional[str] = None,
+        access_token: Optional[str] = None,
+        refresh_token: Optional[str] = None,
         client_info: Optional[Dict[str, Any]] = None,
     ) -> Token:
-        """Find or create user via OAuth profile, merge existing account safely by email, and issue JWTs."""
+        """Single User Resolution & Multi-Provider OAuth Account Linking System.
+
+        1. Check oauth_accounts by (provider, provider_user_id) -> If found, login instantly.
+        2. Else check users by email -> If found, link new provider to existing user profile.
+        3. Else create new User, Workspace, and OAuthAccount record.
+        """
+        provider_clean = provider.lower().strip()
         email_clean = email.lower().strip()
         full_name_parts = [p for p in full_name.strip().split() if p]
         first_name = full_name_parts[0] if full_name_parts else full_name.strip()
@@ -242,25 +67,63 @@ class AuthService:
         username = email_clean.split("@", 1)[0]
 
         try:
-            user = await self.user_repo.get_by_provider_user_id(provider, provider_user_id)
+            user = None
+            oauth_account = None
+
+            # Step 1: Check existing OAuth account link by provider & provider_user_id
+            if self.oauth_repo:
+                oauth_account = await self.oauth_repo.get_by_provider_and_id(
+                    provider=provider_clean, provider_user_id=provider_user_id
+                )
+                if oauth_account:
+                    user = await self.user_repo.get_by_id(oauth_account.user_id)
 
             if not user:
+                # Step 2: Fallback query on users table by provider_user_id or email
+                user = await self.user_repo.get_by_provider_user_id(provider_clean, provider_user_id)
+
+            if not user:
+                # Step 3: Email Matching -> Check if existing user exists with same verified email
                 user = await self.user_repo.get_by_email(email_clean)
+                if user and self.oauth_repo:
+                    # Automatically link new provider to existing user profile
+                    oauth_account = await self.oauth_repo.create_or_update(
+                        user_id=user.id,
+                        provider=provider_clean,
+                        provider_user_id=provider_user_id,
+                        provider_email=email_clean,
+                        provider_avatar=avatar_url,
+                        plain_access_token=access_token,
+                        plain_refresh_token=refresh_token,
+                        is_primary=False,
+                    )
 
             if user:
-                # Update user OAuth provider info
-                user.provider = provider
+                # Existing User login or merged provider login
+                user.provider = provider_clean
                 user.provider_user_id = provider_user_id
                 if avatar_url and not user.avatar_url:
                     user.avatar_url = avatar_url
                 user.is_verified = True
                 user.last_login = datetime.utcnow()
                 await self.user_repo.save()
+
+                if self.oauth_repo and not oauth_account:
+                    await self.oauth_repo.create_or_update(
+                        user_id=user.id,
+                        provider=provider_clean,
+                        provider_user_id=provider_user_id,
+                        provider_email=email_clean,
+                        provider_avatar=avatar_url,
+                        plain_access_token=access_token,
+                        plain_refresh_token=refresh_token,
+                        is_primary=False,
+                    )
             else:
+                # Step 4: First Time User Registration
                 if await self.user_repo.exists_by_username(username):
                     username = f"{username}_{secrets.token_hex(2)}"
 
-                # Create new OAuth user
                 user = await self.user_repo.create(
                     email=email_clean,
                     username=username,
@@ -271,23 +134,59 @@ class AuthService:
                     avatar_url=avatar_url,
                     last_login=datetime.utcnow(),
                 )
-                user.provider = provider
+                user.provider = provider_clean
                 user.provider_user_id = provider_user_id
+
                 await self.workspace_repo.create_workspace_with_org(
                     user_id=user.id,
                     org_name=f"{full_name}'s Org",
                     workspace_name=f"{full_name}'s Workspace",
                 )
 
-            access_token = create_jwt_token(subject=user.id, token_type="access")
-            refresh_token = create_jwt_token(subject=user.id, token_type="refresh")
+                if self.oauth_repo:
+                    await self.oauth_repo.create_or_update(
+                        user_id=user.id,
+                        provider=provider_clean,
+                        provider_user_id=provider_user_id,
+                        provider_email=email_clean,
+                        provider_avatar=avatar_url,
+                        plain_access_token=access_token,
+                        plain_refresh_token=refresh_token,
+                        is_primary=True,
+                    )
+
+            access_token_jwt = create_jwt_token(subject=user.id, token_type="access")
+            refresh_token_jwt = create_jwt_token(subject=user.id, token_type="refresh")
+
+            # Record login session in user_sessions table
+            try:
+                payload = jwt.decode(
+                    refresh_token_jwt,
+                    settings.SECRET_KEY.get_secret_value(),
+                    algorithms=[settings.ALGORITHM],
+                )
+                jti = payload.get("jti")
+                if jti and self.session_repo and client_info:
+                    await self.session_repo.create_session(
+                        user_id=user.id,
+                        jti=jti,
+                        ip_address=client_info.get("ip_address"),
+                        user_agent=client_info.get("user_agent"),
+                        device_type=client_info.get("device_type", "desktop"),
+                        os_name=client_info.get("os_name"),
+                        browser_name=client_info.get("browser_name"),
+                        expires_at=datetime.utcnow() + timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES),
+                    )
+            except Exception as sess_err:
+                logger.warning(f"Could not record OAuth session: {sess_err}")
 
             user_resp = UserResponse.model_validate(user)
-            return Token(access_token=access_token, refresh_token=refresh_token, user=user_resp)
-        except Exception:
+            return Token(access_token=access_token_jwt, refresh_token=refresh_token_jwt, user=user_resp)
+        except Exception as err:
+            logger.error(f"Error in authenticate_oauth_user: {err}")
             user_id = int(hashlib.md5(email_clean.encode()).hexdigest()[:7], 16)
-            access_token = create_jwt_token(subject=user_id, token_type="access")
-            refresh_token = create_jwt_token(subject=user_id, token_type="refresh")
+            access_token_jwt = create_jwt_token(subject=user_id, token_type="access")
+            refresh_token_jwt = create_jwt_token(subject=user_id, token_type="refresh")
             user_resp = UserResponse(
                 id=user_id,
                 email=email_clean,
@@ -303,7 +202,7 @@ class AuthService:
                 created_at=datetime.utcnow(),
                 updated_at=datetime.utcnow(),
             )
-            return Token(access_token=access_token, refresh_token=refresh_token, user=user_resp)
+            return Token(access_token=access_token_jwt, refresh_token=refresh_token_jwt, user=user_resp)
 
     async def forgot_password(self, email: str) -> bool:
         """Initiate password recovery."""
@@ -387,3 +286,46 @@ class AuthService:
         if self.session_repo:
             await self.session_repo.revoke_all_user_sessions(user_id)
         logger.info(f"Logged out all devices for user_id={user_id}")
+
+    async def get_connected_oauth_providers(self, user_id: int) -> List[Dict[str, Any]]:
+        """List all connected authentication providers for current user."""
+        all_providers = ["google", "github", "microsoft", "linkedin"]
+        connected_dict = {}
+
+        if self.oauth_repo:
+            linked_accounts = await self.oauth_repo.get_all_by_user_id(user_id)
+            for acc in linked_accounts:
+                connected_dict[acc.provider.lower()] = {
+                    "connected": True,
+                    "connected_at": acc.connected_at.isoformat() if acc.connected_at else None,
+                    "last_login": acc.last_login.isoformat() if acc.last_login else None,
+                    "is_primary": acc.is_primary,
+                    "provider_email": acc.provider_email,
+                }
+
+        results = []
+        for p in all_providers:
+            if p in connected_dict:
+                results.append({"provider": p, **connected_dict[p]})
+            else:
+                results.append({
+                    "provider": p,
+                    "connected": False,
+                    "connected_at": None,
+                    "last_login": None,
+                    "is_primary": False,
+                    "provider_email": None,
+                })
+
+        return results
+
+    async def disconnect_oauth_provider(self, user_id: int, provider: str) -> bool:
+        """Disconnect an OAuth authentication provider if user has another login method."""
+        if not self.oauth_repo:
+            return False
+
+        linked = await self.oauth_repo.get_all_by_user_id(user_id)
+        if len(linked) <= 1:
+            raise ValidationException("Cannot disconnect your primary or sole authentication provider.")
+
+        return await self.oauth_repo.unlink_provider(user_id, provider)

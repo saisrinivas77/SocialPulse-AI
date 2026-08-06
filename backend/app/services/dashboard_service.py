@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.exceptions import NotFoundException
 from app.repositories.dashboard_repository import DashboardRepository
+from app.services.cache_service import cache_service
 from app.schemas.dashboard import (
     DashboardKPIs,
     DashboardOverviewResponse,
@@ -121,6 +122,14 @@ class DashboardService:
             days=days,
         )
 
+        cache_key = cache_service.user_dashboard_key(user_id)
+        cached_data = await cache_service.get(cache_key)
+        if cached_data:
+            try:
+                return DashboardOverviewResponse.model_validate(cached_data)
+            except Exception:
+                pass
+
         summary = await self.repository.get_dashboard_summary(
             user_id
         )
@@ -159,7 +168,7 @@ class DashboardService:
             )
         )
 
-        return DashboardOverviewResponse(
+        response = DashboardOverviewResponse(
             kpis=self._build_kpis(summary),
             platform_breakdown=self._platforms(
                 platforms
@@ -174,6 +183,10 @@ class DashboardService:
                 recent_posts
             ),
         )
+
+        # Cache in Redis with 10-minute TTL
+        await cache_service.set(cache_key, response.model_dump(mode="json"))
+        return response
         # ==========================================================
     # Additional Trend APIs
     # ==========================================================

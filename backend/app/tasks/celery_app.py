@@ -26,7 +26,7 @@ celery_app.conf.beat_schedule = {
         "schedule": crontab(minute=0, hour="*"),
     },
     "sync-connected-social-analytics-periodic": {
-        "task": "tasks.sync_platform_analytics",
-        "schedule": crontab(minute="*/15"), # Every 15 minutes
+        "task": "app.tasks.social_sync.sync_all_social_accounts_task",
+        "schedule": crontab(minute="*/30"),  # Every 30 minutes
     },
 }

@@ -17,21 +17,22 @@ import {
   RefreshCw,
   UserCheck,
   ShieldAlert,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { socialPulseApi } from "@/lib/api";
 
 const OAUTH_PROVIDERS = [
-  { id: "google", name: "Google", icon: "🌐", color: "bg-blue-50 text-blue-600 border-blue-200" },
-  { id: "microsoft", name: "Microsoft", icon: "🪟", color: "bg-emerald-50 text-emerald-600 border-emerald-200" },
-  { id: "github", name: "GitHub", icon: "🐙", color: "bg-purple-50 text-purple-600 border-purple-200" },
-  { id: "apple", name: "Apple", icon: "🍎", color: "bg-gray-50 text-gray-800 border-gray-200" },
-  { id: "linkedin", name: "LinkedIn", icon: "💼", color: "bg-sky-50 text-sky-600 border-sky-200" },
+  { id: "google", name: "Google Account", icon: "🌐", desc: "Google OAuth 2.0 Identity" },
+  { id: "github", name: "GitHub Account", icon: "🐙", desc: "GitHub Identity & Developer SSO" },
+  { id: "microsoft", name: "Microsoft Account", icon: "🪟", desc: "Microsoft Azure AD & Enterprise SSO" },
+  { id: "linkedin", name: "LinkedIn Account", icon: "💼", desc: "LinkedIn Professional Profile" },
 ];
 
 export function SecurityCenterView() {
   const [overview, setOverview] = useState<any>(null);
   const [sessions, setSessions] = useState<any[]>([]);
+  const [connectedProviders, setConnectedProviders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Password change state
@@ -43,12 +44,14 @@ export function SecurityCenterView() {
   const loadSecurityData = async () => {
     setLoading(true);
     try {
-      const [ovData, sessData] = await Promise.all([
+      const [ovData, sessData, providersData] = await Promise.all([
         socialPulseApi.getSecurityOverview(),
         socialPulseApi.getActiveSessions(),
+        socialPulseApi.getConnectedAuthProviders(),
       ]);
       setOverview(ovData);
       setSessions(sessData || []);
+      setConnectedProviders(providersData || []);
     } catch {
       toast.error("Failed to load security overview");
     } finally {
@@ -59,6 +62,22 @@ export function SecurityCenterView() {
   useEffect(() => {
     loadSecurityData();
   }, []);
+
+  const handleDisconnectProvider = async (provider: string) => {
+    if (confirm(`Are you sure you want to disconnect ${provider.toUpperCase()} login provider?`)) {
+      try {
+        const res = await socialPulseApi.disconnectAuthProvider(provider);
+        if (res?.success === false) {
+          toast.error("Cannot disconnect your primary or sole authentication provider.");
+        } else {
+          toast.success(`Disconnected ${provider.toUpperCase()} login provider.`);
+          loadSecurityData();
+        }
+      } catch {
+        toast.error(`Failed to disconnect ${provider}.`);
+      }
+    }
+  };
 
   const handleRevokeSession = async (sessionId: number) => {
     try {
@@ -116,6 +135,8 @@ export function SecurityCenterView() {
     );
   }
 
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+
   return (
     <div className="space-y-8 font-sans pb-12">
       {/* Header */}
@@ -126,7 +147,7 @@ export function SecurityCenterView() {
             <h1 className="text-2xl font-black text-[#050505] dark:text-[#E4E6EB] tracking-tight">Security & Identity Center</h1>
           </div>
           <p className="text-[14px] text-[#65676B] dark:text-[#B0B3B8] mt-1">
-            Manage single sign-on providers, active login devices, session revocation, and security policies.
+            Manage single sign-on login providers (Google, GitHub, Microsoft, LinkedIn), active login devices, session revocation, and security policies.
           </p>
         </div>
 
@@ -192,42 +213,67 @@ export function SecurityCenterView() {
       {/* Connected Login Providers */}
       <div className="p-6 rounded-2xl bg-white dark:bg-[#242526] border border-black/5 dark:border-white/10 shadow-sm space-y-4">
         <h2 className="text-lg font-bold text-[#050505] dark:text-[#E4E6EB] flex items-center gap-2">
-          <UserCheck className="w-5 h-5 text-[#0866FF]" /> Single Sign-On (SSO) & OAuth Login Providers
+          <UserCheck className="w-5 h-5 text-[#0866FF]" /> Connected SSO & OAuth Login Providers
         </h2>
         <p className="text-[13px] text-[#65676B] dark:text-[#B0B3B8]">
-          Connect modern identity providers to log into SocialPulse AI with one click.
+          Link multiple OAuth identity providers (Google, GitHub, Microsoft, LinkedIn) to your single user profile. Authenticate with any connected provider instantly.
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4 pt-2">
           {OAUTH_PROVIDERS.map((provider) => {
-            const isConnected = overview?.connected_providers?.some(
-              (p: any) => p.provider.toLowerCase() === provider.id
+            const linked = connectedProviders.find(
+              (p: any) => p.provider?.toLowerCase() === provider.id
             );
+            const isConnected = linked?.connected || linked?.is_primary;
+
             return (
               <div
                 key={provider.id}
-                className="p-4 rounded-xl border border-[#ECECEC] bg-[#FAFAF8] flex items-center justify-between"
+                className={`p-4 rounded-2xl border ${
+                  isConnected
+                    ? "border-emerald-500/30 bg-emerald-50/20 dark:bg-emerald-950/10"
+                    : "border-black/5 dark:border-white/10 bg-[#FAFBFD] dark:bg-[#121316]"
+                } flex items-center justify-between gap-3`}
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{provider.icon}</span>
+                  <span className="text-3xl">{provider.icon}</span>
                   <div>
-                    <div className="text-[14px] font-bold text-[#111]">{provider.name}</div>
-                    <div className="text-[11px] text-[#888]">
-                      {isConnected ? "Connected & Verified" : "Not connected"}
+                    <div className="text-sm font-extrabold text-[#050505] dark:text-[#E4E6EB] flex items-center gap-1.5">
+                      <span>{provider.name}</span>
+                      {isConnected && (
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> Linked ✓
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-[#65676B] dark:text-[#B0B3B8]">
+                      {isConnected ? (
+                        <span>Last Login: {linked?.last_login ? new Date(linked.last_login).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now"}</span>
+                      ) : (
+                        <span>{provider.desc}</span>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                <a
-                  href={`http://localhost:8000/api/v1/auth/${provider.id}/login`}
-                  className={`px-3 py-1.5 rounded-lg text-[12px] font-semibold border transition ${
-                    isConnected
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                      : "bg-white text-[#333] border-[#DDD] hover:border-[#C8A14A]"
-                  }`}
-                >
-                  {isConnected ? "Connected" : "Connect"}
-                </a>
+                <div className="flex items-center gap-2">
+                  {isConnected ? (
+                    <button
+                      onClick={() => handleDisconnectProvider(provider.id)}
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold text-red-600 border border-red-200 dark:border-red-500/20 hover:bg-red-50 dark:hover:bg-red-500/10 transition"
+                    >
+                      Unlink
+                    </button>
+                  ) : (
+                    <a
+                      href={`${apiBase}/auth/${provider.id}/login`}
+                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#0866FF] text-white hover:bg-[#1877F2] transition flex items-center gap-1 shadow-xs"
+                    >
+                      <span>Connect</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
               </div>
             );
           })}
@@ -235,33 +281,33 @@ export function SecurityCenterView() {
       </div>
 
       {/* Active Sessions & Devices */}
-      <div className="p-6 rounded-2xl bg-white border border-[#ECECEC] shadow-sm space-y-4">
+      <div className="p-6 rounded-2xl bg-white dark:bg-[#242526] border border-black/5 dark:border-white/10 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-[#111] flex items-center gap-2">
-            <Laptop className="w-5 h-5 text-[#C8A14A]" /> Active Login Devices & Sessions
+          <h2 className="text-lg font-bold text-[#050505] dark:text-[#E4E6EB] flex items-center gap-2">
+            <Laptop className="w-5 h-5 text-[#0866FF]" /> Active Login Devices & Sessions
           </h2>
-          <span className="text-[12px] font-semibold text-[#888]">{sessions.length} Active</span>
+          <span className="text-[12px] font-semibold text-[#65676B]">{sessions.length} Active</span>
         </div>
 
-        <div className="divide-y divide-[#F0F0F0] border border-[#ECECEC] rounded-xl overflow-hidden">
+        <div className="divide-y divide-black/5 dark:divide-white/10 border border-black/5 dark:border-white/10 rounded-xl overflow-hidden">
           {sessions.map((sess) => (
-            <div key={sess.id} className="p-4 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div key={sess.id} className="p-4 bg-white dark:bg-[#242526] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-start gap-3">
-                <div className="p-2.5 rounded-xl bg-[#FAFAF8] border border-[#ECECEC] text-[#C8A14A]">
+                <div className="p-2.5 rounded-xl bg-[#FAFBFD] dark:bg-[#121316] border border-black/5 dark:border-white/10 text-[#0866FF]">
                   {sess.device_type === "mobile" ? <Smartphone className="w-5 h-5" /> : <Laptop className="w-5 h-5" />}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[14px] font-bold text-[#111]">
+                    <span className="text-[14px] font-bold text-[#050505] dark:text-[#E4E6EB]">
                       {sess.browser_name || "Modern Browser"} on {sess.os_name || "Desktop"}
                     </span>
                     {sess.is_current && (
-                      <span className="px-2 py-0.5 text-[10px] font-extrabold bg-emerald-100 text-emerald-700 rounded-full">
+                      <span className="px-2 py-0.5 text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 rounded-full">
                         CURRENT DEVICE
                       </span>
                     )}
                   </div>
-                  <div className="text-[12px] text-[#777] mt-0.5 flex items-center gap-3">
+                  <div className="text-[12px] text-[#65676B] dark:text-[#B0B3B8] mt-0.5 flex items-center gap-3">
                     <span>IP: {sess.ip_address || "127.0.0.1"}</span>
                     <span>•</span>
                     <span>Last active: {new Date(sess.last_active).toLocaleString()}</span>
@@ -283,17 +329,17 @@ export function SecurityCenterView() {
       </div>
 
       {/* Change Password Form */}
-      <div className="p-6 rounded-2xl bg-white border border-[#ECECEC] shadow-sm space-y-4">
-        <h2 className="text-lg font-bold text-[#111] flex items-center gap-2">
-          <KeyRound className="w-5 h-5 text-[#C8A14A]" /> Update Account Password
+      <div className="p-6 rounded-2xl bg-white dark:bg-[#242526] border border-black/5 dark:border-white/10 shadow-sm space-y-4">
+        <h2 className="text-lg font-bold text-[#050505] dark:text-[#E4E6EB] flex items-center gap-2">
+          <KeyRound className="w-5 h-5 text-[#0866FF]" /> Update Account Password
         </h2>
-        <p className="text-[13px] text-[#777]">
+        <p className="text-[13px] text-[#65676B] dark:text-[#B0B3B8]">
           Ensure your password is at least 8 characters long and contains uppercase letters, numbers, and symbols.
         </p>
 
         <form onSubmit={handleChangePassword} className="max-w-xl space-y-4 pt-2">
           <div>
-            <label className="block text-[12px] font-bold text-[#444] uppercase tracking-wider mb-1.5">
+            <label className="block text-[12px] font-bold text-[#65676B] uppercase tracking-wider mb-1.5">
               Current Password
             </label>
             <input
@@ -301,14 +347,14 @@ export function SecurityCenterView() {
               required
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-[#ECECEC] bg-[#FAFAF8] text-[14px] focus:outline-none focus:border-[#C8A14A]"
+              className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-[#FAFBFD] dark:bg-[#121316] text-[14px] text-[#050505] dark:text-[#E4E6EB] focus:outline-none focus:border-[#0866FF]"
               placeholder="••••••••"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[12px] font-bold text-[#444] uppercase tracking-wider mb-1.5">
+              <label className="block text-[12px] font-bold text-[#65676B] uppercase tracking-wider mb-1.5">
                 New Password
               </label>
               <input
@@ -316,13 +362,13 @@ export function SecurityCenterView() {
                 required
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-[#ECECEC] bg-[#FAFAF8] text-[14px] focus:outline-none focus:border-[#C8A14A]"
+                className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-[#FAFBFD] dark:bg-[#121316] text-[14px] text-[#050505] dark:text-[#E4E6EB] focus:outline-none focus:border-[#0866FF]"
                 placeholder="••••••••"
               />
             </div>
 
             <div>
-              <label className="block text-[12px] font-bold text-[#444] uppercase tracking-wider mb-1.5">
+              <label className="block text-[12px] font-bold text-[#65676B] uppercase tracking-wider mb-1.5">
                 Confirm New Password
               </label>
               <input
@@ -330,7 +376,7 @@ export function SecurityCenterView() {
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-[#ECECEC] bg-[#FAFAF8] text-[14px] focus:outline-none focus:border-[#C8A14A]"
+                className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-[#FAFBFD] dark:bg-[#121316] text-[14px] text-[#050505] dark:text-[#E4E6EB] focus:outline-none focus:border-[#0866FF]"
                 placeholder="••••••••"
               />
             </div>
@@ -339,37 +385,12 @@ export function SecurityCenterView() {
           <button
             type="submit"
             disabled={updatingPassword}
-            className="px-6 py-2.5 bg-[#111] text-white text-[13px] font-bold rounded-xl hover:bg-[#333] transition flex items-center gap-2"
+            className="px-6 py-2.5 bg-[#0866FF] text-white text-[13px] font-bold rounded-xl hover:bg-[#1877F2] transition flex items-center gap-2"
           >
             {updatingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
             Update Password
           </button>
         </form>
-      </div>
-
-      {/* Danger Zone */}
-      <div className="p-6 rounded-2xl bg-red-50/50 border border-red-200 space-y-4">
-        <h2 className="text-lg font-bold text-red-900 flex items-center gap-2">
-          <ShieldAlert className="w-5 h-5 text-red-600" /> Danger Zone
-        </h2>
-        <p className="text-[13px] text-red-700">
-          Permanent actions regarding workspace security, session invalidation, and data deletion.
-        </p>
-
-        <div className="flex flex-wrap gap-4 pt-2">
-          <button
-            onClick={handleLogoutAll}
-            className="px-4 py-2 bg-red-600 text-white text-[13px] font-bold rounded-xl hover:bg-red-700 transition"
-          >
-            Logout All Devices Immediately
-          </button>
-          <button
-            onClick={() => toast.error("Please contact support to permanently delete your enterprise workspace.")}
-            className="px-4 py-2 bg-white text-red-600 border border-red-300 text-[13px] font-bold rounded-xl hover:bg-red-50 transition"
-          >
-            Delete Enterprise Account
-          </button>
-        </div>
       </div>
     </div>
   );
