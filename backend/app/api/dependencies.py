@@ -149,7 +149,15 @@ async def get_active_workspace_id(
         except Exception:
             pass
 
-    # Default fallback to primary workspace ID 1
+    # Auto-resolve primary workspace for user from database
+    try:
+        workspaces = await workspace_repo.get_user_workspaces(current_user.id)
+        if workspaces:
+            return workspaces[0].id
+    except Exception:
+        pass
+
+    # Fallback to default workspace ID 1
     return 1
 
 
