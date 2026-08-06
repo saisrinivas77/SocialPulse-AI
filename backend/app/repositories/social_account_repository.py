@@ -57,14 +57,24 @@ class SocialAccountRepository:
         result = await self.session.execute(query)
         return list(result.scalars().all()), total
 
+    def _resolve_platform_enum(self, platform_str: str) -> PlatformType:
+        p = platform_str.upper().strip()
+        if p in ["X", "TWITTER"]:
+            return PlatformType.TWITTER
+        if p in ["META", "FACEBOOK"]:
+            return PlatformType.FACEBOOK
+        if p in ["GOOGLE", "YOUTUBE"]:
+            return PlatformType.YOUTUBE
+        try:
+            return PlatformType(p)
+        except ValueError:
+            return PlatformType.INSTAGRAM
+
     async def get_by_provider_account(
         self, user_id: int, platform: str, external_account_id: str
     ) -> Optional[SocialAccount]:
         """Get existing social account by user, provider platform, and external account ID."""
-        try:
-            platform_enum = PlatformType(platform.upper())
-        except ValueError:
-            return None
+        platform_enum = self._resolve_platform_enum(platform)
 
         stmt = select(SocialAccount).where(
             SocialAccount.user_id == user_id,
@@ -93,7 +103,7 @@ class SocialAccountRepository:
         metadata_dict: Optional[Dict[str, Any]] = None,
     ) -> SocialAccount:
         """Upsert connected social account with AES-256 encrypted tokens."""
-        platform_enum = PlatformType(platform_str.upper())
+        platform_enum = self._resolve_platform_enum(platform_str)
         existing = await self.get_by_provider_account(user_id, platform_str, external_account_id)
 
         encrypted_acc = encrypt_token(plain_access_token)

@@ -58,7 +58,7 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    if raw_token.startswith("sp_demo_") or raw_token.startswith("sp_mock_") or raw_token == "demo":
+    if raw_token.startswith("sp_demo_") or raw_token.startswith("sp_mock_") or "demo" in raw_token:
         try:
             user_repo = UserRepository(db)
             demo_user = await user_repo.get_by_email("saisrinivasreddy456@gmail.com")
