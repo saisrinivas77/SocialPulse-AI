@@ -49,16 +49,19 @@ class WorkspaceRepository(BaseRepository[Workspace]):
 
     async def get_user_workspaces(self, user_id: Any) -> list[Workspace]:
         """Fetch all workspaces accessible by the user."""
-        stmt = (
-            select(Workspace)
-            .join(WorkspaceMember, WorkspaceMember.workspace_id == Workspace.id)
-            .where(WorkspaceMember.user_id == user_id)
-        )
-        result = await self.session.execute(stmt)
-        workspaces = list(result.scalars().all())
-        if not workspaces:
-            # Fallback query for any workspaces in DB
-            all_stmt = select(Workspace).limit(10)
-            all_res = await self.session.execute(all_stmt)
-            workspaces = list(all_res.scalars().all())
-        return workspaces
+        try:
+            stmt = (
+                select(Workspace)
+                .join(WorkspaceMember, WorkspaceMember.workspace_id == Workspace.id)
+                .where(WorkspaceMember.user_id == user_id)
+            )
+            result = await self.session.execute(stmt)
+            workspaces = list(result.scalars().all())
+            if not workspaces:
+                # Fallback query for any workspaces in DB
+                all_stmt = select(Workspace).limit(10)
+                all_res = await self.session.execute(all_stmt)
+                workspaces = list(all_res.scalars().all())
+            return workspaces
+        except Exception:
+            return []
