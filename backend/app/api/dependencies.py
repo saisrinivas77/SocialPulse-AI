@@ -42,6 +42,14 @@ async def get_current_user(
     """Validate bearer access token from Header, Query String, or Cookie with multi-tenant resolution."""
     raw_token = bearer_token or query_token or request.cookies.get("sp_access_token")
     
+    if not raw_token:
+        cookie_header = request.headers.get("cookie", "")
+        if "sp_access_token=" in cookie_header:
+            try:
+                raw_token = cookie_header.split("sp_access_token=")[1].split(";")[0]
+            except Exception:
+                pass
+    
     # Also check if token is passed inside state parameter
     if not raw_token:
         state_param = request.query_params.get("state")
@@ -69,9 +77,10 @@ async def get_current_user(
         return User(
             id=1,
             email="saisrinivasreddy456@gmail.com",
-            full_name="Alex Morgan",
+            first_name="Alex",
+            last_name="Morgan",
             username="alex_pulse",
-            is_active=True,
+            password_hash="sp_dummy_hash",
             is_verified=True,
         )
 
