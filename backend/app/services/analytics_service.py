@@ -317,7 +317,7 @@ class AnalyticsService:
 
     async def get_multi_platform_comparison(self, user_id: int, timeframe: str = "30d") -> dict:
         """Fetch all connected social accounts, normalize metrics into a single schema, and compute top platform badges."""
-        accounts = await self.social_repository.list_workspace_accounts(user_id)
+        accounts = await self.social_repository.get_by_user(user_id)
         
         normalized_accounts = []
         for acc in accounts:
