@@ -1,11 +1,13 @@
 # app/services/auth_service.py
 """Authentication service supporting email verification, OAuth logins, session tracking, and demo mode."""
 
+from __future__ import annotations
+
 import hashlib
 import logging
 import secrets
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from jose import JWTError, jwt
 
 from app.config import settings
