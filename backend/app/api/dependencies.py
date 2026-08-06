@@ -51,19 +51,28 @@ async def get_current_user(
             except Exception:
                 pass
 
-    if not raw_token or raw_token.startswith("sp_demo_") or raw_token.startswith("sp_mock_") or raw_token == "demo":
-        # Fallback to primary tenant user for demo/sandbox mode
-        user_repo = UserRepository(db)
-        demo_user = await user_repo.get_by_email("saisrinivasreddy456@gmail.com")
-        if demo_user:
-            return demo_user
-        all_users = await user_repo.list_users(page=1, page_size=1)
-        if all_users:
-            return all_users[0]
+    if not raw_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing Authorization Bearer Header, Query Token, or Session Cookie.",
             headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    if raw_token.startswith("sp_demo_") or raw_token.startswith("sp_mock_") or raw_token == "demo":
+        try:
+            user_repo = UserRepository(db)
+            demo_user = await user_repo.get_by_email("saisrinivasreddy456@gmail.com")
+            if demo_user:
+                return demo_user
+        except Exception:
+            pass
+        return User(
+            id=1,
+            email="saisrinivasreddy456@gmail.com",
+            full_name="Alex Morgan",
+            username="alex_pulse",
+            is_active=True,
+            is_verified=True,
         )
 
     try:
