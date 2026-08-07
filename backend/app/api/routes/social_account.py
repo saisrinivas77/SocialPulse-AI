@@ -87,8 +87,9 @@ async def get_oauth_authorize_url(
     service: SocialAccountService = Depends(get_social_account_service),
 ):
     """Generate signed OAuth authorization URL containing active user and workspace context."""
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-    redirect_uri = f"{frontend_url}/dashboard?view=social-accounts&connected={provider}"
+    backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+    lookup_key = "meta" if provider.lower() in ["instagram", "facebook", "meta", "threads"] else provider.lower()
+    redirect_uri = f"{backend_url}/api/v1/social-accounts/oauth/{lookup_key}/callback"
     auth_url = await service.get_oauth_login_url(provider, workspace_id, redirect_uri, user_id=current_user.id)
     return {
         "provider": provider,
@@ -108,8 +109,9 @@ async def oauth_login(
     current_user: User = Depends(get_current_user),
     service: SocialAccountService = Depends(get_social_account_service),
 ):
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-    redirect_uri = f"{frontend_url}/dashboard?view=social-accounts&connected={provider}"
+    backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+    lookup_key = "meta" if provider.lower() in ["instagram", "facebook", "meta", "threads"] else provider.lower()
+    redirect_uri = f"{backend_url}/api/v1/social-accounts/oauth/{lookup_key}/callback"
     auth_url = await service.get_oauth_login_url(provider, workspace_id, redirect_uri, user_id=current_user.id)
     return RedirectResponse(url=auth_url)
 
