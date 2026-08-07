@@ -40,49 +40,95 @@ class SocialGraphService:
 
     @staticmethod
     def get_authorization_url(provider: str, redirect_uri: str, state: str) -> str:
-        """Construct official OAuth 2.0 authorization URL for specified provider with diagnostic checks."""
+        """Construct official OAuth 2.0 authorization URL for specified provider with strict diagnostic checks."""
+        from fastapi import HTTPException
         provider_clean = provider.lower().strip()
+
+        configs = ProviderHealthService.get_provider_configs()
+        lookup_key = provider_clean
+        if lookup_key in ["instagram", "facebook", "threads"]:
+            lookup_key = "meta"
+        elif lookup_key in ["youtube"]:
+            lookup_key = "google"
+        elif lookup_key in ["twitter"]:
+            lookup_key = "x"
+
+        cfg = configs.get(lookup_key)
+        if not cfg:
+            raise HTTPException(status_code=400, detail=f"Unsupported OAuth provider: '{provider}'")
+
+        client_id = cfg.get("client_id", "").strip()
+        client_secret = cfg.get("client_secret", "").strip()
+
+        if not client_id or client_id.startswith("dev_"):
+            err_msg = f"{cfg['name']} App ID / Client ID is not configured in Railway environment variables."
+            logger.error(f"OAuth error for {provider_clean}: {err_msg}")
+            raise HTTPException(status_code=400, detail=err_msg)
+
+        if not client_secret or client_secret.startswith("dev_"):
+            err_msg = f"{cfg['name']} Client Secret is not configured in Railway environment variables."
+            logger.error(f"OAuth error for {provider_clean}: {err_msg}")
+            raise HTTPException(status_code=400, detail=err_msg)
+
+        if not redirect_uri or redirect_uri.strip() == "":
+            err_msg = f"{cfg['name']} redirect URI cannot be empty."
+            logger.error(f"OAuth error for {provider_clean}: {err_msg}")
+            raise HTTPException(status_code=400, detail=err_msg)
+
         encoded_redirect = urllib.parse.quote(redirect_uri, safe="")
         encoded_state = urllib.parse.quote(state, safe="")
 
-        diag = ProviderHealthService.validate_provider_credentials(provider_clean)
+        if lookup_key == "meta":
+            scope_raw = "instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement,pages_manage_posts"
+            scopes = urllib.parse.quote(scope_raw, safe="")
+            url = f"https://www.facebook.com/v20.0/dialog/oauth?client_id={client_id}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}&response_type=code"
+        elif provider_clean == "threads":
+            scope_raw = "threads_basic,threads_content_publish"
+            scopes = urllib.parse.quote(scope_raw, safe="")
+            url = f"https://threads.net/oauth/authorize?client_id={client_id}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}&response_type=code"
+        elif lookup_key == "linkedin":
+            scope_raw = "openid profile email organization_social"
+            scopes = urllib.parse.quote(scope_raw, safe="")
+            url = f"https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id={client_id}&redirect_uri={encoded_redirect}&state={encoded_state}&scope={scopes}"
+        elif lookup_key == "google":
+            scope_raw = "https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly"
+            scopes = urllib.parse.quote(scope_raw, safe="")
+            url = f"https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id={client_id}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}&access_type=offline&prompt=consent"
+        elif lookup_key == "x":
+            scope_raw = "tweet.read users.read offline.access"
+            scopes = urllib.parse.quote(scope_raw, safe="")
+            url = f"https://twitter.com/i/oauth2/authorize?response_type=code&client_id={client_id}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}&code_challenge=challenge&code_challenge_method=plain"
+        elif lookup_key == "tiktok":
+            scope_raw = "user.info.basic,video.list"
+            scopes = urllib.parse.quote(scope_raw, safe="")
+            url = f"https://www.tiktok.com/v2/auth/authorize/?client_key={client_id}&scope={scopes}&response_type=code&redirect_uri={encoded_redirect}&state={encoded_state}"
+        elif lookup_key == "pinterest":
+            scope_raw = "boards:read,pins:read"
+            scopes = urllib.parse.quote(scope_raw, safe="")
+            url = f"https://www.pinterest.com/oauth/?response_type=code&client_id={client_id}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}"
+        elif lookup_key == "github":
+            scope_raw = "read:user user:email"
+            scopes = urllib.parse.quote(scope_raw, safe="")
+            url = f"https://github.com/login/oauth/authorize?client_id={client_id}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}"
+        elif lookup_key == "microsoft":
+            scope_raw = "User.Read User.ReadBasic.All offline_access"
+            scopes = urllib.parse.quote(scope_raw, safe="")
+            tenant = cfg.get("tenant_id", "common")
+            url = f"https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize?client_id={client_id}&response_type=code&redirect_uri={encoded_redirect}&response_mode=query&scope={scopes}&state={encoded_state}"
+        else:
+            raise HTTPException(status_code=400, detail=f"Unsupported OAuth provider: '{provider}'")
+
         logger.info(
-            "oauth.get_authorization_url.attempt",
+            "oauth.authorization_url_generated",
             extra={
                 "provider": provider_clean,
+                "client_id_preview": f"{client_id[:8]}...",
                 "redirect_uri": redirect_uri,
+                "scope": scope_raw if 'scope_raw' in locals() else "",
                 "state": state,
-                "diagnostic_ready": diag.get("ready"),
-                "error": diag.get("error"),
+                "response_type": "code",
             },
         )
-
-        if provider_clean in ["instagram", "facebook", "meta"]:
-            scopes = urllib.parse.quote("instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement,pages_manage_posts", safe="")
-            url = f"https://www.facebook.com/v20.0/dialog/oauth?client_id={META_CLIENT_ID}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}&response_type=code"
-        elif provider_clean == "threads":
-            scopes = urllib.parse.quote("threads_basic,threads_content_publish", safe="")
-            url = f"https://threads.net/oauth/authorize?client_id={META_CLIENT_ID}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}&response_type=code"
-        elif provider_clean == "linkedin":
-            scopes = urllib.parse.quote("openid profile email organization_social", safe="")
-            url = f"https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id={LINKEDIN_CLIENT_ID}&redirect_uri={encoded_redirect}&state={encoded_state}&scope={scopes}"
-        elif provider_clean in ["youtube", "google"]:
-            scopes = urllib.parse.quote("https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly", safe="")
-            url = f"https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id={GOOGLE_YOUTUBE_CLIENT_ID}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}&access_type=offline&prompt=consent"
-        elif provider_clean in ["twitter", "x"]:
-            scopes = urllib.parse.quote("tweet.read users.read offline.access", safe="")
-            url = f"https://twitter.com/i/oauth2/authorize?response_type=code&client_id={X_TWITTER_CLIENT_ID}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}&code_challenge=challenge&code_challenge_method=plain"
-        elif provider_clean == "tiktok":
-            scopes = urllib.parse.quote("user.info.basic,video.list", safe="")
-            url = f"https://www.tiktok.com/v2/auth/authorize/?client_key={TIKTOK_CLIENT_KEY}&scope={scopes}&response_type=code&redirect_uri={encoded_redirect}&state={encoded_state}"
-        elif provider_clean == "pinterest":
-            scopes = urllib.parse.quote("boards:read,pins:read", safe="")
-            url = f"https://www.pinterest.com/oauth/?response_type=code&client_id={PINTEREST_CLIENT_ID}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}"
-        else:
-            logger.error(f"Unsupported social OAuth provider requested: {provider}")
-            raise ValueError(f"Unsupported social OAuth provider: {provider}")
-
-        logger.info(f"Generated OAuth authorization URL for {provider_clean}: {url}")
         return url
 
     @staticmethod
