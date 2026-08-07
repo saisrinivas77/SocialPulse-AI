@@ -440,7 +440,8 @@ class SocialGraphService:
                 headers={"Authorization": f"Bearer {access_token}"},
             )
             cdata = ch_res.json()
-            item = cdata.get("items", [{}])[0]
+            items = cdata.get("items", [])
+            item = items[0] if (items and len(items) > 0) else {}
             snippet = item.get("snippet", {})
             stats = item.get("statistics", {})
 
@@ -501,7 +502,8 @@ class SocialGraphService:
                 params={"user.fields": "profile_image_url,public_metrics"},
                 headers={"Authorization": f"Bearer {access_token}"},
             )
-            mdata = me_res.json().get("data", {})
+            res_json = me_res.json() if isinstance(me_res.json(), dict) else {}
+            mdata = res_json.get("data", {}) if isinstance(res_json, dict) else {}
             metrics = mdata.get("public_metrics", {})
 
             return {
