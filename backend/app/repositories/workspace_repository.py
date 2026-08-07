@@ -47,21 +47,32 @@ class WorkspaceRepository(BaseRepository[Workspace]):
         result = await self.session.execute(stmt)
         return result.scalars().first()
 
-    async def get_user_workspaces(self, user_id: Any) -> list[Workspace]:
-        """Fetch all workspaces accessible by the user."""
+    async def get_or_create_default_workspace(self, user_id: Any) -> Workspace:
+        """Ensure at least one organization and workspace exists for the user."""
         try:
-            stmt = (
-                select(Workspace)
-                .join(WorkspaceMember, WorkspaceMember.workspace_id == Workspace.id)
-                .where(WorkspaceMember.user_id == user_id)
+            workspaces = await self.get_user_workspaces(user_id)
+            if workspaces:
+                return workspaces[0]
+
+            org = Organization(name="Default Organization")
+            self.session.add(org)
+            await self.session.flush()
+
+            workspace = Workspace(organization_id=org.id, name="Default Workspace")
+            self.session.add(workspace)
+            await self.session.flush()
+
+            member = WorkspaceMember(
+                workspace_id=workspace.id, user_id=user_id, role=WorkspaceRole.OWNER
             )
-            result = await self.session.execute(stmt)
-            workspaces = list(result.scalars().all())
-            if not workspaces:
-                # Fallback query for any workspaces in DB
-                all_stmt = select(Workspace).limit(10)
-                all_res = await self.session.execute(all_stmt)
-                workspaces = list(all_res.scalars().all())
-            return workspaces
+            self.session.add(member)
+            await self.session.flush()
+            await self.session.commit()
+            return workspace
         except Exception:
-            return []
+            await self.session.rollback()
+            all_res = await self.session.execute(select(Workspace).limit(1))
+            ws = all_res.scalar_one_or_none()
+            if ws:
+                return ws
+            raise

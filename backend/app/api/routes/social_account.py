@@ -198,7 +198,7 @@ async def oauth_callback(
         if not user_obj:
             user_obj = await user_repo.get_by_email(user_email)
         if not user_obj:
-            user_obj = await user_repo.get_first_user()
+            user_obj = await user_repo.get_or_create_default_user(user_email)
 
         if user_obj:
             user_id = user_obj.id
@@ -208,9 +208,8 @@ async def oauth_callback(
         # 2. Resolve valid workspace record in database
         ws_obj = await workspace_repo.get_by_id(workspace_id)
         if not ws_obj and user_obj:
-            workspaces = await workspace_repo.get_user_workspaces(user_obj.id)
-            if workspaces:
-                ws_obj = workspaces[0]
+            ws_obj = await workspace_repo.get_or_create_default_workspace(user_obj.id)
+
         if ws_obj:
             workspace_id = ws_obj.id
 

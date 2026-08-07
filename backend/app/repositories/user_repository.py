@@ -37,6 +37,36 @@ class UserRepository(BaseRepository[User]):
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def get_or_create_default_user(self, email: str = "user@socialpulse.ai") -> User:
+        """Ensure at least one user exists in the database."""
+        try:
+            user = await self.get_by_email(email)
+            if user:
+                return user
+            user = await self.get_first_user()
+            if user:
+                return user
+
+            new_user = User(
+                email=email,
+                username="default_user",
+                full_name="Default User",
+                hashed_password="hashed_placeholder_password",
+                is_active=True,
+                is_verified=True,
+            )
+            self.session.add(new_user)
+            await self.session.commit()
+            await self.session.refresh(new_user)
+            return new_user
+        except Exception:
+            await self.session.rollback()
+            all_res = await self.session.execute(select(User).limit(1))
+            u = all_res.scalar_one_or_none()
+            if u:
+                return u
+            raise
+
     async def get_by_email(self, email: str) -> User | None:
         stmt = (
             select(User)
