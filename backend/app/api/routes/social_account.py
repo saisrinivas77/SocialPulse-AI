@@ -177,17 +177,45 @@ async def oauth_callback(
         from app.utils.security import decode_oauth_state_token
         state_data = decode_oauth_state_token(state)
         if state_data:
-            user_id = int(state_data.get("sub", 1))
-            workspace_id = int(state_data.get("workspace_id", 1))
+            try:
+                raw_sub = state_data.get("sub")
+                if raw_sub and str(raw_sub).isdigit():
+                    user_id = int(raw_sub)
+                raw_ws = state_data.get("workspace_id")
+                if raw_ws and str(raw_ws).isdigit():
+                    workspace_id = int(raw_ws)
+            except Exception:
+                pass
 
     try:
         from app.repositories.user_repository import UserRepository
+        from app.repositories.workspace_repository import WorkspaceRepository
         user_repo = UserRepository(db)
+        workspace_repo = WorkspaceRepository(db)
+
+        # 1. Resolve valid user record in database
         user_obj = await user_repo.get_by_id(user_id)
-        if user_obj and user_obj.email:
-            user_email = user_obj.email
-    except Exception:
-        pass
+        if not user_obj:
+            user_obj = await user_repo.get_by_email(user_email)
+        if not user_obj:
+            user_obj = await user_repo.get_first_user()
+
+        if user_obj:
+            user_id = user_obj.id
+            if user_obj.email:
+                user_email = user_obj.email
+
+        # 2. Resolve valid workspace record in database
+        ws_obj = await workspace_repo.get_by_id(workspace_id)
+        if not ws_obj and user_obj:
+            workspaces = await workspace_repo.get_user_workspaces(user_obj.id)
+            if workspaces:
+                ws_obj = workspaces[0]
+        if ws_obj:
+            workspace_id = ws_obj.id
+
+    except Exception as exc:
+        logger.warning(f"User/workspace resolution warning during OAuth callback: {exc}")
 
     backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
     redirect_uri = f"{backend_url}/api/v1/social-accounts/oauth/{provider}/callback"
@@ -205,6 +233,7 @@ async def oauth_callback(
         )
         return RedirectResponse(url=f"{frontend_url}/dashboard?view=social-accounts&connected=true&provider={provider}")
     except Exception as exc:
+        await db.rollback()
         logger.exception(f"OAuth callback error for {provider}: {exc}")
         return RedirectResponse(url=f"{frontend_url}/dashboard?view=social-accounts&error={str(exc)}")
 
