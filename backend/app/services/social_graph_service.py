@@ -70,7 +70,10 @@ class SocialGraphService:
         encoded_state = urllib.parse.quote(state, safe="")
 
         if lookup_key == "meta":
-            scope_raw = "instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement,pages_manage_posts"
+            if provider_clean == "facebook":
+                scope_raw = "public_profile,email,pages_show_list,pages_read_engagement"
+            else:
+                scope_raw = "public_profile,email,pages_show_list,pages_read_engagement,instagram_basic"
             scopes = urllib.parse.quote(scope_raw, safe="")
             url = f"https://www.facebook.com/v20.0/dialog/oauth?client_id={client_id}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}&response_type=code"
         elif provider_clean == "threads":
