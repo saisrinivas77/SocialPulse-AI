@@ -68,10 +68,18 @@ async def get_current_user(
         except Exception:
             pass
 
+    # Sanitize raw_token string
+    if raw_token:
+        raw_token = str(raw_token).strip()
+        if raw_token.startswith("Bearer "):
+            raw_token = raw_token[7:].strip()
+        if raw_token.lower() in ["null", "undefined", "", "none", "[object object]"]:
+            raw_token = None
+
     if not raw_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Session Expired. Please log in again.",
+            detail="Not authenticated. Please log in.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -91,6 +99,15 @@ async def get_current_user(
             username="alex_pulse",
             password_hash="sp_dummy_hash",
             is_verified=True,
+        )
+
+    # Validate exact 3 base64 segments (header.payload.signature)
+    if raw_token.count(".") != 2:
+        logger.warning(f"Rejecting malformed authorization token lacking 3 segments: '{raw_token[:20]}...'")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid JWT token format. Please log in again.",
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
     try:
@@ -120,6 +137,8 @@ async def get_current_user(
         msg = str(exc)
         if "expired" in msg.lower():
             err_detail = "Session Expired. Please log in again."
+        elif "not enough segments" in msg.lower() or "segment" in msg.lower():
+            err_detail = "Invalid JWT token format. Please log in again."
         else:
             err_detail = f"JWT Validation Error: {msg}"
         raise HTTPException(

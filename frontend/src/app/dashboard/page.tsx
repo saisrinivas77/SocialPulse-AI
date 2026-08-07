@@ -37,6 +37,7 @@ import { MediaLibraryView } from "@/components/dashboard/views/MediaLibraryView"
 import { SecurityCenterView } from "@/components/dashboard/views/SecurityCenterView";
 import { CompareAnalyticsView } from "@/components/dashboard/views/CompareAnalyticsView";
 import { ProviderHealthView } from "@/components/dashboard/views/ProviderHealthView";
+import { AuthDebugView } from "@/components/dashboard/views/AuthDebugView";
 
 // ─── Auth guard ────────────────────────────────────────────────────────────────
 function useAuthGuard() {
@@ -93,6 +94,7 @@ export default function DashboardPage() {
       case "profile": return <ProfileView />;
       case "security-center": return <SecurityCenterView />;
       case "provider-health": return <ProviderHealthView />;
+      case "auth-debug": return <AuthDebugView />;
       case "admin": return <AdminView />;
       case "media-library": return <MediaLibraryView />;
       default: return <OverviewView />;

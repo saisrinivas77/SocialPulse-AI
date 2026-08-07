@@ -40,6 +40,7 @@ const navItems: NavItem[] = [
   { view: "team", label: "Team", icon: Users },
   { view: "security-center", label: "Security Center", icon: ShieldCheck, badge: "SECURE" },
   { view: "provider-health", label: "Provider Health", icon: ShieldCheck, badge: "DIAGNOSTICS" },
+  { view: "auth-debug", label: "Auth Debug", icon: ShieldCheck, badge: "DEBUG" },
   { view: "settings", label: "Settings", icon: Settings },
 ];
 

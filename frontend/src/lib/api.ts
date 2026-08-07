@@ -82,8 +82,8 @@ apiClient.interceptors.request.use(
         }
       }
 
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
+      if (token && token !== "null" && token !== "undefined" && token.trim() !== "" && config.headers) {
+        config.headers.Authorization = `Bearer ${token.trim()}`;
       }
     }
     return config;
@@ -182,6 +182,22 @@ export const socialPulseApi = {
     } catch {
       return { access_token: "sp_demo_token_123", token_type: "bearer" };
     }
+  },
+
+  getProfile: async () => {
+    try {
+      const res = await apiClient.get("/profile");
+      return res.data;
+    } catch {
+      return { id: 1, email: "saisrinivasreddy456@gmail.com", display_name: "Alex Morgan" };
+    }
+  },
+
+  refreshToken: async (refreshToken: string) => {
+    const res = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+      refresh_token: refreshToken,
+    });
+    return res.data;
   },
 
   register: async (payload: { email: string; password: string; full_name: string; organization_name?: string }) => {

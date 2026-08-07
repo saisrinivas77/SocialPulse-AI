@@ -18,6 +18,7 @@ export type NavView =
   | "profile"
   | "security-center"
   | "provider-health"
+  | "auth-debug"
   | "admin"
   | "media-library";
 
