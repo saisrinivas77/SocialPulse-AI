@@ -174,12 +174,14 @@ class SocialGraphService:
     ) -> Dict[str, Any]:
         """Meta Graph API handler for Instagram Business & Facebook Pages."""
         token_url = "https://graph.facebook.com/v20.0/oauth/access_token"
+        meta_id = os.getenv("META_APP_ID", os.getenv("META_CLIENT_ID", os.getenv("FACEBOOK_CLIENT_ID", "dev_meta_client_id")))
+        meta_secret = os.getenv("META_APP_SECRET", os.getenv("META_CLIENT_SECRET", os.getenv("FACEBOOK_CLIENT_SECRET", "dev_meta_client_secret")))
         try:
             res = await client.get(
                 token_url,
                 params={
-                    "client_id": META_CLIENT_ID,
-                    "client_secret": META_CLIENT_SECRET,
+                    "client_id": meta_id,
+                    "client_secret": meta_secret,
                     "redirect_uri": redirect_uri,
                     "code": code,
                 },

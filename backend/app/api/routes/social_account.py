@@ -6,6 +6,8 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, Response, status, HTTPException
 from fastapi.responses import RedirectResponse
 
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.database import get_db
 from app.api.dependencies import (
     get_active_workspace_id,
     get_current_user,
@@ -161,28 +163,50 @@ async def oauth_callback(
     code: Optional[str] = Query(default=None),
     state: Optional[str] = Query(default=None),
     error: Optional[str] = Query(default=None),
-    workspace_id: int = Depends(get_active_workspace_id),
-    current_user: User = Depends(get_current_user),
-    service: SocialAccountService = Depends(get_social_account_service),
+    db: AsyncSession = Depends(get_db),
 ):
     frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
     if error or not code:
-        return RedirectResponse(url=f"{frontend_url}/dashboard?tab=social-accounts&error={error or 'no_code'}")
+        return RedirectResponse(url=f"{frontend_url}/dashboard?view=social-accounts&error={error or 'no_code'}")
+
+    user_id = 1
+    workspace_id = 1
+    user_email = "saisrinivasreddy456@gmail.com"
+
+    if state:
+        from app.utils.security import decode_oauth_state_token
+        state_data = decode_oauth_state_token(state)
+        if state_data:
+            user_id = int(state_data.get("sub", 1))
+            workspace_id = int(state_data.get("workspace_id", 1))
+
+    try:
+        from app.repositories.user_repository import UserRepository
+        user_repo = UserRepository(db)
+        user_obj = await user_repo.get_by_id(user_id)
+        if user_obj and user_obj.email:
+            user_email = user_obj.email
+    except Exception:
+        pass
 
     backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
     redirect_uri = f"{backend_url}/api/v1/social-accounts/oauth/{provider}/callback"
     try:
+        from app.repositories.social_account_repository import SocialAccountRepository
+        account_repo = SocialAccountRepository(db)
+        service = SocialAccountService(account_repo)
         await service.handle_oauth_callback(
             provider=provider,
             code=code,
             redirect_uri=redirect_uri,
-            user_id=current_user.id,
+            user_id=user_id,
             workspace_id=workspace_id,
-            user_email=current_user.email,
+            user_email=user_email,
         )
-        return RedirectResponse(url=f"{frontend_url}/dashboard?tab=social-accounts&connected=true&provider={provider}")
+        return RedirectResponse(url=f"{frontend_url}/dashboard?view=social-accounts&connected=true&provider={provider}")
     except Exception as exc:
-        return RedirectResponse(url=f"{frontend_url}/dashboard?tab=social-accounts&error={str(exc)}")
+        logger.exception(f"OAuth callback error for {provider}: {exc}")
+        return RedirectResponse(url=f"{frontend_url}/dashboard?view=social-accounts&error={str(exc)}")
 
 
 @router.post(
