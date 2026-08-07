@@ -57,7 +57,12 @@ class SocialGraphService:
         if not cfg:
             raise HTTPException(status_code=400, detail=f"Unsupported OAuth provider: '{provider}'")
 
-        client_id = cfg.get("client_id", "").strip() or f"demo_{lookup_key}_app_id"
+        client_id = cfg.get("client_id", "").strip()
+        if not client_id or client_id.startswith("demo_") or client_id.startswith("dev_"):
+            err_msg = f"{cfg['name']} App ID / Client ID is not configured in Railway environment variables. Please add META_APP_ID to Railway variables."
+            logger.error(f"OAuth error for {provider_clean}: {err_msg}")
+            raise HTTPException(status_code=400, detail=err_msg)
+
         if not redirect_uri or redirect_uri.strip() == "":
             redirect_uri = f"http://localhost:8000/api/v1/social-accounts/oauth/{lookup_key}/callback"
 

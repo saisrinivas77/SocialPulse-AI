@@ -21,8 +21,9 @@ def test_auth_via_cookie():
     assert response.status_code == 200
 
 
-def test_oauth_authorize_url_endpoint():
+def test_oauth_authorize_url_endpoint(monkeypatch):
     """Verify GET /api/v1/social-accounts/oauth/{provider}/authorize_url generates authorization URL."""
+    monkeypatch.setenv("META_APP_ID", "123456789012345")
     response = client.get("/api/v1/social-accounts/oauth/instagram/authorize_url?token=sp_demo_token_123")
     assert response.status_code == 200
     data = response.json()
