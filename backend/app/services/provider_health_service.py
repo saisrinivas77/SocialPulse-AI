@@ -58,7 +58,7 @@ class ProviderHealthService:
                 "name": "Meta (Instagram / Facebook / Threads)",
                 "client_id": settings.META_APP_ID or os.getenv("META_CLIENT_ID", os.getenv("META_APP_ID", os.getenv("FACEBOOK_CLIENT_ID", ""))),
                 "client_secret": settings.META_APP_SECRET.get_secret_value() if hasattr(settings.META_APP_SECRET, "get_secret_value") else os.getenv("META_CLIENT_SECRET", os.getenv("META_APP_SECRET", os.getenv("FACEBOOK_CLIENT_SECRET", ""))),
-                "redirect_uri": f"{frontend_url}/dashboard?view=social-accounts&connected=instagram",
+                "redirect_uri": f"{api_base}/social-accounts/oauth/meta/callback",
                 "required_vars": ["META_APP_ID", "META_APP_SECRET"],
             },
             "tiktok": {

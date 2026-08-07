@@ -167,7 +167,8 @@ async def oauth_callback(
     if error or not code:
         return RedirectResponse(url=f"{frontend_url}/dashboard?tab=social-accounts&error={error or 'no_code'}")
 
-    redirect_uri = f"http://localhost:8000/api/v1/social-accounts/oauth/{provider}/callback"
+    backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+    redirect_uri = f"{backend_url}/api/v1/social-accounts/oauth/{provider}/callback"
     try:
         await service.handle_oauth_callback(
             provider=provider,
