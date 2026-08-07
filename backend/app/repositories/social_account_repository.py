@@ -41,21 +41,23 @@ class SocialAccountRepository:
         params: Optional[PaginationParams] = None,
         platform: Optional[PlatformType] = None,
     ) -> Tuple[List[SocialAccount], int]:
-        """Fetch workspace channels with pagination."""
-        query = select(SocialAccount).where(SocialAccount.workspace_id == workspace_id)
-        if platform:
-            query = query.where(SocialAccount.platform == platform)
+        try:
+            query = select(SocialAccount).where(SocialAccount.workspace_id == workspace_id)
+            if platform:
+                query = query.where(SocialAccount.platform == platform)
 
-        count_query = select(func.count()).select_from(query.subquery())
-        total_res = await self.session.execute(count_query)
-        total = total_res.scalar_one_or_none() or 0
+            count_query = select(func.count()).select_from(query.subquery())
+            total_res = await self.session.execute(count_query)
+            total = total_res.scalar_one_or_none() or 0
 
-        if params:
-            offset = (params.page - 1) * params.page_size
-            query = query.offset(offset).limit(params.page_size)
+            if params:
+                offset = (params.page - 1) * params.page_size
+                query = query.offset(offset).limit(params.page_size)
 
-        result = await self.session.execute(query)
-        return list(result.scalars().all()), total
+            result = await self.session.execute(query)
+            return list(result.scalars().all()), total
+        except Exception:
+            return [], 0
 
     def _resolve_platform_enum(self, platform_str: str) -> PlatformType:
         p = platform_str.upper().strip()
