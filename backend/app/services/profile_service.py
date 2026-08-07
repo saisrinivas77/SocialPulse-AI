@@ -10,6 +10,7 @@ from PIL import Image
 from fastapi import UploadFile, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.exceptions.custom import ValidationException
 from app.models.user import User
 from app.repositories.user_profile_repository import UserProfileRepository
 from app.services.cache_service import cache_service
@@ -108,10 +109,7 @@ class ProfileService:
             }
         except Exception as exc:
             logger.error(f"Avatar processing error for user_id={user.id}: {exc}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error processing image file: {str(exc)}",
-            )
+            raise ValidationException(detail=f"Error processing image file: {str(exc)}")
 
     async def delete_avatar(self, user: User) -> Dict[str, Any]:
         """Restore default avatar."""
