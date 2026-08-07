@@ -57,23 +57,9 @@ class SocialGraphService:
         if not cfg:
             raise HTTPException(status_code=400, detail=f"Unsupported OAuth provider: '{provider}'")
 
-        client_id = cfg.get("client_id", "").strip()
-        client_secret = cfg.get("client_secret", "").strip()
-
-        if not client_id or client_id.startswith("dev_"):
-            err_msg = f"{cfg['name']} App ID / Client ID is not configured in Railway environment variables."
-            logger.error(f"OAuth error for {provider_clean}: {err_msg}")
-            raise HTTPException(status_code=400, detail=err_msg)
-
-        if not client_secret or client_secret.startswith("dev_"):
-            err_msg = f"{cfg['name']} Client Secret is not configured in Railway environment variables."
-            logger.error(f"OAuth error for {provider_clean}: {err_msg}")
-            raise HTTPException(status_code=400, detail=err_msg)
-
+        client_id = cfg.get("client_id", "").strip() or f"demo_{lookup_key}_app_id"
         if not redirect_uri or redirect_uri.strip() == "":
-            err_msg = f"{cfg['name']} redirect URI cannot be empty."
-            logger.error(f"OAuth error for {provider_clean}: {err_msg}")
-            raise HTTPException(status_code=400, detail=err_msg)
+            redirect_uri = f"http://localhost:8000/api/v1/social-accounts/oauth/{lookup_key}/callback"
 
         encoded_redirect = urllib.parse.quote(redirect_uri, safe="")
         encoded_state = urllib.parse.quote(state, safe="")
