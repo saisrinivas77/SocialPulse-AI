@@ -197,21 +197,12 @@ export default function LoginPage() {
     setDemoLoading(false);
   };
 
-  const handleOAuthClick = async (provider: string) => {
+  const handleOAuthClick = (provider: string) => {
     const providerLower = provider.toLowerCase();
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+    const apiBase =
+      process.env.NEXT_PUBLIC_API_URL || "https://socialpulse-ai-production.up.railway.app/api/v1";
     toast.loading(`Connecting to official ${provider} OAuth gateway...`, { id: "oauth-redirect" });
-
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 1200);
-      await fetch(`${apiBase}/health`, { method: "GET", signal: controller.signal });
-      clearTimeout(timeoutId);
-      window.location.href = `${apiBase}/auth/${providerLower}/login`;
-    } catch {
-      toast.dismiss("oauth-redirect");
-      router.push(`/auth/oauth-select?provider=${encodeURIComponent(provider)}`);
-    }
+    window.location.href = `${apiBase}/auth/${providerLower}/login`;
   };
 
   const handleConfirmOAuthLogin = (e: React.FormEvent) => {
