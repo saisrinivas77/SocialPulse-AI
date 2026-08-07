@@ -217,7 +217,8 @@ async def oauth_callback(
         logger.warning(f"User/workspace resolution warning during OAuth callback: {exc}")
 
     backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
-    redirect_uri = f"{backend_url}/api/v1/social-accounts/oauth/{provider}/callback"
+    lookup_key = "meta" if provider.lower() in ["instagram", "facebook", "meta", "threads"] else provider.lower()
+    redirect_uri = f"{backend_url}/api/v1/social-accounts/oauth/{lookup_key}/callback"
     try:
         from app.repositories.social_account_repository import SocialAccountRepository
         account_repo = SocialAccountRepository(db)
