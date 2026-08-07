@@ -76,6 +76,35 @@ def create_jwt_token(
     )
 
 
+def create_oauth_state_token(user_id: int, workspace_id: int, provider: str) -> str:
+    """Issue a signed OAuth state token valid for 30 minutes."""
+    now = datetime.now(timezone.utc)
+    expire = now + timedelta(minutes=30)
+    to_encode = {
+        "type": "oauth_state",
+        "sub": str(user_id),
+        "workspace_id": workspace_id,
+        "provider": provider,
+        "exp": expire,
+    }
+    return jwt.encode(
+        to_encode, settings.SECRET_KEY.get_secret_value(), algorithm=settings.ALGORITHM
+    )
+
+
+def decode_oauth_state_token(token: str) -> dict:
+    """Decode and verify 30-minute signed OAuth state token."""
+    try:
+        payload = jwt.decode(
+            token, settings.SECRET_KEY.get_secret_value(), algorithms=[settings.ALGORITHM]
+        )
+        if payload.get("type") == "oauth_state":
+            return payload
+    except Exception:
+        pass
+    return {}
+
+
 def revoke_token(jti: str, ttl_seconds: int) -> None:
     """Revoke token by storing jti in Redis blacklist."""
     client = _redis()

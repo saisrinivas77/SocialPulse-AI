@@ -46,11 +46,41 @@ export const apiClient = axios.create({
   timeout: 15000,
 });
 
-// Request Interceptor: Attach Auth Token if available
+export function isJwtNearExpiry(token: string | null): boolean {
+  if (!token || isDemoToken(token)) return false;
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return false;
+    const payload = JSON.parse(atob(parts[1]));
+    if (!payload.exp) return false;
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    return payload.exp - nowSeconds < 60;
+  } catch {
+    return false;
+  }
+}
+
+// Request Interceptor: Proactively refresh near-expired tokens & attach Bearer header
 apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
+  async (config: InternalAxiosRequestConfig) => {
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("sp_access_token");
+      let token = localStorage.getItem("sp_access_token");
+      const refreshToken = localStorage.getItem("sp_refresh_token");
+
+      if (token && isJwtNearExpiry(token) && refreshToken && !isDemoToken(refreshToken)) {
+        try {
+          const res = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+            refresh_token: refreshToken,
+          });
+          if (res.data?.access_token) {
+            token = res.data.access_token;
+            setAuthTokens(token, res.data?.refresh_token);
+          }
+        } catch {
+          // Silently continue
+        }
+      }
+
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
       }

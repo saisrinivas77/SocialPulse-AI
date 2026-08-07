@@ -23,10 +23,11 @@ class SocialAccountService:
         self.account_repo = repository
 
     async def get_oauth_login_url(
-        self, provider: str, workspace_id: int, redirect_uri: str
+        self, provider: str, workspace_id: int, redirect_uri: str, user_id: int = 1
     ) -> str:
-        """Generate provider OAuth authorization redirect URL."""
-        state_payload = f"ws_{workspace_id}_{provider}"
+        """Generate provider OAuth authorization redirect URL with signed 30-minute state token."""
+        from app.utils.security import create_oauth_state_token
+        state_payload = create_oauth_state_token(user_id=user_id, workspace_id=workspace_id, provider=provider)
         return SocialGraphService.get_authorization_url(
             provider=provider,
             redirect_uri=redirect_uri,

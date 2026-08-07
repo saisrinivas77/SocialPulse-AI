@@ -89,7 +89,7 @@ async def get_oauth_authorize_url(
     """Generate signed OAuth authorization URL containing active user and workspace context."""
     frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
     redirect_uri = f"{frontend_url}/dashboard?view=social-accounts&connected={provider}"
-    auth_url = await service.get_oauth_login_url(provider, workspace_id, redirect_uri)
+    auth_url = await service.get_oauth_login_url(provider, workspace_id, redirect_uri, user_id=current_user.id)
     return {
         "provider": provider,
         "authorization_url": auth_url,
@@ -110,7 +110,7 @@ async def oauth_login(
 ):
     frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
     redirect_uri = f"{frontend_url}/dashboard?view=social-accounts&connected={provider}"
-    auth_url = await service.get_oauth_login_url(provider, workspace_id, redirect_uri)
+    auth_url = await service.get_oauth_login_url(provider, workspace_id, redirect_uri, user_id=current_user.id)
     return RedirectResponse(url=auth_url)
 
 

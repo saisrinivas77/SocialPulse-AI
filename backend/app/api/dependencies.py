@@ -50,19 +50,28 @@ async def get_current_user(
             except Exception:
                 pass
     
-    # Also check if token is passed inside state parameter
-    if not raw_token:
-        state_param = request.query_params.get("state")
-        if state_param and "token=" in state_param:
-            try:
-                raw_token = state_param.split("token=")[1].split("&")[0]
-            except Exception:
-                pass
+    # Check signed OAuth state token if state is present
+    state_param = request.query_params.get("state")
+    if state_param:
+        from app.utils.security import decode_oauth_state_token
+        state_data = decode_oauth_state_token(state_param)
+        if state_data and state_data.get("sub"):
+            user_repo = UserRepository(db)
+            state_user = await user_repo.get_by_id(int(state_data["sub"]))
+            if state_user and state_user.is_active:
+                return state_user
+
+    # Check raw_token from Header, Query, Cookie, or state string
+    if not raw_token and state_param and "token=" in state_param:
+        try:
+            raw_token = state_param.split("token=")[1].split("&")[0]
+        except Exception:
+            pass
 
     if not raw_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing Authorization Bearer Header, Query Token, or Session Cookie.",
+            detail="Session Expired. Please log in again.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -108,9 +117,14 @@ async def get_current_user(
 
         token_data = TokenData(user_id=int(user_id_str))
     except JWTError as exc:
+        msg = str(exc)
+        if "expired" in msg.lower():
+            err_detail = "Session Expired. Please log in again."
+        else:
+            err_detail = f"JWT Validation Error: {msg}"
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"JWT Validation Error: {str(exc)}",
+            detail=err_detail,
             headers={"WWW-Authenticate": "Bearer"},
         )
 
