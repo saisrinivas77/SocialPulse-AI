@@ -2,15 +2,18 @@
 """Repository for SocialAccount database queries and token encryption management."""
 
 import json
+import logging
 from datetime import datetime
 from typing import List, Optional, Dict, Any, Tuple
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.exceptions.custom import OAuthException
 
 from app.models.social_account import SocialAccount, PlatformType
 from app.schemas.pagination import PaginationParams
 from app.utils.crypto import encrypt_token, decrypt_token
 
+logger = logging.getLogger(__name__)
 
 class SocialAccountRepository:
     """Async database repository for multi-tenant social account persistence."""
@@ -112,49 +115,58 @@ class SocialAccountRepository:
         encrypted_ref = encrypt_token(plain_refresh_token) if plain_refresh_token else None
         meta_json_str = json.dumps(metadata_dict) if metadata_dict else None
 
-        if existing:
-            existing.account_name = display_name
-            existing.account_handle = username
-            existing.avatar_url = profile_picture
-            existing.encrypted_access_token = encrypted_acc
-            if encrypted_ref:
-                existing.encrypted_refresh_token = encrypted_ref
-            existing.token_expires_at = token_expires_at
-            existing.follower_count = follower_count
-            existing.reach_count = reach_count
-            existing.posts_count = posts_count
-            existing.engagement_rate = engagement_rate
-            existing.status = "CONNECTED"
-            existing.last_synced_at = datetime.utcnow()
-            if meta_json_str:
-                existing.metadata_json = meta_json_str
-            await self.session.commit()
-            await self.session.refresh(existing)
-            return existing
+        try:
+            if existing:
+                existing.account_name = display_name
+                existing.account_handle = username
+                existing.avatar_url = profile_picture
+                existing.encrypted_access_token = encrypted_acc
+                if encrypted_ref:
+                    existing.encrypted_refresh_token = encrypted_ref
+                existing.token_expires_at = token_expires_at
+                existing.follower_count = follower_count
+                existing.reach_count = reach_count
+                existing.posts_count = posts_count
+                existing.engagement_rate = engagement_rate
+                existing.status = "CONNECTED"
+                existing.last_synced_at = datetime.utcnow()
+                if meta_json_str:
+                    existing.metadata_json = meta_json_str
+                await self.session.commit()
+                await self.session.refresh(existing)
+                return existing
 
-        new_account = SocialAccount(
-            user_id=user_id,
-            workspace_id=workspace_id,
-            platform=platform_enum,
-            external_account_id=external_account_id,
-            account_name=display_name,
-            account_handle=username,
-            avatar_url=profile_picture,
-            encrypted_access_token=encrypted_acc,
-            encrypted_refresh_token=encrypted_ref,
-            token_expires_at=token_expires_at,
-            follower_count=follower_count,
-            reach_count=reach_count,
-            posts_count=posts_count,
-            engagement_rate=engagement_rate,
-            status="CONNECTED",
-            last_synced_at=datetime.utcnow(),
-            metadata_json=meta_json_str,
-        )
-        self.session.add(new_account)
-        await self.session.commit()
-        await self.session.refresh(new_account)
-        return new_account
+            new_account = SocialAccount(
+                user_id=user_id,
+                workspace_id=workspace_id,
+                platform=platform_enum,
+                external_account_id=external_account_id,
+                account_name=display_name,
+                account_handle=username,
+                avatar_url=profile_picture,
+                encrypted_access_token=encrypted_acc,
+                encrypted_refresh_token=encrypted_ref,
+                token_expires_at=token_expires_at,
+                follower_count=follower_count,
+                reach_count=reach_count,
+                posts_count=posts_count,
+                engagement_rate=engagement_rate,
+                status="CONNECTED",
+                last_synced_at=datetime.utcnow(),
+                metadata_json=meta_json_str,
+            )
+            self.session.add(new_account)
+            await self.session.commit()
+            await self.session.refresh(new_account)
+            return new_account
+        except Exception as exc:
+            await self.session.rollback()
+            logger.exception(f"Database Save Failed during SocialAccount create_or_update: {exc}")
+            raise OAuthException(
+                provider=platform_str,
+                step="db_save",
+                message=f"Database Save Failed: {str(exc)}",
+            )
 
     async def soft_disconnect_account(self, account_id: int, workspace_id: int) -> bool:
         """Disconnect account: delete tokens, mark DISCONNECTED, keep historical analytics."""

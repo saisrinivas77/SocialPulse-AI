@@ -20,6 +20,7 @@ from app.exceptions.custom import (
     ConflictException,
     ForbiddenException,
     NotFoundException,
+    OAuthException,
     ServiceException,
     ValidationException,
 )
@@ -143,6 +144,26 @@ async def validation_handler(request: Request, exc: ValidationException) -> JSON
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={"detail": exc.message, "error_type": "VALIDATION_ERROR"},
+    )
+
+
+@app.exception_handler(OAuthException)
+async def oauth_exception_handler(request: Request, exc: OAuthException) -> JSONResponse:
+    import traceback
+    logger.error(
+        f"OAuth Error [{exc.provider}] at step '{exc.step}': {exc.message}",
+        extra={"provider": exc.provider, "step": exc.step, "error": exc.message},
+    )
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content={
+            "success": False,
+            "provider": exc.provider,
+            "step": exc.step,
+            "error": exc.message,
+            "detail": exc.message,
+            "stack_trace": traceback.format_exc() if getattr(settings, "DEBUG", True) else None,
+        },
     )
 
 

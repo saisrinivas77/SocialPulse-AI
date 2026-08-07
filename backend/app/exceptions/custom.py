@@ -6,6 +6,7 @@ from app.exceptions.exceptions import (
     ConflictException,
     ForbiddenException,
     NotFoundException,
+    OAuthException,
     ServiceException,
     UnauthorizedException,
     ValidationException,
@@ -19,4 +20,5 @@ __all__ = [
     "ValidationException",
     "ConflictException",
     "UnauthorizedException",
+    "OAuthException",
 ]

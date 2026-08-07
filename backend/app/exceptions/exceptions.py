@@ -45,4 +45,13 @@ class ForbiddenException(AppException):
         super().__init__(message=message, detail=detail)
 
 
+class OAuthException(AppException):
+    """Raised during OAuth code exchange, profile fetch, or database save."""
+
+    def __init__(self, provider: str, step: str, message: str, detail: str | None = None):
+        self.provider = provider
+        self.step = step
+        super().__init__(message=message, detail=detail)
+
+
 ServiceException = AppException
