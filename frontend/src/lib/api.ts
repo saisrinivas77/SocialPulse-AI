@@ -73,8 +73,9 @@ apiClient.interceptors.request.use(
             refresh_token: refreshToken,
           });
           if (res.data?.access_token) {
-            token = res.data.access_token;
-            setAuthTokens(token, res.data?.refresh_token);
+            const newAccessToken: string = res.data.access_token;
+            token = newAccessToken;
+            setAuthTokens(newAccessToken, res.data?.refresh_token);
           }
         } catch {
           // Silently continue
