@@ -60,12 +60,6 @@ class Base(DeclarativeBase):
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """Provide transactional session scope that commits or rolls back on failure."""
+    """Provide async session scope for API requests."""
     async with AsyncSessionLocal() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            logger.error("Transaction rolled back", exc_info=True)
-            raise
+        yield session
