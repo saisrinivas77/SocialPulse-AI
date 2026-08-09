@@ -16,34 +16,82 @@ const reportTemplates = [
   {
     id: "rep-1",
     title: "Q3 Executive Performance Brief",
-    desc: "Board-level analytics summary covering reach, revenue attribution, and ROI metrics.",
+    desc: "Board-level analytics summary covering reach, revenue attribution, and ROI metrics across all 6 connected channels.",
     date: "Aug 01, 2026",
     pages: 12,
     type: "PDF & CSV",
+    badge: "Latest",
+    badgeColor: "#31A24C",
   },
   {
     id: "rep-2",
     title: "Monthly Brand Sentiment Audit",
-    desc: "AI qualitative analysis of 45,000+ comment threads across Instagram & LinkedIn.",
+    desc: "AI qualitative analysis of 45,000+ comment threads across Instagram & LinkedIn with emotion breakdown.",
     date: "Jul 31, 2026",
     pages: 8,
     type: "PDF",
+    badge: "AI Generated",
+    badgeColor: "#0866FF",
   },
   {
     id: "rep-3",
     title: "Competitor Market Share Benchmark",
-    desc: "Relative share of voice vs top 5 Silicon Valley social competitors.",
+    desc: "Relative share of voice vs top 5 Silicon Valley social competitors with engagement velocity comparison.",
     date: "Jul 25, 2026",
     pages: 16,
     type: "PDF & Deck",
+    badge: "Deck Ready",
+    badgeColor: "#8B5CF6",
   },
   {
     id: "rep-4",
     title: "Paid Social ROI Attribution",
-    desc: "Granular breakdown of ad conversion funnel from impression to closed deal.",
+    desc: "Granular breakdown of ad conversion funnel from first impression to closed enterprise deal.",
     date: "Jul 20, 2026",
     pages: 6,
     type: "CSV Data",
+    badge: "Raw Data",
+    badgeColor: "#F59E0B",
+  },
+  {
+    id: "rep-5",
+    title: "Cross-Platform Engagement Deep Dive",
+    desc: "Post-by-post engagement analysis across LinkedIn, Instagram, X, and TikTok with virality scores.",
+    date: "Jul 15, 2026",
+    pages: 20,
+    type: "PDF & CSV",
+    badge: "Multi-Channel",
+    badgeColor: "#E1306C",
+  },
+  {
+    id: "rep-6",
+    title: "Audience Demographics & Growth Report",
+    desc: "Age, gender, location, and interest segmentation across all platforms with 90-day growth trajectory.",
+    date: "Jul 10, 2026",
+    pages: 10,
+    type: "PDF",
+    badge: "Audience Intel",
+    badgeColor: "#0EA5E9",
+  },
+  {
+    id: "rep-7",
+    title: "Video Content Performance Analysis",
+    desc: "YouTube & TikTok video funnel analysis: views, watch time, CTR, and subscriber conversion rates.",
+    date: "Jul 05, 2026",
+    pages: 14,
+    type: "PDF & Deck",
+    badge: "Video",
+    badgeColor: "#FF0000",
+  },
+  {
+    id: "rep-8",
+    title: "H1 2026 Annual Growth Summary",
+    desc: "Semi-annual executive summary of follower growth, content ROI, campaign performance, and AI workflow savings.",
+    date: "Jun 30, 2026",
+    pages: 24,
+    type: "PDF & CSV",
+    badge: "Annual",
+    badgeColor: "#D97706",
   },
 ];
 
@@ -105,21 +153,34 @@ export const ReportsView: React.FC = () => {
       </motion.div>
 
       {/* Reports Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {reportTemplates.map((report) => (
-          <div
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        {reportTemplates.map((report, idx) => (
+          <motion.div
             key={report.id}
-            className="apple-card p-6 flex flex-col justify-between space-y-4 hover:border-[#0866FF]"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: idx * 0.05 }}
+            className="apple-card p-6 flex flex-col justify-between space-y-4 hover:border-[#0866FF] transition-colors"
           >
             <div>
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[10px] font-extrabold tracking-wider uppercase px-2.5 py-1 rounded-md bg-[#0866FF]/10 text-[#0866FF]">
-                  {report.type}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-extrabold tracking-wider uppercase px-2.5 py-1 rounded-md bg-[#0866FF]/10 text-[#0866FF]">
+                    {report.type}
+                  </span>
+                  {report.badge && (
+                    <span
+                      className="text-[9px] font-extrabold uppercase px-2 py-1 rounded-md text-white"
+                      style={{ backgroundColor: report.badgeColor }}
+                    >
+                      {report.badge}
+                    </span>
+                  )}
+                </div>
                 <span className="text-xs text-[#8A8D91]">{report.date}</span>
               </div>
 
-              <h3 className="text-base font-bold text-[#050505] dark:text-[#E4E6EB] mb-1">
+              <h3 className="text-sm font-bold text-[#050505] dark:text-[#E4E6EB] mb-1">
                 {report.title}
               </h3>
               <p className="text-xs text-[#65676B] dark:text-[#B0B3B8] leading-relaxed">
@@ -136,7 +197,7 @@ export const ReportsView: React.FC = () => {
                   className="px-3.5 py-1.5 rounded-xl border border-black/5 dark:border-white/10 bg-white dark:bg-[#242526] text-xs font-semibold text-[#050505] dark:text-[#E4E6EB] hover:border-[#0866FF] flex items-center gap-1.5"
                 >
                   <Eye className="w-3.5 h-3.5 text-[#0866FF]" />
-                  <span>Preview PDF</span>
+                  <span>Preview</span>
                 </button>
 
                 <button
@@ -149,7 +210,7 @@ export const ReportsView: React.FC = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
     </div>
