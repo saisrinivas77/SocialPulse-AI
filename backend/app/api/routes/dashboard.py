@@ -36,11 +36,13 @@ async def get_dashboard_overview(
 
 @router.get("/realtime", status_code=status.HTTP_200_OK, summary="Realtime Dashboard Counter Stream")
 async def get_realtime_metrics(db: DBSession, current_user: CurrentUser):
+    """Returns system-level indicators only. Social metrics come from /social-accounts."""
     return {
-        "active_concurrent_users": 42,
-        "live_scheduled_posts": 12,
-        "sync_health": "100%",
-        "server_load_cpu": "14%",
+        "sync_health": "Operational",
+        "server_load_cpu": "OK",
+        "active_concurrent_users": None,
+        "live_scheduled_posts": None,
+        "note": "Real-time social metrics are fetched from the connected platform APIs via /social-accounts endpoints.",
     }
 
 
@@ -57,10 +59,12 @@ async def get_dashboard_heatmaps(db: DBSession, current_user: CurrentUser):
 
 @router.get("/predictions", status_code=status.HTTP_200_OK, summary="AI Growth Forecasting")
 async def get_growth_predictions(db: DBSession, current_user: CurrentUser):
+    """AI growth predictions require sufficient historical analytics data."""
     return {
-        "predicted_followers_next_30d": 14200,
-        "confidence_interval": "95%",
-        "growth_vector": "+12.4%",
+        "predicted_followers_next_30d": None,
+        "confidence_interval": None,
+        "growth_vector": None,
+        "note": "AI growth forecasting requires at least 30 days of connected account analytics data.",
     }
 
 

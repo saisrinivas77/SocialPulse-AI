@@ -71,7 +71,8 @@ class SocialGraphService:
         encoded_state = urllib.parse.quote(state, safe="")
 
         if lookup_key == "meta":
-            scope_raw = "public_profile,email"
+            # Full permission set required for Instagram Business & Facebook Pages analytics
+            scope_raw = "public_profile,email,pages_show_list,pages_read_engagement,instagram_basic,instagram_manage_insights,business_management"
             scopes = urllib.parse.quote(scope_raw, safe="")
             url = f"https://www.facebook.com/v20.0/dialog/oauth?client_id={client_id}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}&response_type=code"
         elif provider_clean == "threads":
@@ -168,6 +169,206 @@ class SocialGraphService:
                 raise
 
         raise ValueError(f"Provider {provider} unsupported for code exchange")
+
+    @staticmethod
+    async def refresh_account_with_token(
+        provider: str, access_token: str, user_email: str = ""
+    ) -> Dict[str, Any]:
+        """Re-fetch live account metrics using an existing stored access token (for Sync Now)."""
+        provider_clean = provider.lower().strip()
+        user_prefix = user_email.split("@")[0] if user_email else "creator"
+
+        logger.info(f"Refreshing account metrics via stored token for provider '{provider_clean}'")
+
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            try:
+                if provider_clean in ["instagram", "instagram", "meta"]:
+                    return await SocialGraphService._refresh_meta_with_token(client, access_token, "instagram", user_prefix)
+                elif provider_clean == "facebook":
+                    return await SocialGraphService._refresh_meta_with_token(client, access_token, "facebook", user_prefix)
+                elif provider_clean == "linkedin":
+                    return await SocialGraphService._refresh_linkedin_with_token(client, access_token, user_prefix)
+                elif provider_clean in ["youtube", "google"]:
+                    return await SocialGraphService._refresh_youtube_with_token(client, access_token, user_prefix)
+                elif provider_clean in ["twitter", "x"]:
+                    return await SocialGraphService._refresh_x_with_token(client, access_token, user_prefix)
+                else:
+                    raise OAuthException(provider=provider_clean, step="refresh", message=f"Refresh not supported for {provider_clean}")
+            except OAuthException:
+                raise
+            except Exception as exc:
+                logger.exception(f"Error refreshing account for provider '{provider_clean}': {exc}")
+                raise OAuthException(provider=provider_clean, step="refresh", message=f"Sync failed: {str(exc)}")
+
+    @staticmethod
+    async def _refresh_meta_with_token(
+        client: httpx.AsyncClient, access_token: str, sub_provider: str, user_prefix: str
+    ) -> Dict[str, Any]:
+        """Re-fetch Instagram/Facebook account metrics using existing long-lived token."""
+        # Fetch Facebook Pages
+        pages_res = await client.get(
+            "https://graph.facebook.com/v20.0/me/accounts",
+            params={
+                "fields": "id,name,access_token,fan_count,instagram_business_account{id,username,name,profile_picture_url,followers_count,follows_count,media_count}",
+                "access_token": access_token,
+            },
+        )
+        if pages_res.status_code != 200:
+            err = pages_res.json().get("error", {}).get("message", "Failed to fetch Facebook Pages")
+            raise OAuthException(provider=sub_provider, step="refresh_pages", message=err)
+
+        pages_list = pages_res.json().get("data", [])
+        if not pages_list:
+            raise OAuthException(provider=sub_provider, step="refresh_pages", message="No Facebook Page found. Please reconnect your account.")
+
+        if sub_provider == "facebook":
+            first_page = pages_list[0]
+            return {
+                "provider": "FACEBOOK",
+                "provider_account_id": first_page.get("id"),
+                "username": first_page.get("name", ""),
+                "display_name": first_page.get("name", ""),
+                "profile_picture": None,
+                "access_token": access_token,
+                "refresh_token": None,
+                "token_expires_at": None,
+                "follower_count": first_page.get("fan_count", 0),
+                "reach_count": 0,
+                "posts_count": 0,
+                "engagement_rate": 0.0,
+            }
+
+        # Instagram — find the IG business account from pages
+        ig_account = None
+        for page in pages_list:
+            if page.get("instagram_business_account"):
+                ig_account = page["instagram_business_account"]
+                break
+
+        if not ig_account:
+            raise OAuthException(provider="instagram", step="refresh_ig", message="No Instagram Professional account found. Please reconnect.")
+
+        ig_id = ig_account.get("id")
+
+        # Fetch detailed profile
+        ig_res = await client.get(
+            f"https://graph.facebook.com/v20.0/{ig_id}",
+            params={
+                "fields": "id,username,name,profile_picture_url,followers_count,follows_count,media_count",
+                "access_token": access_token,
+            },
+        )
+        ig_data = ig_res.json() if ig_res.status_code == 200 else ig_account
+
+        # Fetch insights
+        reach = 0
+        try:
+            ins_res = await client.get(
+                f"https://graph.facebook.com/v20.0/{ig_id}/insights",
+                params={"metric": "reach,impressions", "period": "day", "access_token": access_token},
+            )
+            if ins_res.status_code == 200:
+                for item in ins_res.json().get("data", []):
+                    if item.get("name") == "reach":
+                        vals = item.get("values", [])
+                        if vals:
+                            reach = vals[0].get("value", 0)
+        except Exception:
+            pass
+
+        username = ig_data.get("username") or ig_account.get("username", user_prefix)
+        return {
+            "provider": "INSTAGRAM",
+            "provider_account_id": str(ig_id),
+            "username": f"@{username}",
+            "display_name": ig_data.get("name") or username,
+            "profile_picture": ig_data.get("profile_picture_url") or ig_account.get("profile_picture_url"),
+            "access_token": access_token,
+            "refresh_token": None,
+            "token_expires_at": None,
+            "follower_count": ig_data.get("followers_count", ig_account.get("followers_count", 0)),
+            "reach_count": reach,
+            "posts_count": ig_data.get("media_count", ig_account.get("media_count", 0)),
+            "engagement_rate": 0.0,
+        }
+
+    @staticmethod
+    async def _refresh_linkedin_with_token(client: httpx.AsyncClient, access_token: str, user_prefix: str) -> Dict[str, Any]:
+        """Re-fetch LinkedIn profile using stored access token."""
+        user_res = await client.get(
+            "https://api.linkedin.com/v2/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        udata = user_res.json() if user_res.status_code == 200 else {}
+        name = udata.get("name") or user_prefix.capitalize()
+        return {
+            "provider": "LINKEDIN",
+            "provider_account_id": udata.get("sub", user_prefix),
+            "username": name,
+            "display_name": name,
+            "profile_picture": udata.get("picture"),
+            "access_token": access_token,
+            "refresh_token": None,
+            "token_expires_at": None,
+            "follower_count": 0,
+            "reach_count": 0,
+            "posts_count": 0,
+            "engagement_rate": 0.0,
+        }
+
+    @staticmethod
+    async def _refresh_youtube_with_token(client: httpx.AsyncClient, access_token: str, user_prefix: str) -> Dict[str, Any]:
+        """Re-fetch YouTube channel metrics using stored access token."""
+        ch_res = await client.get(
+            "https://www.googleapis.com/youtube/v3/channels",
+            params={"mine": "true", "part": "snippet,statistics"},
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        cdata = ch_res.json() if ch_res.status_code == 200 else {}
+        items = cdata.get("items", [])
+        item = items[0] if items else {}
+        snippet = item.get("snippet", {})
+        stats = item.get("statistics", {})
+        return {
+            "provider": "YOUTUBE",
+            "provider_account_id": item.get("id", user_prefix),
+            "username": snippet.get("title", user_prefix),
+            "display_name": snippet.get("title", user_prefix),
+            "profile_picture": snippet.get("thumbnails", {}).get("default", {}).get("url"),
+            "access_token": access_token,
+            "refresh_token": None,
+            "token_expires_at": None,
+            "follower_count": int(stats.get("subscriberCount", 0)),
+            "reach_count": int(stats.get("viewCount", 0)),
+            "posts_count": int(stats.get("videoCount", 0)),
+            "engagement_rate": 0.0,
+        }
+
+    @staticmethod
+    async def _refresh_x_with_token(client: httpx.AsyncClient, access_token: str, user_prefix: str) -> Dict[str, Any]:
+        """Re-fetch X (Twitter) profile using stored access token."""
+        me_res = await client.get(
+            "https://api.twitter.com/2/users/me",
+            params={"user.fields": "profile_image_url,public_metrics"},
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        res_json = me_res.json() if me_res.status_code == 200 else {}
+        mdata = res_json.get("data", {}) if isinstance(res_json, dict) else {}
+        metrics = mdata.get("public_metrics", {})
+        return {
+            "provider": "TWITTER",
+            "provider_account_id": mdata.get("id", user_prefix),
+            "username": f"@{mdata.get('username', user_prefix)}",
+            "display_name": mdata.get("name", user_prefix),
+            "profile_picture": mdata.get("profile_image_url"),
+            "access_token": access_token,
+            "refresh_token": None,
+            "token_expires_at": None,
+            "follower_count": metrics.get("followers_count", 0),
+            "reach_count": 0,
+            "posts_count": metrics.get("tweet_count", 0),
+            "engagement_rate": 0.0,
+        }
 
     @staticmethod
     async def _fetch_meta_account(

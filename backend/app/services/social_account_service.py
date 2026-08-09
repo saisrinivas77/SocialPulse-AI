@@ -73,10 +73,11 @@ class SocialAccountService:
         # Store initial Analytics snapshot row
         try:
             from app.models.analytics import Analytics
+            platform_str_val = account.platform.value if hasattr(account.platform, "value") else str(account.platform)
             snapshot = Analytics(
                 user_id=user_id,
                 social_account_id=account.id,
-                platform=account.platform,
+                platform=platform_str_val,
                 followers=account.follower_count,
                 reach=account.reach_count,
                 posts=account.posts_count,
@@ -91,7 +92,12 @@ class SocialAccountService:
             self.account_repo.session.add(snapshot)
             await self.account_repo.session.commit()
         except Exception as err:
-            logger.warning(f"Failed to record initial Analytics snapshot: {err}")
+            logger.warning(f"Failed to record initial Analytics snapshot (non-fatal): {err}")
+            try:
+                await self.account_repo.session.rollback()
+            except Exception:
+                pass
+
 
         return SocialAccountResponse.model_validate(account)
 
@@ -134,7 +140,7 @@ class SocialAccountService:
     async def sync_account_metrics(
         self, account_id: int, workspace_id: int, user_email: str
     ) -> SocialAccountResponse:
-        """Trigger live provider API call and update database telemetry."""
+        """Trigger live provider API call using stored access token and update database telemetry."""
         account = await self.account_repo.get_by_workspace_and_id(
             account_id=account_id, workspace_id=workspace_id
         )
@@ -142,13 +148,18 @@ class SocialAccountService:
             raise NotFoundException("Social account not found in workspace.")
 
         platform_str = account.platform.value if hasattr(account.platform, "value") else str(account.platform)
-        fake_code = f"sync_{account.id}_{int(datetime.utcnow().timestamp())}"
-        
-        # Query provider API telemetry
-        fresh_data = await SocialGraphService.exchange_code_and_fetch_profile(
+
+        # Decrypt the stored access token to use for re-sync
+        from app.utils.crypto import decrypt_token
+        plain_token = decrypt_token(account.encrypted_access_token) if account.encrypted_access_token else None
+
+        if not plain_token:
+            raise NotFoundException("No valid access token stored for this account. Please reconnect.")
+
+        # Fetch fresh profile data using the stored access token (no code exchange needed)
+        fresh_data = await SocialGraphService.refresh_account_with_token(
             provider=platform_str,
-            code=fake_code,
-            redirect_uri="http://localhost:8000/api/v1/social-accounts/oauth/callback",
+            access_token=plain_token,
             user_email=user_email,
         )
 
@@ -159,11 +170,13 @@ class SocialAccountService:
         account.last_synced_at = datetime.utcnow()
         account.sync_health = 100
         account.status = "CONNECTED"
+        account.sync_status = "completed"
         account.metadata_json = json.dumps(fresh_data)
 
         await self.account_repo.session.commit()
         await self.account_repo.session.refresh(account)
         return SocialAccountResponse.model_validate(account)
+
 
     async def disconnect_account(
         self, workspace_id: int, account_id: int

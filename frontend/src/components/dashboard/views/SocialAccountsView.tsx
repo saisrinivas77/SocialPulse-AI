@@ -486,7 +486,7 @@ export const SocialAccountsView: React.FC = () => {
                 <div className="p-3 rounded-2xl bg-[#FAFBFD] dark:bg-[#121316] border border-black/5 dark:border-white/5">
                   <span className="text-[10px] text-[#777777] block">Reach / Impressions</span>
                   <span className="text-lg font-extrabold text-[#0866FF]">
-                    {selectedAnalyticsAccount.reach || selectedAnalyticsAccount.reach_count || "245,000"}
+                    {(selectedAnalyticsAccount.reach || selectedAnalyticsAccount.reach_count || 0).toLocaleString()}
                   </span>
                 </div>
 
@@ -500,7 +500,7 @@ export const SocialAccountsView: React.FC = () => {
                 <div className="p-3 rounded-2xl bg-[#FAFBFD] dark:bg-[#121316] border border-black/5 dark:border-white/5">
                   <span className="text-[10px] text-[#777777] block">Engagement Rate</span>
                   <span className="text-lg font-extrabold text-[#31A24C]">
-                    {selectedAnalyticsAccount.engagement_rate || 5.8}%
+                    {typeof selectedAnalyticsAccount.engagement_rate === "number" ? `${selectedAnalyticsAccount.engagement_rate.toFixed(2)}%` : "Not available"}
                   </span>
                 </div>
               </div>

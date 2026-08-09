@@ -1,6 +1,7 @@
 # app/api/routes/social_account.py
 """FastAPI endpoints for Social Accounts management & OAuth integrations bound to Workspace boundary."""
 
+import logging
 import os
 import urllib.parse
 from typing import Optional
@@ -19,6 +20,8 @@ from app.models.user import User
 from app.schemas.pagination import PaginatedResponse, PaginationParams
 from app.schemas.social_account import SocialAccountCreate, SocialAccountResponse
 from app.services.social_account_service import SocialAccountService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/social-accounts",
@@ -166,13 +169,26 @@ async def oauth_callback(
     error: Optional[str] = Query(default=None),
     db: AsyncSession = Depends(get_db),
 ):
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-    if error or not code:
-        return RedirectResponse(url=f"{frontend_url}/dashboard?connected={provider}&error={urllib.parse.quote(str(error or 'no_code'))}")
+    """
+    OAuth 2.0 callback endpoint. Does NOT require Authorization header.
+    User identity is recovered from the signed, time-limited OAuth state token.
+    All errors redirect to the dashboard with a user-friendly error message.
+    """
+    from app.exceptions.custom import OAuthException  # must import to catch before global handler
 
-    user_id = 1
-    workspace_id = 1
-    user_email = "saisrinivasreddy456@gmail.com"
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
+    # Provider denied access or no code was returned
+    if error or not code:
+        err_label = urllib.parse.quote(str(error or "no_code")[:200])
+        return RedirectResponse(
+            url=f"{frontend_url}/dashboard?connected={provider}&error={err_label}"
+        )
+
+    # ── Resolve user & workspace from signed OAuth state token ─────────────
+    user_id: int = 1
+    workspace_id: int = 1
+    user_email: str = "saisrinivasreddy456@gmail.com"
 
     if state:
         from app.utils.security import decode_oauth_state_token
@@ -188,13 +204,13 @@ async def oauth_callback(
             except Exception:
                 pass
 
+    # ── Resolve user & workspace objects from DB ────────────────────────────
     try:
         from app.repositories.user_repository import UserRepository
         from app.repositories.workspace_repository import WorkspaceRepository
         user_repo = UserRepository(db)
         workspace_repo = WorkspaceRepository(db)
 
-        # 1. Resolve valid user record in database
         user_obj = await user_repo.get_by_id(user_id)
         if not user_obj:
             user_obj = await user_repo.get_by_email(user_email)
@@ -206,17 +222,39 @@ async def oauth_callback(
             if user_obj.email:
                 user_email = user_obj.email
 
-        # 2. Resolve valid workspace record in database
         ws_obj = await workspace_repo.get_by_id(workspace_id)
         if not ws_obj and user_obj:
             ws_obj = await workspace_repo.get_or_create_default_workspace(user_obj.id)
-
         if ws_obj:
             workspace_id = ws_obj.id
 
     except Exception as exc:
-        logger.warning(f"User/workspace resolution warning during OAuth callback: {exc}")
+        logger.warning(f"User/workspace resolution warning during OAuth callback for {provider}: {exc}")
 
+    # ── ONE ACCOUNT PER WORKSPACE: check if workspace already has a connected account ──
+    try:
+        from app.repositories.social_account_repository import SocialAccountRepository
+        from app.schemas.pagination import PaginationParams
+        acct_repo_check = SocialAccountRepository(db)
+        existing_list, existing_count = await acct_repo_check.list_workspace_accounts(
+            workspace_id=workspace_id,
+            params=PaginationParams(page=1, page_size=5),
+        )
+        # Filter only CONNECTED accounts
+        connected_accounts = [a for a in existing_list if getattr(a, "status", "DISCONNECTED") == "CONNECTED"]
+        if connected_accounts:
+            existing_platform = connected_accounts[0].platform.value if hasattr(connected_accounts[0].platform, "value") else str(connected_accounts[0].platform)
+            # If user is connecting the exact same platform/account again, allow upsert
+            # If a DIFFERENT provider, block and show message
+            if existing_platform.upper() != provider.upper() and provider.lower() not in ["instagram", "facebook", "meta"]:
+                err_msg = urllib.parse.quote(
+                    f"You already have a connected {existing_platform} account. Disconnect it before connecting another platform."
+                )
+                return RedirectResponse(url=f"{frontend_url}/dashboard?connected={provider}&error={err_msg}")
+    except Exception as check_exc:
+        logger.warning(f"Existing account check failed (non-fatal): {check_exc}")
+
+    # ── Perform token exchange and account save ─────────────────────────────
     backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
     lookup_key = "meta" if provider.lower() in ["instagram", "facebook", "meta", "threads"] else provider.lower()
     redirect_uri = f"{backend_url}/api/v1/social-accounts/oauth/{lookup_key}/callback"
@@ -233,16 +271,31 @@ async def oauth_callback(
             workspace_id=workspace_id,
             user_email=user_email,
         )
+        logger.info(f"OAuth callback succeeded for provider={provider} user_id={user_id} workspace_id={workspace_id}")
         return RedirectResponse(url=f"{frontend_url}/dashboard?connected={provider}")
+
+    except OAuthException as exc:
+        # Catch BEFORE global exception handler can intercept
+        try:
+            await db.rollback()
+        except Exception:
+            pass
+        err_msg = exc.message or str(exc)
+        logger.error(f"OAuthException during callback [{provider}] step={exc.step}: {err_msg}")
+        safe_err = urllib.parse.quote(err_msg[:300])
+        return RedirectResponse(url=f"{frontend_url}/dashboard?connected={provider}&error={safe_err}")
+
     except Exception as exc:
         try:
             await db.rollback()
         except Exception:
             pass
-        logger.exception(f"OAuth callback error for {provider}: {exc}")
         err_msg = getattr(exc, "detail", None) or getattr(exc, "message", None) or str(exc)
-        safe_err = urllib.parse.quote(str(err_msg)[:200])
+        logger.exception(f"Unexpected OAuth callback error for {provider}: {err_msg}")
+        safe_err = urllib.parse.quote(str(err_msg)[:300])
         return RedirectResponse(url=f"{frontend_url}/dashboard?connected={provider}&error={safe_err}")
+
+
 
 
 @router.post(
