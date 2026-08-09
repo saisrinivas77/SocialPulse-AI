@@ -72,7 +72,7 @@ class SocialGraphService:
 
         if lookup_key == "meta":
             # Full permission set required for Instagram Business & Facebook Pages analytics
-            scope_raw = "public_profile,email,pages_show_list,pages_read_engagement,instagram_basic,instagram_manage_insights,business_management"
+            scope_raw = "public_profile,email,pages_show_list,pages_read_engagement,instagram_business_basic,instagram_business_manage_insights"
             scopes = urllib.parse.quote(scope_raw, safe="")
             url = f"https://www.facebook.com/v20.0/dialog/oauth?client_id={client_id}&redirect_uri={encoded_redirect}&scope={scopes}&state={encoded_state}&response_type=code"
         elif provider_clean == "threads":
