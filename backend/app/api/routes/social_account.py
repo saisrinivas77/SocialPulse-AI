@@ -168,7 +168,7 @@ async def oauth_callback(
 ):
     frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
     if error or not code:
-        return RedirectResponse(url=f"{frontend_url}/dashboard?view=social-accounts&error={error or 'no_code'}")
+        return RedirectResponse(url=f"{frontend_url}/dashboard?connected={provider}&error={urllib.parse.quote(str(error or 'no_code'))}")
 
     user_id = 1
     workspace_id = 1
@@ -220,6 +220,7 @@ async def oauth_callback(
     backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
     lookup_key = "meta" if provider.lower() in ["instagram", "facebook", "meta", "threads"] else provider.lower()
     redirect_uri = f"{backend_url}/api/v1/social-accounts/oauth/{lookup_key}/callback"
+
     try:
         from app.repositories.social_account_repository import SocialAccountRepository
         account_repo = SocialAccountRepository(db)
@@ -234,9 +235,14 @@ async def oauth_callback(
         )
         return RedirectResponse(url=f"{frontend_url}/dashboard?connected={provider}")
     except Exception as exc:
-        await db.rollback()
+        try:
+            await db.rollback()
+        except Exception:
+            pass
         logger.exception(f"OAuth callback error for {provider}: {exc}")
-        return RedirectResponse(url=f"{frontend_url}/dashboard?connected={provider}&error={urllib.parse.quote(str(exc))}")
+        err_msg = getattr(exc, "detail", None) or getattr(exc, "message", None) or str(exc)
+        safe_err = urllib.parse.quote(str(err_msg)[:200])
+        return RedirectResponse(url=f"{frontend_url}/dashboard?connected={provider}&error={safe_err}")
 
 
 @router.post(
