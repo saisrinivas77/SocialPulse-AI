@@ -14,12 +14,17 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
+engine_kwargs = {
+    "echo": settings.DEBUG,
+    "pool_pre_ping": True,
+}
+if not settings.ASYNC_SQLALCHEMY_DATABASE_URI.startswith("sqlite"):
+    engine_kwargs["pool_size"] = 20
+    engine_kwargs["max_overflow"] = 10
+
 engine = create_async_engine(
     settings.ASYNC_SQLALCHEMY_DATABASE_URI,
-    echo=settings.DEBUG,
-    pool_pre_ping=True,
-    pool_size=20,
-    max_overflow=10,
+    **engine_kwargs,
 )
 
 AsyncSessionLocal = async_sessionmaker(

@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     # DATABASE
     # ==========================================================
 
+    DATABASE_URL: Optional[str] = Field(default=None)
+    ASYNC_DATABASE_URL: Optional[str] = Field(default=None)
+
     DB_HOST: str = "localhost"
     DB_PORT: int = 3306
     DB_USER: str = "root"
@@ -46,6 +49,15 @@ class Settings(BaseSettings):
 
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
+        import os
+        url = self.DATABASE_URL or os.getenv("DATABASE_URL")
+        if url:
+            if url.startswith("postgres://"):
+                return url.replace("postgres://", "postgresql+psycopg2://", 1)
+            elif url.startswith("postgresql://") and not url.startswith("postgresql+"):
+                return url.replace("postgresql://", "postgresql+psycopg2://", 1)
+            return url
+
         password = quote_plus(self.DB_PASSWORD)
         return (
             f"mysql+pymysql://"
@@ -56,13 +68,41 @@ class Settings(BaseSettings):
 
     @property
     def ASYNC_SQLALCHEMY_DATABASE_URI(self) -> str:
+        import os
+        url = self.ASYNC_DATABASE_URL or os.getenv("ASYNC_DATABASE_URL") or self.DATABASE_URL or os.getenv("DATABASE_URL")
+        if url:
+            if "postgres" in url:
+                if url.startswith("postgres://"):
+                    return url.replace("postgres://", "postgresql+asyncpg://", 1)
+                elif url.startswith("postgresql://"):
+                    return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+                return url
+
+            if "mysql" in url:
+                try:
+                    import aiomysql  # noqa
+                    if url.startswith("mysql://"):
+                        return url.replace("mysql://", "mysql+aiomysql://", 1)
+                    return url
+                except ImportError:
+                    return "sqlite+aiosqlite:///./socialpulse_dev.db"
+
+            if url.startswith("sqlite://"):
+                return url.replace("sqlite://", "sqlite+aiosqlite://", 1)
+
+            return url
+
         password = quote_plus(self.DB_PASSWORD)
-        return (
-            f"mysql+aiomysql://"
-            f"{self.DB_USER}:{password}"
-            f"@{self.DB_HOST}:{self.DB_PORT}"
-            f"/{self.DB_NAME}"
-        )
+        try:
+            import aiomysql  # noqa
+            return (
+                f"mysql+aiomysql://"
+                f"{self.DB_USER}:{password}"
+                f"@{self.DB_HOST}:{self.DB_PORT}"
+                f"/{self.DB_NAME}"
+            )
+        except ImportError:
+            return "sqlite+aiosqlite:///./socialpulse_dev.db"
 
     # ==========================================================
     # JWT
