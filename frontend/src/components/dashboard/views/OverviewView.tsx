@@ -200,7 +200,7 @@ export const OverviewView: React.FC = () => {
       toast.success("Synchronized latest data!");
     } catch {
       toast.error("Data synchronization failed. Please check token permissions.");
-    } fontally {
+    } finally {
       setIsSyncing(false);
     }
   };
