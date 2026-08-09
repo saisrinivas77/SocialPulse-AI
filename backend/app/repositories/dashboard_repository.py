@@ -71,7 +71,7 @@ class DashboardRepository(BaseRepository[Analytics]):
     # Dashboard Summary
     # ==========================================================
 
-    async def get_dashboard_summary(self, user_id):
+    async def get_dashboard_summary(self, user_id: int, account_id: Optional[int] = None):
 
         total_accounts_stmt = (
             select(func.count(SocialAccount.id))
@@ -79,11 +79,15 @@ class DashboardRepository(BaseRepository[Analytics]):
                 SocialAccount.user_id == user_id,
             )
         )
+        if account_id:
+            total_accounts_stmt = total_accounts_stmt.where(SocialAccount.id == account_id)
 
         total_posts_stmt = (
             select(func.count(Post.id))
             .where(Post.user_id == user_id)
         )
+        if account_id:
+            total_posts_stmt = total_posts_stmt.where(Post.social_account_id == account_id)
 
         # Direct real connected social account aggregation from database
         sa_stmt = select(
@@ -92,6 +96,10 @@ class DashboardRepository(BaseRepository[Analytics]):
             func.coalesce(func.sum(SocialAccount.posts_count), 0),
             func.coalesce(func.avg(SocialAccount.engagement_rate), 0.0),
         ).where(SocialAccount.user_id == user_id, SocialAccount.status == "CONNECTED")
+
+        if account_id:
+            sa_stmt = sa_stmt.where(SocialAccount.id == account_id)
+
         sa_res = (await self.session.execute(sa_stmt)).one()
 
         real_followers = int(sa_res[0])
@@ -112,9 +120,9 @@ class DashboardRepository(BaseRepository[Analytics]):
                 "total_accounts": int(total_accounts),
                 "total_posts": max(int(total_posts), real_posts),
                 "total_followers": real_followers,
-                "total_following": int(real_followers * 0.12),
+                "total_following": 0,
                 "average_engagement_rate": real_engagement,
-                "average_growth_rate": 4.2,
+                "average_growth_rate": 0.0,
             }
 
         latest_sub = await self._latest_analytics_subquery(user_id)

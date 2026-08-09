@@ -5,7 +5,7 @@ import enum
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import DateTime, Enum, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, Enum, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -34,6 +34,12 @@ class SocialAccount(Base):
     """OAuth social media account details bound to a workspace."""
 
     __tablename__ = "social_accounts"
+    __table_args__ = (
+        UniqueConstraint(
+            "workspace_id", "platform", "external_account_id", name="uq_workspace_platform_external_account"
+        ),
+        Index("ix_social_accounts_workspace_provider_ext", "workspace_id", "platform", "external_account_id"),
+    )
 
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
@@ -49,11 +55,13 @@ class SocialAccount(Base):
     account_name: Mapped[str] = mapped_column(String(255), nullable=False)
     account_handle: Mapped[str] = mapped_column(String(255), nullable=False)
     external_account_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    account_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, default="BUSINESS")
     encrypted_access_token: Mapped[str] = mapped_column(Text, nullable=False)
     encrypted_refresh_token: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     token_expires_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    scopes: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
 
     follower_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     reach_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
@@ -64,10 +72,13 @@ class SocialAccount(Base):
     health_score: Mapped[int] = mapped_column(Integer, default=100, nullable=False)
     rate_limit_remaining: Mapped[int] = mapped_column(Integer, default=5000, nullable=False)
     token_status: Mapped[str] = mapped_column(String(50), default="VALID", nullable=False)  # VALID, NEEDS_RECONNECTION, EXPIRED
+    connection_status: Mapped[str] = mapped_column(String(50), default="CONNECTED", nullable=False)
     status: Mapped[str] = mapped_column(String(50), default="CONNECTED", nullable=False)
+    sync_status: Mapped[str] = mapped_column(String(50), default="completed", nullable=False) # syncing, completed, failed, never_synced
     last_synced_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    last_sync_error: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     next_sync_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

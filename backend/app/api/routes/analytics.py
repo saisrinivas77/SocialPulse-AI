@@ -45,15 +45,18 @@ CurrentUser = Annotated[
     summary="Get Analytics Overview Telemetry",
 )
 async def get_analytics_overview(db: DBSession, current_user: CurrentUser):
+    from app.services.dashboard_service import DashboardService
+    service = DashboardService(db)
+    summary = await service.get_summary(current_user.id)
     return {
-        "totalFollowers": 149820,
-        "followersDelta": "+14.2%",
-        "monthlyReach": 2450000,
-        "reachDelta": "+28.6%",
-        "engagementRate": 5.84,
-        "engagementDelta": "+1.2%",
-        "revenueAttribution": 48250,
-        "aiOptimizationScore": 94,
+        "totalFollowers": summary.get("total_followers", 0),
+        "followersDelta": "+0.0%",
+        "monthlyReach": summary.get("total_followers", 0),
+        "reachDelta": "+0.0%",
+        "engagementRate": summary.get("average_engagement_rate", 0.0),
+        "engagementDelta": "+0.0%",
+        "revenueAttribution": 0,
+        "aiOptimizationScore": 100 if summary.get("total_accounts", 0) > 0 else 0,
     }
 
 

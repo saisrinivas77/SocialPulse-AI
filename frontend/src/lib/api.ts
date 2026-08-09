@@ -666,18 +666,22 @@ export const socialPulseApi = {
   // Analytics Metrics & Charts
   getOverviewMetrics: async () => {
     try {
-      const res = await apiClient.get("/analytics/overview");
+      const res = await apiClient.get("/dashboard/overview");
       return res.data;
     } catch {
       return {
-        totalFollowers: 149820,
-        followersDelta: "+14.2%",
-        monthlyReach: 2450000,
-        reachDelta: "+28.6%",
-        engagementRate: 5.84,
-        engagementDelta: "+1.2%",
-        revenueAttribution: 48250,
-        aiOptimizationScore: 94,
+        kpis: {
+          total_accounts: 0,
+          total_posts: 0,
+          total_followers: 0,
+          total_following: 0,
+          average_engagement_rate: 0.0,
+          average_growth_rate: 0.0,
+        },
+        platform_breakdown: [],
+        follower_trend: [],
+        engagement_trend: [],
+        recent_posts: [],
       };
     }
   },

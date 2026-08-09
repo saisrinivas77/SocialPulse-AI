@@ -76,13 +76,13 @@ class SocialAccountRepository:
             return PlatformType.INSTAGRAM
 
     async def get_by_provider_account(
-        self, user_id: int, platform: str, external_account_id: str
+        self, workspace_id: int, platform: str, external_account_id: str
     ) -> Optional[SocialAccount]:
-        """Get existing social account by user, provider platform, and external account ID."""
+        """Get existing social account by workspace_id, platform, and external_account_id."""
         platform_enum = self._resolve_platform_enum(platform)
 
         stmt = select(SocialAccount).where(
-            SocialAccount.user_id == user_id,
+            SocialAccount.workspace_id == workspace_id,
             SocialAccount.platform == platform_enum,
             SocialAccount.external_account_id == external_account_id,
         )
@@ -105,11 +105,13 @@ class SocialAccountRepository:
         reach_count: int = 0,
         posts_count: int = 0,
         engagement_rate: float = 0.0,
+        scopes: Optional[str] = None,
+        sync_status: str = "completed",
         metadata_dict: Optional[Dict[str, Any]] = None,
     ) -> SocialAccount:
         """Upsert connected social account with AES-256 encrypted tokens."""
         platform_enum = self._resolve_platform_enum(platform_str)
-        existing = await self.get_by_provider_account(user_id, platform_str, external_account_id)
+        existing = await self.get_by_provider_account(workspace_id, platform_str, external_account_id)
 
         encrypted_acc = encrypt_token(plain_access_token)
         encrypted_ref = encrypt_token(plain_refresh_token) if plain_refresh_token else None
@@ -117,6 +119,7 @@ class SocialAccountRepository:
 
         try:
             if existing:
+                existing.user_id = user_id
                 existing.account_name = display_name
                 existing.account_handle = username
                 existing.avatar_url = profile_picture
@@ -124,11 +127,16 @@ class SocialAccountRepository:
                 if encrypted_ref:
                     existing.encrypted_refresh_token = encrypted_ref
                 existing.token_expires_at = token_expires_at
+                if scopes:
+                    existing.scopes = scopes
                 existing.follower_count = follower_count
                 existing.reach_count = reach_count
                 existing.posts_count = posts_count
                 existing.engagement_rate = engagement_rate
+                existing.connection_status = "CONNECTED"
                 existing.status = "CONNECTED"
+                existing.sync_status = sync_status
+                existing.token_status = "VALID"
                 existing.last_synced_at = datetime.utcnow()
                 if meta_json_str:
                     existing.metadata_json = meta_json_str
@@ -147,11 +155,15 @@ class SocialAccountRepository:
                 encrypted_access_token=encrypted_acc,
                 encrypted_refresh_token=encrypted_ref,
                 token_expires_at=token_expires_at,
+                scopes=scopes,
                 follower_count=follower_count,
                 reach_count=reach_count,
                 posts_count=posts_count,
                 engagement_rate=engagement_rate,
+                connection_status="CONNECTED",
                 status="CONNECTED",
+                sync_status=sync_status,
+                token_status="VALID",
                 last_synced_at=datetime.utcnow(),
                 metadata_json=meta_json_str,
             )

@@ -66,8 +66,33 @@ class SocialAccountService:
             reach_count=profile.get("reach_count", 0),
             posts_count=profile.get("posts_count", 0),
             engagement_rate=profile.get("engagement_rate", 0.0),
+            sync_status="completed",
             metadata_dict=profile,
         )
+
+        # Store initial Analytics snapshot row
+        try:
+            from app.models.analytics import Analytics
+            snapshot = Analytics(
+                user_id=user_id,
+                social_account_id=account.id,
+                platform=account.platform,
+                followers=account.follower_count,
+                reach=account.reach_count,
+                posts=account.posts_count,
+                likes=profile.get("likes", 0),
+                comments=profile.get("comments", 0),
+                shares=profile.get("shares", 0),
+                views=profile.get("views", 0),
+                impressions=account.reach_count,
+                engagement_rate=account.engagement_rate,
+                recorded_at=datetime.utcnow(),
+            )
+            self.account_repo.session.add(snapshot)
+            await self.account_repo.session.commit()
+        except Exception as err:
+            logger.warning(f"Failed to record initial Analytics snapshot: {err}")
+
         return SocialAccountResponse.model_validate(account)
 
     async def connect_account(

@@ -265,19 +265,20 @@ class SocialGraphService:
         fb_page_name = first_page.get("name", "Facebook Page")
 
         if sub_provider in ["facebook", "meta"] and not (sub_provider == "instagram"):
+            fan_count = first_page.get("fan_count", 0)
             return {
                 "provider": "FACEBOOK",
                 "provider_account_id": fb_page_id,
                 "username": f"@{fb_page_name.lower().replace(' ', '_')}",
                 "display_name": fb_page_name,
-                "profile_picture": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=250&q=80",
+                "profile_picture": first_page.get("picture", {}).get("data", {}).get("url") or "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=250&q=80",
                 "access_token": long_lived_token,
                 "refresh_token": None,
                 "token_expires_at": token_expires_at,
-                "follower_count": first_page.get("fan_count", 0),
-                "reach_count": 112000,
-                "posts_count": 92,
-                "engagement_rate": 4.12,
+                "follower_count": fan_count,
+                "reach_count": 0,
+                "posts_count": 0,
+                "engagement_rate": 0.0,
             }
 
         # Step 7: Locate Instagram Business Account
@@ -315,10 +316,10 @@ class SocialGraphService:
         followers = ig_data.get("followers_count", ig_account.get("followers_count", 0))
         posts = ig_data.get("media_count", ig_account.get("media_count", 0))
 
-        # Step 9: Fetch Insights (with graceful fallback if permissions limited)
+        # Step 9: Fetch Insights
         logger.info("Meta OAuth Step 9: Fetching Instagram Insights...")
-        reach = 245000
-        engagement_rate = 5.84
+        reach = 0
+        engagement_rate = 0.0
         try:
             insights_res = await client.get(
                 f"https://graph.facebook.com/v20.0/{ig_id}/insights",
@@ -334,7 +335,7 @@ class SocialGraphService:
                     if item.get("name") == "reach":
                         values = item.get("values", [])
                         if values:
-                            reach = values[0].get("value", reach)
+                            reach = values[0].get("value", 0)
         except Exception as e:
             logger.warning(f"Meta OAuth Step 9 Insights Warning: {e}")
 
@@ -371,14 +372,17 @@ class SocialGraphService:
                 },
             )
             tdata = token_res.json()
-            access_token = tdata.get("access_token", f"li_live_{code[:10]}")
+            if token_res.status_code != 200 or "access_token" not in tdata:
+                err = tdata.get("error_description") or tdata.get("error") or "LinkedIn Token Exchange Failed"
+                raise OAuthException(provider="linkedin", step="token_exchange", message=str(err))
 
+            access_token = tdata["access_token"]
             user_res = await client.get(
                 "https://api.linkedin.com/v2/userinfo",
                 headers={"Authorization": f"Bearer {access_token}"},
             )
-            udata = user_res.json()
-            name = udata.get("name") or f"{user_prefix.capitalize()} LinkedIn"
+            udata = user_res.json() if user_res.status_code == 200 else {}
+            name = udata.get("name") or f"{user_prefix.capitalize()}"
             avatar = udata.get("picture") or "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=250&q=80"
             sub = udata.get("sub", f"li_sub_{code[:8]}")
 
@@ -391,28 +395,16 @@ class SocialGraphService:
                 "access_token": access_token,
                 "refresh_token": tdata.get("refresh_token"),
                 "token_expires_at": datetime.utcnow() + timedelta(days=60),
-                "follower_count": 42100,
-                "reach_count": 180000,
-                "posts_count": 142,
-                "engagement_rate": 6.12,
+                "follower_count": 0,
+                "reach_count": 0,
+                "posts_count": 0,
+                "engagement_rate": 0.0,
             }
+        except OAuthException:
+            raise
         except Exception as e:
-            logger.warning(f"LinkedIn API fallback: {e}")
-
-        return {
-            "provider": "LINKEDIN",
-            "provider_account_id": f"li_acc_{code[:8]}",
-            "username": f"{user_prefix.capitalize()} Enterprise",
-            "display_name": f"{user_prefix.capitalize()} LinkedIn Page",
-            "profile_picture": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=250&q=80",
-            "access_token": f"li_live_token_{code[:12]}",
-            "refresh_token": None,
-            "token_expires_at": datetime.utcnow() + timedelta(days=60),
-            "follower_count": 42100,
-            "reach_count": 180000,
-            "posts_count": 142,
-            "engagement_rate": 6.12,
-        }
+            logger.error(f"LinkedIn API error: {e}")
+            raise OAuthException(provider="linkedin", step="profile_fetch", message=f"LinkedIn integration failed: {str(e)}")
 
     @staticmethod
     async def _fetch_youtube_account(
@@ -431,7 +423,11 @@ class SocialGraphService:
                 },
             )
             tdata = token_res.json()
-            access_token = tdata.get("access_token", f"yt_live_{code[:10]}")
+            if token_res.status_code != 200 or "access_token" not in tdata:
+                err = tdata.get("error_description") or tdata.get("error") or "YouTube Token Exchange Failed"
+                raise OAuthException(provider="youtube", step="token_exchange", message=str(err))
+
+            access_token = tdata["access_token"]
             refresh_token = tdata.get("refresh_token")
 
             ch_res = await client.get(
@@ -439,7 +435,7 @@ class SocialGraphService:
                 params={"mine": "true", "part": "snippet,statistics"},
                 headers={"Authorization": f"Bearer {access_token}"},
             )
-            cdata = ch_res.json()
+            cdata = ch_res.json() if ch_res.status_code == 200 else {}
             items = cdata.get("items", [])
             item = items[0] if (items and len(items) > 0) else {}
             snippet = item.get("snippet", {})
@@ -454,28 +450,16 @@ class SocialGraphService:
                 "access_token": access_token,
                 "refresh_token": refresh_token,
                 "token_expires_at": datetime.utcnow() + timedelta(seconds=tdata.get("expires_in", 3600)),
-                "follower_count": int(stats.get("subscriberCount", 31200)),
-                "reach_count": int(stats.get("viewCount", 890000)),
-                "posts_count": int(stats.get("videoCount", 64)),
-                "engagement_rate": 8.45,
+                "follower_count": int(stats.get("subscriberCount", 0)),
+                "reach_count": int(stats.get("viewCount", 0)),
+                "posts_count": int(stats.get("videoCount", 0)),
+                "engagement_rate": 0.0,
             }
+        except OAuthException:
+            raise
         except Exception as e:
-            logger.warning(f"YouTube API fallback: {e}")
-
-        return {
-            "provider": "YOUTUBE",
-            "provider_account_id": f"yt_ch_{code[:8]}",
-            "username": f"{user_prefix.capitalize()} Channel",
-            "display_name": f"{user_prefix.capitalize()} Official YouTube",
-            "profile_picture": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=250&q=80",
-            "access_token": f"yt_live_token_{code[:12]}",
-            "refresh_token": None,
-            "token_expires_at": datetime.utcnow() + timedelta(hours=1),
-            "follower_count": 31200,
-            "reach_count": 890000,
-            "posts_count": 64,
-            "engagement_rate": 8.45,
-        }
+            logger.error(f"YouTube API error: {e}")
+            raise OAuthException(provider="youtube", step="profile_fetch", message=f"YouTube integration failed: {str(e)}")
 
     @staticmethod
     async def _fetch_x_twitter_account(
@@ -495,8 +479,11 @@ class SocialGraphService:
                 headers={"Content-Type": "application/x-www-form-urlencoded"},
             )
             tdata = token_res.json()
-            access_token = tdata.get("access_token", f"x_live_{code[:10]}")
+            if token_res.status_code != 200 or "access_token" not in tdata:
+                err = tdata.get("error_description") or tdata.get("error") or "X Token Exchange Failed"
+                raise OAuthException(provider="twitter", step="token_exchange", message=str(err))
 
+            access_token = tdata["access_token"]
             me_res = await client.get(
                 "https://api.twitter.com/2/users/me",
                 params={"user.fields": "profile_image_url,public_metrics"},
@@ -515,85 +502,35 @@ class SocialGraphService:
                 "access_token": access_token,
                 "refresh_token": tdata.get("refresh_token"),
                 "token_expires_at": datetime.utcnow() + timedelta(seconds=tdata.get("expires_in", 7200)),
-                "follower_count": metrics.get("followers_count", 89400),
-                "reach_count": 420000,
-                "posts_count": metrics.get("tweet_count", 512),
-                "engagement_rate": 4.88,
+                "follower_count": metrics.get("followers_count", 0),
+                "reach_count": 0,
+                "posts_count": metrics.get("tweet_count", 0),
+                "engagement_rate": 0.0,
             }
+        except OAuthException:
+            raise
         except Exception as e:
-            logger.warning(f"X API fallback: {e}")
-
-        return {
-            "provider": "TWITTER",
-            "provider_account_id": f"x_id_{code[:8]}",
-            "username": f"@{user_prefix}_x",
-            "display_name": f"{user_prefix.capitalize()} X HQ",
-            "profile_picture": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=250&q=80",
-            "access_token": f"x_live_token_{code[:12]}",
-            "refresh_token": None,
-            "token_expires_at": datetime.utcnow() + timedelta(hours=2),
-            "follower_count": 89400,
-            "reach_count": 420000,
-            "posts_count": 512,
-            "engagement_rate": 4.88,
-        }
+            logger.error(f"X API error: {e}")
+            raise OAuthException(provider="twitter", step="profile_fetch", message=f"X (Twitter) integration failed: {str(e)}")
 
     @staticmethod
     async def _fetch_tiktok_account(
         client: httpx.AsyncClient, code: str, redirect_uri: str, user_prefix: str
     ) -> Dict[str, Any]:
         """TikTok Business API v2 handler."""
-        return {
-            "provider": "TIKTOK",
-            "provider_account_id": f"tt_id_{code[:8]}",
-            "username": f"@{user_prefix}.official",
-            "display_name": f"{user_prefix.capitalize()} TikTok",
-            "profile_picture": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=250&q=80",
-            "access_token": f"tiktok_live_token_{code[:12]}",
-            "refresh_token": None,
-            "token_expires_at": datetime.utcnow() + timedelta(days=365),
-            "follower_count": 124500,
-            "reach_count": 1450000,
-            "posts_count": 312,
-            "engagement_rate": 9.42,
-        }
+        raise OAuthException(provider="tiktok", step="token_exchange", message="TikTok OAuth API integration requires client key and secret configured in environment.")
 
     @staticmethod
     async def _fetch_pinterest_account(
         client: httpx.AsyncClient, code: str, redirect_uri: str, user_prefix: str
     ) -> Dict[str, Any]:
         """Pinterest API v5 handler."""
-        return {
-            "provider": "PINTEREST",
-            "provider_account_id": f"pin_id_{code[:8]}",
-            "username": f"{user_prefix}_design",
-            "display_name": f"{user_prefix.capitalize()} Pinterest",
-            "profile_picture": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=250&q=80",
-            "access_token": f"pin_live_token_{code[:12]}",
-            "refresh_token": None,
-            "token_expires_at": datetime.utcnow() + timedelta(days=365),
-            "follower_count": 9700,
-            "reach_count": 48000,
-            "posts_count": 142,
-            "engagement_rate": 3.45,
-        }
+        raise OAuthException(provider="pinterest", step="token_exchange", message="Pinterest OAuth API integration requires client credentials configured in environment.")
 
     @staticmethod
     async def _fetch_threads_account(
         client: httpx.AsyncClient, code: str, redirect_uri: str, user_prefix: str
     ) -> Dict[str, Any]:
         """Official Threads Graph API handler."""
-        return {
-            "provider": "THREADS",
-            "provider_account_id": f"thr_id_{code[:8]}",
-            "username": f"@{user_prefix}_threads",
-            "display_name": f"{user_prefix.capitalize()} Threads",
-            "profile_picture": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=250&q=80",
-            "access_token": f"threads_live_token_{code[:12]}",
-            "refresh_token": None,
-            "token_expires_at": datetime.utcnow() + timedelta(days=60),
-            "follower_count": 15300,
-            "reach_count": 89000,
-            "posts_count": 68,
-            "engagement_rate": 5.12,
-        }
+        raise OAuthException(provider="threads", step="token_exchange", message="Threads OAuth API integration requires client credentials configured in environment.")
+

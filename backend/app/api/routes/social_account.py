@@ -2,6 +2,7 @@
 """FastAPI endpoints for Social Accounts management & OAuth integrations bound to Workspace boundary."""
 
 import os
+import urllib.parse
 from typing import Optional
 from fastapi import APIRouter, Depends, Query, Response, status, HTTPException
 from fastapi.responses import RedirectResponse
@@ -231,11 +232,11 @@ async def oauth_callback(
             workspace_id=workspace_id,
             user_email=user_email,
         )
-        return RedirectResponse(url=f"{frontend_url}/dashboard?view=social-accounts&connected=true&provider={provider}")
+        return RedirectResponse(url=f"{frontend_url}/dashboard?connected={provider}")
     except Exception as exc:
         await db.rollback()
         logger.exception(f"OAuth callback error for {provider}: {exc}")
-        return RedirectResponse(url=f"{frontend_url}/dashboard?view=social-accounts&error={str(exc)}")
+        return RedirectResponse(url=f"{frontend_url}/dashboard?connected={provider}&error={urllib.parse.quote(str(exc))}")
 
 
 @router.post(

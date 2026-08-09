@@ -35,7 +35,14 @@ export interface SocialAccount {
   id: string;
   platform: "Instagram" | "LinkedIn" | "X" | "TikTok" | "YouTube" | "Facebook" | "Threads" | "Pinterest";
   username: string;
+  display_name?: string;
   followers: string;
+  follower_count: number;
+  reach_count: number;
+  posts_count: number;
+  engagement_rate: number;
+  sync_status: string;
+  connection_status: string;
   connected: boolean;
   lastSynced: string;
   avatar: string;
@@ -84,6 +91,10 @@ export interface AppState {
   setCurrentView: (view: NavView) => void;
   isSidebarCollapsed: boolean;
   toggleSidebar: () => void;
+
+  // Account Selection
+  selectedAccountId: string;
+  setSelectedAccountId: (id: string) => void;
 
   // Workspace
   currentWorkspace: { id: string; name: string; tier: string; logo: string };
@@ -134,6 +145,9 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   isSidebarCollapsed: false,
   toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
+
+  selectedAccountId: "all",
+  setSelectedAccountId: (id) => set({ selectedAccountId: id }),
 
   currentWorkspace: {
     id: "ws-1",
@@ -244,8 +258,15 @@ export const useAppStore = create<AppState>((set, get) => ({
           id: String(item.id),
           platform: (item.platform || item.provider || "Instagram") as any,
           username: item.account_handle || item.username || "@connected_user",
+          display_name: item.account_name || item.display_name || "",
           followers: typeof item.follower_count === "number" ? item.follower_count.toLocaleString() : (item.followers || "0"),
-          connected: item.status === "CONNECTED",
+          follower_count: item.follower_count || 0,
+          reach_count: item.reach_count || 0,
+          posts_count: item.posts_count || 0,
+          engagement_rate: item.engagement_rate || 0.0,
+          sync_status: item.sync_status || "completed",
+          connection_status: item.connection_status || item.status || "CONNECTED",
+          connected: (item.status === "CONNECTED" || item.connection_status === "CONNECTED"),
           lastSynced: item.last_synced_at ? new Date(item.last_synced_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now",
           health: item.sync_health || 100,
           avatar: item.avatar_url || item.profile_picture || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&q=80",

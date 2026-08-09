@@ -190,23 +190,14 @@ class OAuthIntegrationService:
         else:
             return f"{self.frontend_url}/connect?error=unsupported_platform"
 
-    async def exchange_social_code_for_tokens(self, platform: str, code: str, redirect_uri: str) -> Dict[str, Any]:
-        """Exchange OAuth code for tokens and initial live metadata."""
-        p = platform.upper()
-        return {
-            "platform": p,
-            "access_token": f"live_access_token_{p.lower()}_{code[:10]}",
-            "refresh_token": f"live_refresh_token_{p.lower()}_{code[:10]}",
-            "token_expires_at": None,
-            "account_name": f"SocialPulse {p.capitalize()} Official",
-            "account_handle": f"@{p.lower()}_pulse_official",
-            "external_account_id": f"ext_{p.lower()}_98213",
-            "follower_count": 142500,
-            "reach_count": 890000,
-            "posts_count": 412,
-            "engagement_rate": 5.8,
-            "avatar_url": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=200&q=80",
-            "sync_health": 98,
-        }
+    async def exchange_social_code_for_tokens(self, platform: str, code: str, redirect_uri: str, user_email: str = "creator@socialpulse.ai") -> Dict[str, Any]:
+        """Exchange OAuth code for tokens and initial live metadata using SocialGraphService."""
+        from app.services.social_graph_service import SocialGraphService
+        return await SocialGraphService.exchange_code_and_fetch_profile(
+            provider=platform,
+            code=code,
+            redirect_uri=redirect_uri,
+            user_email=user_email,
+        )
 
 oauth_service = OAuthIntegrationService()

@@ -38,6 +38,12 @@ class SocialAccountResponse(BaseModel):
     avatar_url: Optional[str] = None
     sync_health: int = 100
     status: str = "CONNECTED"
+    connection_status: str = "CONNECTED"
+    sync_status: str = "completed"
+    last_sync_error: Optional[str] = None
+    account_type: Optional[str] = "BUSINESS"
+    token_status: str = "VALID"
+    scopes: Optional[str] = None
     token_expires_at: Optional[datetime] = None
     last_synced_at: Optional[datetime] = None
     metadata_json: Optional[str] = None
