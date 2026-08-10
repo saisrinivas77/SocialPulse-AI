@@ -41,7 +41,7 @@ export const TeamView: React.FC = () => {
         setCurrentUser({
           name,
           email: storedEmail || "user@socialpulse.ai",
-          avatar: storedAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0866FF&color=fff`,
+          avatar: storedAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=C8A14A&color=fff`,
         });
       }
     }
@@ -59,32 +59,36 @@ export const TeamView: React.FC = () => {
   );
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-8 pb-12 font-sans">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#ECE8E1] dark:border-[#262623] pb-6"
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6"
+        style={{ borderBottom: '1px solid var(--card-border)' }}
       >
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-semibold uppercase tracking-widest text-[#0866FF]">
+            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#C8A14A' }}>
               Role-Based Access Control
             </span>
-            <span className="apple-badge text-[9px] px-2 py-0.5 rounded-full">{teamMembers.length} Members Active</span>
+            <span className="text-[9px] px-2 py-0.5 rounded-full font-bold" style={{ background: 'var(--accent-light)', color: '#C8A14A', border: '1px solid var(--accent-border)' }}>
+              {teamMembers.length} Members Active
+            </span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#050505] dark:text-[#E4E6EB]">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
             Team & Permissions
           </h1>
-          <p className="text-sm text-[#65676B] dark:text-[#B0B3B8] mt-1">
+          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
             Manage workspace seats, invite collaborators, and configure granular enterprise permissions.
           </p>
         </div>
 
         <button
           onClick={() => setIsInviteTeamModalOpen(true)}
-          className="px-5 py-2.5 rounded-full bg-[#0866FF] hover:bg-[#1877F2] text-white font-semibold text-xs shadow-md flex items-center gap-2"
+          className="px-5 py-2.5 rounded-full text-white font-semibold text-xs shadow-md flex items-center gap-2"
+          style={{ background: 'linear-gradient(135deg, #C8A14A, #B8922E)', boxShadow: '0 4px 12px rgba(200,161,74,0.25)' }}
         >
           <UserPlus className="w-4 h-4" />
           <span>Invite Team Member</span>
@@ -92,58 +96,66 @@ export const TeamView: React.FC = () => {
       </motion.div>
 
       {/* Team Members List */}
-      <div className="apple-card overflow-hidden">
-        <div className="p-4 border-b border-black/5 dark:border-white/10 flex items-center justify-between">
-          <h3 className="text-base font-bold text-[#050505] dark:text-[#E4E6EB]">Active Team Members</h3>
-          <span className="text-xs text-[#8A8D91]">Pulse Enterprise Workspace</span>
+      <div className="rounded-[24px] overflow-hidden shadow-xs" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+        <div className="p-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--card-border)' }}>
+          <h3 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>Active Team Members</h3>
+          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Pulse Enterprise Workspace</span>
         </div>
 
-        <div className="divide-y divide-black/5 dark:divide-white/10">
-          {displayMembers.map((member) => (
-            <div key={member.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <img
-                  src={member.avatar}
-                  alt={member.name}
-                  className="w-10 h-10 rounded-2xl object-cover border border-[#0866FF]"
-                />
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h4 className="text-sm font-bold text-[#050505] dark:text-[#E4E6EB]">{member.name}</h4>
-                    <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#0866FF]/10 text-[#0866FF]">
-                      {member.role}
-                    </span>
+        <div className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
+          {displayMembers.length === 0 ? (
+            <div className="p-8 text-center" style={{ color: 'var(--text-muted)' }}>
+              <p className="text-xs">No team members invited yet.</p>
+            </div>
+          ) : (
+            displayMembers.map((member) => (
+              <div key={member.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={member.avatar}
+                    alt={member.name}
+                    className="w-10 h-10 rounded-2xl object-cover shrink-0"
+                    style={{ border: '2px solid #C8A14A' }}
+                  />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{member.name}</h4>
+                      <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full" style={{ background: 'var(--accent-light)', color: '#C8A14A' }}>
+                        {member.role}
+                      </span>
+                    </div>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>{member.email}</p>
                   </div>
-                  <p className="text-xs text-[#65676B] dark:text-[#B0B3B8] mt-0.5">{member.email}</p>
+                </div>
+
+                <div className="flex items-center gap-4 text-xs">
+                  <span style={{ color: 'var(--text-muted)' }}>Active {member.lastActive}</span>
+                  <button
+                    onClick={() => toast.info(`Editing settings for ${member.name}`)}
+                    className="px-3 py-1.5 rounded-xl font-semibold hover:border-[#C8A14A] transition-colors"
+                    style={{ border: '1px solid var(--card-border)', color: 'var(--text-primary)' }}
+                  >
+                    Manage Seat
+                  </button>
                 </div>
               </div>
-
-              <div className="flex items-center gap-4 text-xs">
-                <span className="text-[#8A8D91]">Active {member.lastActive}</span>
-                <button
-                  onClick={() => toast.info(`Editing settings for ${member.name}`)}
-                  className="px-3 py-1.5 rounded-xl border border-black/5 dark:border-white/10 font-semibold text-[#050505] dark:text-[#E4E6EB] hover:border-[#0866FF]"
-                >
-                  Manage Seat
-                </button>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
 
       {/* Permissions Matrix */}
-      <div className="apple-card p-6 space-y-4">
+      <div className="rounded-[24px] p-6 space-y-4 shadow-xs" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
         <div className="flex items-center gap-2">
-          <Shield className="w-5 h-5 text-[#0866FF]" />
-          <h3 className="text-base font-bold text-[#111111] dark:text-[#FAFAF8]">
+          <Shield className="w-5 h-5" style={{ color: '#C8A14A' }} />
+          <h3 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>
             Granular Role Permissions Matrix
           </h3>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-center text-xs">
-            <thead className="bg-[#FAFAF8] dark:bg-[#141413] border-b border-[#ECE8E1] dark:border-[#262623] text-[#8A8A8A] font-bold">
+            <thead className="border-b text-xs font-bold" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--card-border)', color: 'var(--text-muted)' }}>
               <tr>
                 <th className="py-3 px-4 text-left">Module / Feature</th>
                 <th className="py-3 px-4">Owner</th>
@@ -153,15 +165,15 @@ export const TeamView: React.FC = () => {
                 <th className="py-3 px-4">Reviewer</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#ECE8E1] dark:divide-[#262623]">
+            <tbody className="divide-y" style={{ borderColor: 'var(--card-border)' }}>
               {permissionsMatrix.map((row) => (
                 <tr key={row.module}>
-                  <td className="py-3.5 px-4 text-left font-bold text-[#111111] dark:text-[#FAFAF8]">{row.module}</td>
-                  <td className="py-3.5 px-4">{row.Owner ? <Check className="w-4 h-4 text-[#22C55E] mx-auto" /> : <X className="w-4 h-4 text-[#8A8A8A] mx-auto" />}</td>
-                  <td className="py-3.5 px-4">{row.Admin ? <Check className="w-4 h-4 text-[#22C55E] mx-auto" /> : <X className="w-4 h-4 text-[#8A8A8A] mx-auto" />}</td>
-                  <td className="py-3.5 px-4">{row["Content Lead"] ? <Check className="w-4 h-4 text-[#22C55E] mx-auto" /> : <X className="w-4 h-4 text-[#8A8A8A] mx-auto" />}</td>
-                  <td className="py-3.5 px-4">{row.Analyst ? <Check className="w-4 h-4 text-[#22C55E] mx-auto" /> : <X className="w-4 h-4 text-[#8A8A8A] mx-auto" />}</td>
-                  <td className="py-3.5 px-4">{row.Reviewer ? <Check className="w-4 h-4 text-[#22C55E] mx-auto" /> : <X className="w-4 h-4 text-[#8A8A8A] mx-auto" />}</td>
+                  <td className="py-3.5 px-4 text-left font-bold" style={{ color: 'var(--text-primary)' }}>{row.module}</td>
+                  <td className="py-3.5 px-4">{row.Owner ? <Check className="w-4 h-4 text-[#22C55E] mx-auto" /> : <X className="w-4 h-4 text-[#A0A0A0] mx-auto" />}</td>
+                  <td className="py-3.5 px-4">{row.Admin ? <Check className="w-4 h-4 text-[#22C55E] mx-auto" /> : <X className="w-4 h-4 text-[#A0A0A0] mx-auto" />}</td>
+                  <td className="py-3.5 px-4">{row["Content Lead"] ? <Check className="w-4 h-4 text-[#22C55E] mx-auto" /> : <X className="w-4 h-4 text-[#A0A0A0] mx-auto" />}</td>
+                  <td className="py-3.5 px-4">{row.Analyst ? <Check className="w-4 h-4 text-[#22C55E] mx-auto" /> : <X className="w-4 h-4 text-[#A0A0A0] mx-auto" />}</td>
+                  <td className="py-3.5 px-4">{row.Reviewer ? <Check className="w-4 h-4 text-[#22C55E] mx-auto" /> : <X className="w-4 h-4 text-[#A0A0A0] mx-auto" />}</td>
                 </tr>
               ))}
             </tbody>

@@ -58,122 +58,95 @@ export const AIStudioView: React.FC = () => {
       const p = prompt.trim() || "SocialPulse AI workspace launch";
 
       if (activeAiTool === "hashtags") {
-        const words = p.split(/[,;\n]+/).map(w => w.trim()).filter(Boolean);
-        const formattedHashtags = words.length > 0
-          ? words.map(w => `#${w.replace(/[^a-zA-Z0-9]/g, "")}`).join(" ") + " #SocialPulse #AIGrowth #ViralContent #Marketing2026 #AIOS"
-          : `#${p.replace(/[^a-zA-Z0-9]/g, "")} #SocialPulse #AIGrowth #ViralReach`;
-
-        return `🚀 High Virality Hashtags for "${p}":\n\n${formattedHashtags}\n\n📊 Density Index: 98/100 (Peak Reach Potential)`;
-
-      } else if (activeAiTool === "replies") {
-        let replyText = "";
-        if (/hootsuite|buffer|sprout|competitor|compare/i.test(p)) {
-          replyText = "Great question! Unlike traditional static schedulers like Hootsuite or Buffer, SocialPulse AI acts as an autonomous copilot. It auto-generates brand-aligned content, tunes posting times via real-time telemetry, and predicts post performance before you hit publish. 🚀";
-        } else if (/price|pricing|cost|tier|plan/i.test(p)) {
-          replyText = "Thanks for asking! SocialPulse AI offers flexible tiers starting with a full-featured demo account up to custom Enterprise Pro plans with dedicated AI fine-tuning. Check out our pricing table or request a VIP demo call! 💎";
-        } else if (/how|help|support|work/i.test(p)) {
-          replyText = `Thanks for inquiring about "${p}"! SocialPulse AI connects to your social accounts, monitors audience signals, and recommends high-performing content strategy in real-time. ⚡`;
-        } else {
-          replyText = `Thank you for sharing your feedback on "${p}"! We appreciate your engagement. Let us know if you would like a tailored strategy session for your team! 🌟`;
-        }
-
-        return `💬 AI Generated Executive Reply:\n\n"${replyText}"\n\n🎯 Conversion Intent Score: 96/100`;
-
-      } else if (activeAiTool === "campaign") {
-        return `📋 Master Campaign Brief: ${p}\n⏱️ Duration: 28 Days | Target Audience: B2B Enterprise Leaders & Decision Makers\n\n🎯 Execution Roadmap:\n• Week 1: Teaser & Brand Awareness — Short-Form Video Reels & Thought Leadership Infographics\n• Week 2: Consideration & Social Proof — Customer Case Studies & Live Interactive Demos\n• Week 3: Conversion Sprint — VIP Access Beta Invites & Executive Briefings\n• Week 4: Community Retargeting — ROI Metrics & Multi-Channel Webinar\n\n📈 Expected Lead Output: 1,000+ Qualified B2B Accounts (Est. Reach: 650K - 1.2M)`;
-
-      } else if (activeAiTool === "trends") {
-        const categoryName = p || "AI & Digital Growth";
-        return `📊 Market Trend Radar — Category: ${categoryName}\n\n🔥 1. ${categoryName} — Autonomous AI Copilots (Velocity: +240%, Virality: 96/100)\n🔥 2. ${categoryName} — Real-Time Predictive Telemetry (Velocity: +185%, Virality: 92/100)\n🔥 3. ${categoryName} — Multi-Channel Unified OS (Velocity: +150%, Virality: 88/100)\n\n💡 Strategic AI Action: Publish a 60-second video breakdown highlighting key shifts in ${categoryName}.`;
-
-      } else if (activeAiTool === "timing") {
-        return `⏰ Best Time to Post Optimizer:\n🎯 Demographic Focus: ${p}\n\n📍 Primary Peak Window: Tuesdays & Thursdays at 6:45 PM EST\n🎯 Secondary Window: Wednesdays at 9:15 AM EST\n\n💡 Telemetry Insight for "${p}":\n• Audience activity peaks during late afternoon commute & morning strategy hours\n• Expected Impressions Boost: +340% during recommended windows`;
-
-      } else if (activeAiTool === "rewrite") {
-        let rephrased = p;
-        if (p.length > 5) {
-          rephrased = p
-            .replace(/\bposts?\b/gi, "distributes high-impact content")
-            .replace(/\bautomatically\b/gi, "autonomously via AI copilot")
-            .replace(/\banalytics\b/gi, "predictive telemetry")
-            .replace(/\bget more followers\b/gi, "accelerate brand authority & audience expansion")
-            .replace(/\btool\b/gi, "enterprise engine");
-        }
-
-        return `✨ Rewritten Brand Copy (${toneSophistication}% Sophistication | ${toneBoldness}% Boldness):\n\n"${rephrased}"\n\n💡 AI Optimization Notes:\n• Vocabulary refined to active executive tone\n• Calculated Virality Index: ${Math.min(99, 70 + Math.round(toneSophistication * 0.25))}%\n• Mobile Read Completion Boost: +48%`;
-
-      } else {
-        const cleanConcept = p.replace(/^Launch announcement for /i, "").replace(/^Write an engaging social media post caption about: /i, "");
-        return `🚀 Exciting Announcement: ${cleanConcept}!\n\nWe are thrilled to introduce next-generation social media management powered by SocialPulse AI v3.5.\n\n✨ Key Highlights:\n• Real-Time Telemetry & Predictive Analytics\n• Multi-Channel Autonomous Queue & Scheduling\n• AI-Powered Brand Voice Fine-Tuning & Virality Boost\n\n👉 Experience the future of growth: https://socialpulse.ai\n\n#SocialPulse #AIGrowth #DigitalMarketing #SaaS #TechInnovation`;
+        const res = await socialPulseApi.generateHashtags({ topic: p });
+        return Array.isArray(res) ? res.join(" ") : (res.hashtags ? res.hashtags.join(" ") : "#AI #SocialPulse #Growth");
       }
+      if (activeAiTool === "rewrite") {
+        const res = await socialPulseApi.optimizeContent(p);
+        return res.optimizedContent || p;
+      }
+      if (activeAiTool === "trends") {
+        const res = await socialPulseApi.detectTrends("Enterprise SaaS");
+        return Array.isArray(res.trendingTopics)
+          ? res.trendingTopics.map((t: any) => `• ${t.name}: ${t.velocity} velocity (${t.viralityScore}% score)`).join("\n")
+          : "• AI Agents in Enterprise: +94% surge\n• Real-Time Telemetry Dashboards: +82% volume";
+      }
+
+      // Default Caption Generator API Call
+      const res = await socialPulseApi.generateCaption({
+        prompt: p,
+        platform: "LinkedIn",
+        tone: toneSophistication > 80 ? "Sophisticated & Authoritative" : "Conversational",
+      });
+
+      return (
+        res.caption ||
+        res.content ||
+        `🚀 Unpacking the future of enterprise media intelligence. Built with fine-tuned models trained on 100M+ viral posts.\n\nKey takeaways:\n1. Real-time API telemetry across 8 channels\n2. Zero guesswork publishing\n3. Enterprise security & encryption\n\n#AI #SocialPulse #Growth #Enterprise`
+      );
     },
     onSuccess: (data) => {
       setOutputResult(data);
-      toast.success("AI Content Generated Successfully!");
+      toast.success("AI Generation Complete!");
     },
     onError: () => {
-      const fallback = `✨ Generated Post Concept for "${promptText || "SocialPulse AI"}":\n\nScale your reach effortlessly using SocialPulse AI copilot. Automatically schedule, optimize, and track across platforms. 🚀 #SocialPulse #AI`;
-      setOutputResult(fallback);
-      toast.success("AI Content Generated!");
+      toast.error("Failed to generate content. Using fallback generator.");
+      setOutputResult(
+        `🚀 Unpacking the future of enterprise media intelligence with SocialPulse AI v3.5.\n\n• Real-time provider API sync\n• Autonomous queue management\n• Sophistication index: ${toneSophistication}%\n\n#AI #Growth #Enterprise`
+      );
     },
   });
 
   const handleGenerate = () => {
-    const textToUse = promptText.trim() || activeToolObj.placeholder;
-    if (!promptText.trim()) {
-      setPromptText(activeToolObj.placeholder);
-    }
-    toast.info(`Synthesizing with ${selectedModel}...`);
-    generateMutation.mutate(textToUse);
+    generateMutation.mutate(promptText);
   };
 
   const handleCopy = () => {
-    if (!outputResult) return;
     navigator.clipboard.writeText(outputResult);
     setCopied(true);
-    toast.success("Copied output to clipboard!");
+    toast.success("Copied to clipboard!");
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleScheduleDirectly = () => {
-    if (!outputResult) return;
     addPost({
       id: `post-${Date.now()}`,
-      title: "AI Studio Generated Post",
+      title: promptText.slice(0, 40) || "AI Generated Content",
       content: outputResult,
       platform: "LinkedIn",
       status: "Scheduled",
-      scheduledTime: "Tomorrow at 05:00 PM",
+      scheduledTime: "Tomorrow at 10:00 AM",
       impressions: "--",
       engagement: "--",
       likes: 0,
       comments: 0,
       shares: 0,
     });
-    toast.success("Added directly to Post Scheduler queue!");
+    toast.success("Queued directly into Content Calendar!");
     setCurrentView("posts");
   };
 
   return (
     <div className="space-y-8 pb-12 font-sans">
-      {/* Studio Header */}
+      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-black/[0.06] dark:border-white/[0.08] pb-6"
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6"
+        style={{ borderBottom: '1px solid var(--card-border)' }}
       >
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-extrabold uppercase tracking-widest text-[#0866FF]">
+            <span className="text-xs font-extrabold uppercase tracking-widest" style={{ color: '#C8A14A' }}>
               Generative Intelligence Engine
             </span>
-            <span className="bg-[#E7F0FF] text-[#0866FF] dark:bg-[#0866FF]/20 text-[10px] font-bold px-2.5 py-0.5 rounded-full">v3.5 Active</span>
+            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full" style={{ background: 'var(--accent-light)', color: '#C8A14A' }}>v3.5 Active</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-[#111111] dark:text-white">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
             AI Content Studio
           </h1>
-          <p className="text-sm text-[#777777] dark:text-[#A0A0A0] mt-1">
+          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
             Draft, refine, and optimize multi-platform social media campaigns with fine-tuned brand LLMs.
           </p>
         </div>
@@ -185,19 +158,21 @@ export const AIStudioView: React.FC = () => {
           <button
             key={model.id}
             onClick={() => setSelectedModel(model.id)}
-            className={`p-4 rounded-2xl border text-left transition-all relative ${
-              selectedModel === model.id
-                ? "bg-[#0866FF] text-white border-[#0866FF] shadow-sm"
-                : "bg-white dark:bg-[#18181B] border-black/[0.06] dark:border-white/[0.08] text-[#111111] dark:text-white hover:border-[#0866FF]/50"
-            }`}
+            className="p-4 rounded-2xl border text-left transition-all relative"
+            style={{
+              background: selectedModel === model.id ? '#C8A14A' : 'var(--card-bg)',
+              borderColor: selectedModel === model.id ? '#C8A14A' : 'var(--card-border)',
+              color: selectedModel === model.id ? '#FFFFFF' : 'var(--text-primary)',
+              boxShadow: selectedModel === model.id ? '0 4px 16px rgba(200,161,74,0.25)' : 'none',
+            }}
           >
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs font-bold truncate">{model.name}</span>
-              <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${selectedModel === model.id ? "bg-white/20 text-white" : "bg-[#F2F2F7] dark:bg-[#27272A] text-[#0866FF]"}`}>
+              <span className="text-[9px] font-black px-2 py-0.5 rounded-full" style={{ background: selectedModel === model.id ? 'rgba(255,255,255,0.2)' : 'var(--accent-light)', color: selectedModel === model.id ? '#FFFFFF' : '#C8A14A' }}>
                 {model.tag}
               </span>
             </div>
-            <p className={`text-[11px] line-clamp-2 ${selectedModel === model.id ? "text-white/80" : "text-[#777777] dark:text-[#A0A0A0]"}`}>{model.desc}</p>
+            <p className="text-[11px] line-clamp-2" style={{ color: selectedModel === model.id ? 'rgba(255,255,255,0.85)' : 'var(--text-secondary)' }}>{model.desc}</p>
           </button>
         ))}
       </div>
@@ -207,8 +182,8 @@ export const AIStudioView: React.FC = () => {
         {/* Left Col: Tool Navigation & Controls (4 Cols) */}
         <div className="lg:col-span-4 space-y-6">
           {/* Tool Selector Tabs */}
-          <div className="bg-white dark:bg-[#18181B] rounded-[28px] border border-black/[0.06] dark:border-white/[0.08] p-4 space-y-2 shadow-xs">
-            <span className="text-[10px] uppercase font-extrabold text-[#777777] dark:text-[#A0A0A0] tracking-wider px-2 block">
+          <div className="rounded-[28px] p-4 space-y-2 shadow-xs" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+            <span className="text-[10px] uppercase font-extrabold tracking-wider px-2 block" style={{ color: 'var(--text-muted)' }}>
               Specialized AI Generators
             </span>
             <div className="space-y-1">
@@ -222,13 +197,15 @@ export const AIStudioView: React.FC = () => {
                       setActiveAiTool(tool.id);
                       setPromptText("");
                     }}
-                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                      isActive
-                        ? "bg-[#E7F0FF] dark:bg-[#0866FF]/20 text-[#0866FF] font-bold border border-[#0866FF]/30"
-                        : "text-[#5B5B5B] dark:text-[#A0A09B] hover:bg-[#F2F2F7] dark:hover:bg-[#27272A]"
-                    }`}
+                    className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all"
+                    style={{
+                      background: isActive ? 'var(--accent-light)' : 'transparent',
+                      color: isActive ? '#C8A14A' : 'var(--text-secondary)',
+                      border: isActive ? '1px solid var(--accent-border)' : '1px solid transparent',
+                      fontWeight: isActive ? 700 : 500,
+                    }}
                   >
-                    <Icon className={`w-4 h-4 ${isActive ? "text-[#0866FF]" : "text-[#777777]"}`} />
+                    <Icon className="w-4 h-4" style={{ color: isActive ? '#C8A14A' : 'var(--text-muted)' }} />
                     <span>{tool.label}</span>
                   </button>
                 );
@@ -237,19 +214,19 @@ export const AIStudioView: React.FC = () => {
           </div>
 
           {/* Brand Voice Tone Controls */}
-          <div className="bg-white dark:bg-[#18181B] rounded-[28px] border border-black/[0.06] dark:border-white/[0.08] p-5 space-y-4 shadow-xs">
+          <div className="rounded-[28px] p-5 space-y-4 shadow-xs" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
             <div className="flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-[#0866FF]" />
-              <h3 className="text-xs font-bold text-[#111111] dark:text-white">
+              <Sliders className="w-4 h-4" style={{ color: '#C8A14A' }} />
+              <h3 className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>
                 Brand Voice Parameters
               </h3>
             </div>
 
             <div className="space-y-4">
               <div>
-                <div className="flex justify-between text-xs font-semibold text-[#5B5B5B] dark:text-[#A0A09B] mb-1.5">
+                <div className="flex justify-between text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                   <span>Sophistication Index</span>
-                  <span className="text-[#0866FF] font-bold">{toneSophistication}%</span>
+                  <span className="font-bold" style={{ color: '#C8A14A' }}>{toneSophistication}%</span>
                 </div>
                 <input
                   type="range"
@@ -257,14 +234,15 @@ export const AIStudioView: React.FC = () => {
                   max="100"
                   value={toneSophistication}
                   onChange={(e) => setToneSophistication(Number(e.target.value))}
-                  className="w-full accent-[#0866FF] cursor-pointer"
+                  className="w-full cursor-pointer"
+                  style={{ accentColor: '#C8A14A' }}
                 />
               </div>
 
               <div>
-                <div className="flex justify-between text-xs font-semibold text-[#5B5B5B] dark:text-[#A0A09B] mb-1.5">
+                <div className="flex justify-between text-xs font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                   <span>Boldness & Directness</span>
-                  <span className="text-[#0866FF] font-bold">{toneBoldness}%</span>
+                  <span className="font-bold" style={{ color: '#C8A14A' }}>{toneBoldness}%</span>
                 </div>
                 <input
                   type="range"
@@ -272,7 +250,8 @@ export const AIStudioView: React.FC = () => {
                   max="100"
                   value={toneBoldness}
                   onChange={(e) => setToneBoldness(Number(e.target.value))}
-                  className="w-full accent-[#0866FF] cursor-pointer"
+                  className="w-full cursor-pointer"
+                  style={{ accentColor: '#C8A14A' }}
                 />
               </div>
             </div>
@@ -282,15 +261,15 @@ export const AIStudioView: React.FC = () => {
         {/* Right Col: Prompt Editor & Live Preview (8 Cols) */}
         <div className="lg:col-span-8 space-y-6">
           {/* Prompt Input Box */}
-          <div className="bg-white dark:bg-[#18181B] rounded-[28px] border border-black/[0.06] dark:border-white/[0.08] p-6 space-y-4 shadow-xs">
+          <div className="rounded-[28px] p-6 space-y-4 shadow-xs" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <activeToolObj.icon className="w-4 h-4 text-[#0866FF]" />
-                <h2 className="text-base font-extrabold text-[#111111] dark:text-white">
+                <activeToolObj.icon className="w-4 h-4" style={{ color: '#C8A14A' }} />
+                <h2 className="text-base font-extrabold" style={{ color: 'var(--text-primary)' }}>
                   {activeToolObj.label} Prompt Workspace
                 </h2>
               </div>
-              <span className="text-[10px] text-[#777777] font-semibold">v3.5 Engine</span>
+              <span className="text-[10px] font-semibold" style={{ color: 'var(--text-muted)' }}>v3.5 Engine</span>
             </div>
 
             <textarea
@@ -298,13 +277,17 @@ export const AIStudioView: React.FC = () => {
               value={promptText}
               onChange={(e) => setPromptText(e.target.value)}
               placeholder={activeToolObj.placeholder}
-              className="w-full p-4 rounded-2xl bg-[#FAFBFD] dark:bg-[#121316] border border-[#E5E5EA] dark:border-[#333336] text-sm text-[#111111] dark:text-white outline-none focus:border-[#0866FF] transition-all resize-none font-sans"
+              className="w-full p-4 rounded-2xl text-sm outline-none transition-all resize-none font-sans"
+              style={{ border: '1px solid var(--card-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+              onFocus={(e) => e.currentTarget.style.borderColor = '#C8A14A'}
+              onBlur={(e) => e.currentTarget.style.borderColor = 'var(--card-border)'}
             />
 
             <div className="flex items-center justify-between pt-2">
               <button
                 onClick={() => setPromptText("Draft a high-impact product announcement for SocialPulse AI workspace launch with bold tone.")}
-                className="text-xs font-semibold text-[#0866FF] hover:underline"
+                className="text-xs font-semibold hover:underline"
+                style={{ color: '#C8A14A' }}
               >
                 Insert Sample Prompt
               </button>
@@ -312,7 +295,8 @@ export const AIStudioView: React.FC = () => {
               <button
                 onClick={handleGenerate}
                 disabled={generateMutation.isPending}
-                className="flex items-center gap-2 bg-[#0866FF] hover:bg-[#1877F2] text-white px-6 py-2.5 rounded-full text-xs font-extrabold shadow-sm transition-all disabled:opacity-50"
+                className="flex items-center gap-2 text-white px-6 py-2.5 rounded-full text-xs font-extrabold shadow-sm transition-all disabled:opacity-50"
+                style={{ background: 'linear-gradient(135deg, #C8A14A, #B8922E)', boxShadow: '0 4px 12px rgba(200,161,74,0.25)' }}
               >
                 <Sparkles className={`w-4 h-4 ${generateMutation.isPending ? "animate-spin" : ""}`} />
                 <span>{generateMutation.isPending ? "Synthesizing..." : "Generate with AI"}</span>
@@ -321,11 +305,11 @@ export const AIStudioView: React.FC = () => {
           </div>
 
           {/* AI Output Preview */}
-          <div className="bg-white dark:bg-[#18181B] rounded-[28px] border border-black/[0.06] dark:border-white/[0.08] p-6 space-y-4 shadow-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-black/[0.06] dark:border-white/[0.08]">
+          <div className="rounded-[28px] p-6 space-y-4 shadow-xs" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+            <div className="flex items-center justify-between pb-3" style={{ borderBottom: '1px solid var(--card-border)' }}>
               <div className="flex items-center gap-2">
-                <Bot className="w-4 h-4 text-[#0866FF]" />
-                <h3 className="text-sm font-extrabold text-[#111111] dark:text-white">
+                <Bot className="w-4 h-4" style={{ color: '#C8A14A' }} />
+                <h3 className="text-sm font-extrabold" style={{ color: 'var(--text-primary)' }}>
                   Generated AI Output
                 </h3>
               </div>
@@ -333,15 +317,17 @@ export const AIStudioView: React.FC = () => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleCopy}
-                  className="px-3.5 py-1.5 rounded-full border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs font-semibold text-[#5B5B5B] dark:text-[#A0A09B] hover:border-[#0866FF] flex items-center gap-1.5 transition-all"
+                  className="px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all"
+                  style={{ border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-secondary)' }}
                 >
-                  {copied ? <Check className="w-3.5 h-3.5 text-[#31A24C]" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copied ? <Check className="w-3.5 h-3.5 text-[#22C55E]" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copied ? "Copied" : "Copy"}</span>
                 </button>
 
                 <button
                   onClick={handleScheduleDirectly}
-                  className="flex items-center gap-1.5 bg-[#0866FF] hover:bg-[#1877F2] text-white px-4 py-1.5 rounded-full text-xs font-extrabold shadow-xs transition-all"
+                  className="flex items-center gap-1.5 text-white px-4 py-1.5 rounded-full text-xs font-extrabold shadow-xs transition-all"
+                  style={{ background: 'linear-gradient(135deg, #C8A14A, #B8922E)' }}
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>Queue Post</span>
@@ -349,7 +335,7 @@ export const AIStudioView: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-[#FAFBFD] dark:bg-[#121316] border border-black/[0.04] dark:border-white/[0.06] text-sm text-[#111111] dark:text-white whitespace-pre-wrap font-sans leading-relaxed min-h-[140px]">
+            <div className="p-5 rounded-2xl border text-sm whitespace-pre-wrap font-sans leading-relaxed min-h-[140px]" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--card-border)', color: 'var(--text-primary)' }}>
               {outputResult}
             </div>
           </div>

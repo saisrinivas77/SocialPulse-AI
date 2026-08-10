@@ -67,7 +67,7 @@ export const TopNavbar: React.FC = () => {
           name,
           email,
           provider: storedProvider || "OAuth 2.0",
-          avatar: storedAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0866FF&color=fff`,
+          avatar: storedAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=C8A14A&color=fff`,
         });
       }
     }
@@ -82,7 +82,7 @@ export const TopNavbar: React.FC = () => {
           avatar:
             user.avatar_url ||
             user.profile_image ||
-            `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0866FF&color=fff`,
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=C8A14A&color=fff`,
         });
       }
     });
@@ -129,22 +129,32 @@ export const TopNavbar: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-30 h-16 bg-[#FFFFFF]/80 dark:bg-[#18191A]/80 backdrop-blur-md border-b border-black/5 dark:border-white/10 px-4 lg:px-6 flex items-center justify-between transition-colors font-sans">
+    <header
+      className="sticky top-0 z-30 h-16 backdrop-blur-md px-4 lg:px-6 flex items-center justify-between transition-colors font-sans"
+      style={{
+        background: 'color-mix(in srgb, var(--bg-primary) 85%, transparent)',
+        borderBottom: '1px solid var(--card-border)',
+      }}
+    >
       {/* Left: Mobile Sidebar Trigger & View Title */}
       <div className="flex items-center gap-3">
         <button
           onClick={toggleSidebar}
-          className="p-2 rounded-xl text-[#65676B] dark:text-[#B0B3B8] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C] transition-colors"
+          className="p-2 rounded-xl transition-colors"
+          style={{ color: 'var(--text-secondary)' }}
           title="Toggle Navigation Menu"
         >
           <Menu className="w-5 h-5" />
         </button>
 
         <div className="flex items-center gap-2">
-          <h1 className="text-base font-extrabold text-[#050505] dark:text-[#E4E6EB] tracking-tight">
+          <h1 className="text-base font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
             {getViewTitle()}
           </h1>
-          <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E7F0FF] text-[#0866FF] dark:bg-[#0866FF]/20 text-[10px] font-bold">
+          <span
+            className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold"
+            style={{ background: 'var(--accent-light)', color: '#C8A14A' }}
+          >
             <Zap className="w-3 h-3 fill-current" /> Live Telemetry
           </span>
         </div>
@@ -155,18 +165,23 @@ export const TopNavbar: React.FC = () => {
         {/* Global Search Bar */}
         <button
           onClick={() => setIsSearchOpen(true)}
-          className="hidden md:flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-[#F0F2F5] dark:bg-[#3A3B3C] text-[#65676B] dark:text-[#B0B3B8] text-xs hover:bg-[#E4E6E9] dark:hover:bg-[#4E4F50] transition-colors border border-transparent"
+          className="hidden md:flex items-center gap-3 px-3.5 py-1.5 rounded-full text-xs transition-colors border border-transparent"
+          style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
         >
           <Search className="w-3.5 h-3.5" />
           <span className="text-xs">Search metrics, posts, tools...</span>
-          <kbd className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#FFFFFF] dark:bg-[#242526] text-[#8A8D91] border border-black/5 dark:border-white/10">
+          <kbd
+            className="px-1.5 py-0.5 rounded text-[9px] font-bold"
+            style={{ background: 'var(--card-bg)', color: 'var(--text-muted)', border: '1px solid var(--card-border)' }}
+          >
             ⌘K
           </kbd>
         </button>
 
         <button
           onClick={() => setIsSearchOpen(true)}
-          className="md:hidden p-2 rounded-full text-[#65676B] dark:text-[#B0B3B8] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C]"
+          className="md:hidden p-2 rounded-full transition-colors"
+          style={{ color: 'var(--text-secondary)' }}
         >
           <Search className="w-4 h-4" />
         </button>
@@ -174,7 +189,8 @@ export const TopNavbar: React.FC = () => {
         {/* Upgrade Tier Button */}
         <button
           onClick={() => setIsUpgradeModalOpen(true)}
-          className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#0866FF] hover:bg-[#1877F2] text-white text-xs font-bold shadow-xs transition-all"
+          className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-white text-xs font-bold shadow-xs transition-all"
+          style={{ background: 'linear-gradient(135deg, #C8A14A, #B8922E)', boxShadow: '0 4px 12px rgba(200,161,74,0.25)' }}
         >
           <Sparkles className="w-3.5 h-3.5" />
           <span>Enterprise Pro</span>
@@ -183,7 +199,8 @@ export const TopNavbar: React.FC = () => {
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}
-          className="p-2 rounded-full text-[#65676B] dark:text-[#B0B3B8] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C] transition-colors"
+          className="p-2 rounded-full transition-colors"
+          style={{ color: 'var(--text-secondary)' }}
           title={`Switch to ${theme === "dark" ? "Light" : "Dark"} Mode`}
         >
           {theme === "dark" ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
@@ -193,23 +210,28 @@ export const TopNavbar: React.FC = () => {
         <div className="relative">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="p-2 rounded-full text-[#65676B] dark:text-[#B0B3B8] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C] transition-colors relative"
+            className="p-2 rounded-full transition-colors relative"
+            style={{ color: 'var(--text-secondary)' }}
             title="Notifications"
           >
             <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#FA383E]" />
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full" style={{ background: '#C8A14A' }} />
             )}
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 mt-1.5 w-80 rounded-2xl bg-[#FFFFFF] dark:bg-[#242526] border border-black/5 dark:border-white/10 p-4 shadow-2xl space-y-3 z-50">
-              <div className="flex items-center justify-between border-b border-black/5 dark:border-white/10 pb-2">
-                <span className="text-xs font-bold text-[#050505] dark:text-[#E4E6EB]">Notifications</span>
+            <div
+              className="absolute right-0 mt-1.5 w-80 rounded-2xl p-4 shadow-2xl space-y-3 z-50"
+              style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
+            >
+              <div className="flex items-center justify-between pb-2" style={{ borderBottom: '1px solid var(--card-border)' }}>
+                <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>Notifications</span>
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}
-                    className="text-[10px] font-semibold text-[#0866FF] hover:underline"
+                    className="text-[10px] font-semibold hover:underline"
+                    style={{ color: '#C8A14A' }}
                   >
                     Mark all read
                   </button>
@@ -217,20 +239,24 @@ export const TopNavbar: React.FC = () => {
               </div>
 
               <div className="space-y-2 max-h-60 overflow-y-auto">
+                {notifications.length === 0 && (
+                  <p className="text-xs text-center py-4" style={{ color: 'var(--text-muted)' }}>No notifications yet</p>
+                )}
                 {notifications.map((n) => (
                   <div
                     key={n.id}
-                    className={`p-2.5 rounded-xl border text-xs transition-colors ${
-                      n.read
-                        ? "bg-[#F0F2F5]/50 dark:bg-[#3A3B3C]/40 border-transparent text-[#65676B] dark:text-[#B0B3B8]"
-                        : "bg-[#E7F0FF]/50 dark:bg-[#0866FF]/10 border-[#0866FF]/20 text-[#050505] dark:text-[#E4E6EB]"
-                    }`}
+                    className="p-2.5 rounded-xl border text-xs transition-colors"
+                    style={{
+                      background: n.read ? 'var(--bg-secondary)' : 'var(--accent-light)',
+                      borderColor: n.read ? 'transparent' : 'var(--accent-border)',
+                      color: n.read ? 'var(--text-secondary)' : 'var(--text-primary)',
+                    }}
                   >
                     <div className="flex items-center justify-between font-bold mb-0.5">
                       <span>{n.title}</span>
-                      <span className="text-[9px] text-[#8A8D91]">{n.timestamp}</span>
+                      <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>{n.timestamp}</span>
                     </div>
-                    <p className="text-[11px] text-[#65676B] dark:text-[#B0B3B8] leading-tight">{n.message}</p>
+                    <p className="text-[11px] leading-tight" style={{ color: 'var(--text-secondary)' }}>{n.message}</p>
                   </div>
                 ))}
               </div>
@@ -240,7 +266,8 @@ export const TopNavbar: React.FC = () => {
                   setCurrentView("notifications");
                   setShowNotifications(false);
                 }}
-                className="w-full text-center text-xs font-semibold text-[#0866FF] hover:underline pt-2 border-t border-black/5 dark:border-white/10 block"
+                className="w-full text-center text-xs font-semibold hover:underline pt-2 block"
+                style={{ color: '#C8A14A', borderTop: '1px solid var(--card-border)' }}
               >
                 View full activity hub →
               </button>
@@ -252,26 +279,31 @@ export const TopNavbar: React.FC = () => {
         <div className="relative">
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center gap-2 p-0.5 rounded-full border border-black/5 dark:border-white/10 hover:border-[#0866FF] transition-all"
+            className="flex items-center gap-2 p-0.5 rounded-full transition-all"
+            style={{ border: '1px solid var(--card-border)' }}
           >
             <img
               src={userProfile.avatar}
               alt={userProfile.name}
-              className="w-7 h-7 rounded-full object-cover border border-[#0866FF]"
+              className="w-7 h-7 rounded-full object-cover"
+              style={{ border: '2px solid #C8A14A' }}
             />
           </button>
 
           {showProfileMenu && (
-            <div className="absolute right-0 mt-1.5 w-56 rounded-2xl bg-[#FFFFFF] dark:bg-[#242526] border border-black/5 dark:border-white/10 p-2 shadow-2xl space-y-1 z-50">
-              <div className="px-3 py-2 border-b border-black/5 dark:border-white/10">
+            <div
+              className="absolute right-0 mt-1.5 w-56 rounded-2xl p-2 shadow-2xl space-y-1 z-50"
+              style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
+            >
+              <div className="px-3 py-2" style={{ borderBottom: '1px solid var(--card-border)' }}>
                 <div className="flex items-center gap-1.5 mb-0.5">
-                  <p className="text-xs font-extrabold text-[#050505] dark:text-[#E4E6EB] truncate">
+                  <p className="text-xs font-extrabold truncate" style={{ color: 'var(--text-primary)' }}>
                     {userProfile.name}
                   </p>
                 </div>
-                <p className="text-[10px] text-[#8A8D91] truncate mb-1.5">{userProfile.email}</p>
-                <span className="inline-flex items-center gap-1 text-[9px] font-bold text-[#31A24C] bg-[#E7F8ED] px-2 py-0.5 rounded-full border border-[#31A24C]/30">
-                  <CheckCircle2 className="w-2.5 h-2.5 text-[#31A24C]" /> {userProfile.provider} Auth Active
+                <p className="text-[10px] truncate mb-1.5" style={{ color: 'var(--text-muted)' }}>{userProfile.email}</p>
+                <span className="inline-flex items-center gap-1 text-[9px] font-bold text-[#22C55E] bg-[#E7F8ED] px-2 py-0.5 rounded-full border border-[#22C55E]/30">
+                  <CheckCircle2 className="w-2.5 h-2.5 text-[#22C55E]" /> {userProfile.provider} Auth Active
                 </span>
               </div>
 
@@ -280,9 +312,10 @@ export const TopNavbar: React.FC = () => {
                   setCurrentView("settings");
                   setShowProfileMenu(false);
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-[#65676B] dark:text-[#B0B3B8] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C] transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-colors"
+                style={{ color: 'var(--text-secondary)' }}
               >
-                <User className="w-3.5 h-3.5 text-[#0866FF]" /> Account Settings
+                <User className="w-3.5 h-3.5" style={{ color: '#C8A14A' }} /> Account Settings
               </button>
 
               <button
@@ -290,9 +323,10 @@ export const TopNavbar: React.FC = () => {
                   setCurrentView("social-accounts");
                   setShowProfileMenu(false);
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-[#65676B] dark:text-[#B0B3B8] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C] transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-colors"
+                style={{ color: 'var(--text-secondary)' }}
               >
-                <Zap className="w-3.5 h-3.5 text-[#0866FF]" /> Integrations & Channels
+                <Zap className="w-3.5 h-3.5" style={{ color: '#C8A14A' }} /> Integrations & Channels
               </button>
 
               <button
@@ -300,9 +334,10 @@ export const TopNavbar: React.FC = () => {
                   setCurrentView("team");
                   setShowProfileMenu(false);
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-[#65676B] dark:text-[#B0B3B8] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C] transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-colors"
+                style={{ color: 'var(--text-secondary)' }}
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-[#0866FF]" /> Team & Permissions
+                <ShieldCheck className="w-3.5 h-3.5" style={{ color: '#C8A14A' }} /> Team & Permissions
               </button>
 
               <button
@@ -315,7 +350,7 @@ export const TopNavbar: React.FC = () => {
                   }
                   router.push("/login");
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-[#FA383E] hover:bg-[#FA383E]/10 transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-[#EF4444] hover:bg-[#EF4444]/10 transition-colors"
               >
                 <LogOut className="w-3.5 h-3.5" /> Sign Out
               </button>

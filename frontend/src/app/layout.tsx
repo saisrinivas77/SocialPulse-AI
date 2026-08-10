@@ -41,7 +41,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased bg-[#FFFFFF] dark:bg-[#18191A] text-[#050505] dark:text-[#E4E6EB]`}>
+      <body className={`${inter.variable} font-sans antialiased`} style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

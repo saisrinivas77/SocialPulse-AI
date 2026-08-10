@@ -16,12 +16,12 @@ const reportTemplates = [
   {
     id: "rep-1",
     title: "Q3 Executive Performance Brief",
-    desc: "Board-level analytics summary covering reach, revenue attribution, and ROI metrics across all 6 connected channels.",
+    desc: "Board-level analytics summary covering reach, revenue attribution, and ROI metrics across all connected channels.",
     date: "Aug 01, 2026",
     pages: 12,
     type: "PDF & CSV",
     badge: "Latest",
-    badgeColor: "#31A24C",
+    badgeColor: "#22C55E",
   },
   {
     id: "rep-2",
@@ -31,7 +31,7 @@ const reportTemplates = [
     pages: 8,
     type: "PDF",
     badge: "AI Generated",
-    badgeColor: "#0866FF",
+    badgeColor: "#C8A14A",
   },
   {
     id: "rep-3",
@@ -120,32 +120,34 @@ export const ReportsView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-8 pb-12 font-sans">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#ECE8E1] dark:border-[#262623] pb-6"
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6"
+        style={{ borderBottom: '1px solid var(--card-border)' }}
       >
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-semibold uppercase tracking-widest text-[#0866FF]">
+            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#C8A14A' }}>
               Automated Intelligence Exports
             </span>
-            <span className="apple-badge text-[9px] px-2 py-0.5 rounded-full">Executive Ready</span>
+            <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'var(--accent-light)', color: '#C8A14A', border: '1px solid var(--accent-border)' }}>Executive Ready</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#050505] dark:text-[#E4E6EB]">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight" style={{ color: 'var(--text-primary)' }}>
             Reports & Export Center
           </h1>
-          <p className="text-sm text-[#65676B] dark:text-[#B0B3B8] mt-1">
+          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
             Generate, inspect, and schedule white-labeled executive PDF reports and raw CSV telemetry exports.
           </p>
         </div>
 
         <button
           onClick={() => handleOpenPdf("Custom Executive Report")}
-          className="px-5 py-2.5 rounded-full bg-[#0866FF] hover:bg-[#1877F2] text-white font-semibold text-xs shadow-md flex items-center gap-2"
+          className="px-5 py-2.5 rounded-full text-white font-semibold text-xs shadow-md flex items-center gap-2"
+          style={{ background: 'linear-gradient(135deg, #C8A14A, #B8922E)', boxShadow: '0 4px 12px rgba(200,161,74,0.25)' }}
         >
           <Sparkles className="w-4 h-4" />
           <span>Generate New Report</span>
@@ -160,12 +162,13 @@ export const ReportsView: React.FC = () => {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: idx * 0.05 }}
-            className="apple-card p-6 flex flex-col justify-between space-y-4 hover:border-[#0866FF] transition-colors"
+            className="rounded-[24px] p-6 flex flex-col justify-between space-y-4 hover:border-[#C8A14A] transition-colors shadow-xs"
+            style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
           >
             <div>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-extrabold tracking-wider uppercase px-2.5 py-1 rounded-md bg-[#0866FF]/10 text-[#0866FF]">
+                  <span className="text-[10px] font-extrabold tracking-wider uppercase px-2.5 py-1 rounded-md" style={{ background: 'var(--accent-light)', color: '#C8A14A' }}>
                     {report.type}
                   </span>
                   {report.badge && (
@@ -177,33 +180,35 @@ export const ReportsView: React.FC = () => {
                     </span>
                   )}
                 </div>
-                <span className="text-xs text-[#8A8D91]">{report.date}</span>
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{report.date}</span>
               </div>
 
-              <h3 className="text-sm font-bold text-[#050505] dark:text-[#E4E6EB] mb-1">
+              <h3 className="text-sm font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
                 {report.title}
               </h3>
-              <p className="text-xs text-[#65676B] dark:text-[#B0B3B8] leading-relaxed">
+              <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                 {report.desc}
               </p>
             </div>
 
-            <div className="pt-4 border-t border-black/5 dark:border-white/10 flex items-center justify-between">
-              <span className="text-xs text-[#8A8D91] font-medium">{report.pages} pages • Generated</span>
+            <div className="pt-4 border-t flex items-center justify-between" style={{ borderColor: 'var(--card-border)' }}>
+              <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>{report.pages} pages • Generated</span>
 
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => handleOpenPdf(report.title)}
-                  className="px-3.5 py-1.5 rounded-xl border border-black/5 dark:border-white/10 bg-white dark:bg-[#242526] text-xs font-semibold text-[#050505] dark:text-[#E4E6EB] hover:border-[#0866FF] flex items-center gap-1.5"
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-semibold hover:border-[#C8A14A] flex items-center gap-1.5 transition-colors"
+                  style={{ border: '1px solid var(--card-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
                 >
-                  <Eye className="w-3.5 h-3.5 text-[#0866FF]" />
+                  <Eye className="w-3.5 h-3.5" style={{ color: '#C8A14A' }} />
                   <span>Preview</span>
                 </button>
 
                 <button
                   onClick={() => handleExport("csv", report.title)}
                   disabled={exportMutation.isPending}
-                  className="p-2 rounded-xl border border-black/5 dark:border-white/10 text-[#65676B] dark:text-[#B0B3B8] hover:border-[#0866FF]"
+                  className="p-2 rounded-xl text-xs hover:border-[#C8A14A] transition-colors"
+                  style={{ border: '1px solid var(--card-border)', color: 'var(--text-secondary)' }}
                   title="Download Raw Data"
                 >
                   <Download className="w-4 h-4" />

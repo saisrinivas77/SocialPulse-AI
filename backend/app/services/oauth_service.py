@@ -164,8 +164,8 @@ class OAuthIntegrationService:
         encoded_redirect = urllib.parse.quote(redirect_uri, safe="")
 
         if p in ("instagram", "facebook", "threads"):
-            scopes = urllib.parse.quote("instagram_business_basic,instagram_business_manage_insights,pages_show_list,pages_read_engagement", safe="")
-            return f"https://www.facebook.com/v19.0/dialog/oauth?client_id={self.meta_app_id}&redirect_uri={encoded_redirect}&scope={scopes}&state={state}"
+            scopes = urllib.parse.quote("public_profile,email,user_posts,user_photos,user_likes,user_videos,user_friends,user_gender,user_birthday,user_age_range,user_hometown,user_location,user_link", safe="")
+            return f"https://www.facebook.com/v20.0/dialog/oauth?client_id={self.meta_app_id}&redirect_uri={encoded_redirect}&scope={scopes}&state={state}"
 
         elif p == "linkedin":
             scopes = urllib.parse.quote("r_liteprofile r_organization_social w_organization_social rw_organization_admin", safe="")

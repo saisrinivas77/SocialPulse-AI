@@ -92,7 +92,6 @@ export const AICopilotView: React.FC = () => {
     setLoading(true);
 
     try {
-      // Execute backend REST API or simulated streaming response
       const apiRes = await socialPulseApi.generateCaption({ prompt: textToSend });
 
       setTimeout(() => {
@@ -125,23 +124,24 @@ export const AICopilotView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in pb-12 min-h-[85vh] flex flex-col justify-between">
+    <div className="space-y-6 pb-12 min-h-[85vh] flex flex-col justify-between font-sans">
       {/* Header & Model Selector */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-amber-500/15 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4" style={{ borderBottom: '1px solid var(--card-border)' }}>
         <div>
-          <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-2">
-            <Sparkles className="w-8 h-8 text-amber-400" /> AI Copilot OS
+          <h1 className="text-3xl font-black tracking-tight flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+            <Sparkles className="w-8 h-8" style={{ color: '#C8A14A' }} /> AI Copilot OS
           </h1>
-          <p className="text-xs text-gray-400 mt-1">Cursor & Perplexity style enterprise AI operating system assistant</p>
+          <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>Cursor & Perplexity style enterprise AI operating system assistant</p>
         </div>
 
         {/* Model Switcher Dropdown */}
-        <div className="flex items-center gap-2 bg-[#0F1115] border border-amber-500/20 px-4 py-2 rounded-2xl">
-          <Zap className="w-4 h-4 text-amber-400 fill-amber-400" />
+        <div className="flex items-center gap-2 px-4 py-2 rounded-2xl border" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--card-border)' }}>
+          <Zap className="w-4 h-4" style={{ color: '#C8A14A' }} />
           <select
             value={selectedModel}
             onChange={(e) => setSelectedModel(e.target.value)}
-            className="bg-transparent text-white text-xs font-bold focus:outline-none cursor-pointer"
+            className="bg-transparent text-xs font-bold focus:outline-none cursor-pointer"
+            style={{ color: 'var(--text-primary)' }}
           >
             <option value="Pulse-GPT 4.5 Enterprise">Pulse-GPT 4.5 Enterprise</option>
             <option value="Pulse-Vision 2.0 Multimodal">Pulse-Vision 2.0 Multimodal</option>
@@ -158,39 +158,40 @@ export const AICopilotView: React.FC = () => {
               key={msg.id}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`flex gap-4 p-5 rounded-3xl border ${
-                msg.sender === "user"
-                  ? "bg-amber-500/10 border-amber-500/30 ml-auto max-w-2xl"
-                  : "glass-card border-amber-500/20 max-w-3xl"
-              }`}
+              className="flex gap-4 p-5 rounded-3xl border shadow-xs"
+              style={{
+                background: msg.sender === "user" ? 'var(--accent-light)' : 'var(--card-bg)',
+                borderColor: msg.sender === "user" ? 'var(--accent-border)' : 'var(--card-border)',
+                marginLeft: msg.sender === "user" ? 'auto' : '0',
+                maxWidth: msg.sender === "user" ? '42rem' : '48rem',
+              }}
             >
               <div
-                className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 font-bold ${
-                  msg.sender === "user"
-                    ? "bg-amber-500 text-black"
-                    : "bg-gradient-to-tr from-amber-500 to-yellow-600 text-black shadow-lg"
-                }`}
+                className="w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 font-bold shadow-xs text-white"
+                style={{
+                  background: msg.sender === "user" ? 'linear-gradient(135deg, #C8A14A, #B8922E)' : 'linear-gradient(135deg, #C8A14A, #E8D5A3)',
+                }}
               >
-                {msg.sender === "user" ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
+                {msg.sender === "user" ? <User className="w-5 h-5 text-white" /> : <Bot className="w-5 h-5 text-white" />}
               </div>
 
               <div className="flex-1 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-amber-400">
+                  <span className="text-xs font-bold" style={{ color: '#C8A14A' }}>
                     {msg.sender === "user" ? "You" : "SocialPulse AI Copilot"}
                   </span>
-                  <span className="text-[10px] text-gray-500">{msg.timestamp}</span>
+                  <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{msg.timestamp}</span>
                 </div>
 
                 {/* Formatted Markdown Output */}
-                <div className="text-sm text-gray-200 leading-relaxed space-y-2 whitespace-pre-wrap">
+                <div className="text-sm leading-relaxed space-y-2 whitespace-pre-wrap" style={{ color: 'var(--text-primary)' }}>
                   {msg.text}
                 </div>
 
                 {/* Embedded Recharts Graph if present */}
                 {msg.chartData && (
-                  <div className="p-4 rounded-2xl bg-black/60 border border-amber-500/20 space-y-2">
-                    <span className="text-[10px] uppercase font-bold text-amber-400 tracking-wider">
+                  <div className="p-4 rounded-2xl border space-y-2" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--card-border)' }}>
+                    <span className="text-[10px] uppercase font-bold tracking-wider" style={{ color: '#C8A14A' }}>
                       Forecast & Reach Telemetry Chart
                     </span>
                     <div className="h-40 w-full">
@@ -198,14 +199,14 @@ export const AICopilotView: React.FC = () => {
                         <AreaChart data={msg.chartData}>
                           <defs>
                             <linearGradient id="aiGraph" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#FFD700" stopOpacity={0.4} />
-                              <stop offset="95%" stopColor="#FFD700" stopOpacity={0} />
+                              <stop offset="5%" stopColor="#C8A14A" stopOpacity={0.4} />
+                              <stop offset="95%" stopColor="#C8A14A" stopOpacity={0} />
                             </linearGradient>
                           </defs>
-                          <XAxis dataKey="day" stroke="#737373" fontSize={10} />
-                          <YAxis stroke="#737373" fontSize={10} />
-                          <Tooltip contentStyle={{ backgroundColor: "#0F1115", borderColor: "#FFD700" }} />
-                          <Area type="monotone" dataKey="reach" stroke="#FFD700" strokeWidth={2} fill="url(#aiGraph)" />
+                          <XAxis dataKey="day" stroke="var(--text-muted)" fontSize={10} />
+                          <YAxis stroke="var(--text-muted)" fontSize={10} />
+                          <Tooltip contentStyle={{ backgroundColor: "var(--card-bg)", borderColor: "#C8A14A", color: "var(--text-primary)" }} />
+                          <Area type="monotone" dataKey="reach" stroke="#C8A14A" strokeWidth={2} fill="url(#aiGraph)" />
                         </AreaChart>
                       </ResponsiveContainer>
                     </div>
@@ -219,7 +220,8 @@ export const AICopilotView: React.FC = () => {
                       <button
                         key={i}
                         onClick={() => handleSendMessage(sug)}
-                        className="text-xs font-semibold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-3 py-1.5 rounded-xl border border-amber-500/30 transition-all"
+                        className="text-xs font-semibold px-3 py-1.5 rounded-xl border transition-all"
+                        style={{ background: 'var(--accent-light)', borderColor: 'var(--accent-border)', color: '#C8A14A' }}
                       >
                         ⚡ {sug}
                       </button>
@@ -230,19 +232,20 @@ export const AICopilotView: React.FC = () => {
 
               <button
                 onClick={() => handleCopyText(msg.id, msg.text)}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-amber-400 transition-colors self-start"
+                className="p-1.5 rounded-lg transition-colors self-start"
+                style={{ color: 'var(--text-muted)' }}
                 title="Copy message"
               >
-                {copiedId === msg.id ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                {copiedId === msg.id ? <Check className="w-4 h-4 text-[#22C55E]" /> : <Copy className="w-4 h-4" />}
               </button>
             </motion.div>
           ))}
         </AnimatePresence>
 
         {loading && (
-          <div className="flex items-center gap-3 p-4 rounded-3xl glass-card border-amber-500/20 max-w-sm">
-            <Sparkles className="w-5 h-5 text-amber-400 animate-spin" />
-            <span className="text-xs font-bold text-amber-300 animate-pulse">
+          <div className="flex items-center gap-3 p-4 rounded-3xl border max-w-sm" style={{ background: 'var(--card-bg)', borderColor: 'var(--card-border)' }}>
+            <Sparkles className="w-5 h-5 animate-spin" style={{ color: '#C8A14A' }} />
+            <span className="text-xs font-bold animate-pulse" style={{ color: '#C8A14A' }}>
               SocialPulse AI Copilot is thinking...
             </span>
           </div>
@@ -258,17 +261,18 @@ export const AICopilotView: React.FC = () => {
               <button
                 key={chip.label}
                 onClick={() => handleSendMessage(`Execute ${chip.label} for our active brand profiles`)}
-                className="px-3.5 py-2 rounded-2xl bg-[#0F1115] border border-amber-500/20 hover:border-amber-400 text-xs font-bold text-gray-300 hover:text-amber-300 transition-all shrink-0 flex items-center gap-2"
+                className="px-3.5 py-2 rounded-2xl border text-xs font-bold transition-all shrink-0 flex items-center gap-2"
+                style={{ background: 'var(--bg-secondary)', borderColor: 'var(--card-border)', color: 'var(--text-secondary)' }}
               >
-                <Icon className="w-3.5 h-3.5 text-amber-400" />
+                <Icon className="w-3.5 h-3.5" style={{ color: '#C8A14A' }} />
                 <span>{chip.label}</span>
               </button>
             );
           })}
         </div>
 
-        {/* Input Bar matching Cursor / Perplexity AI OS Prompt */}
-        <div className="relative glass-card border-amber-500/40 p-2 shadow-[0_0_50px_rgba(255,215,0,0.2)]">
+        {/* Input Bar */}
+        <div className="relative rounded-[28px] border p-2 shadow-xs" style={{ background: 'var(--card-bg)', borderColor: 'var(--card-border)' }}>
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -280,17 +284,19 @@ export const AICopilotView: React.FC = () => {
             }}
             rows={2}
             placeholder="Ask SocialPulse AI Copilot... (Press Enter to send)"
-            className="w-full bg-transparent p-3 text-sm text-white placeholder-gray-500 focus:outline-none resize-none"
+            className="w-full bg-transparent p-3 text-sm focus:outline-none resize-none font-sans"
+            style={{ color: 'var(--text-primary)' }}
           />
 
-          <div className="flex items-center justify-between px-3 pb-1 border-t border-amber-500/10 pt-2">
-            <span className="text-[10px] text-gray-500 font-semibold">
+          <div className="flex items-center justify-between px-3 pb-1 border-t pt-2" style={{ borderColor: 'var(--card-border)' }}>
+            <span className="text-[10px] font-semibold" style={{ color: 'var(--text-muted)' }}>
               Tip: Shift + Enter for new line • ⌘K for Command Palette
             </span>
             <button
               onClick={() => handleSendMessage()}
               disabled={loading || !input.trim()}
-              className="btn-magnetic btn-gold px-5 py-2 text-xs font-extrabold flex items-center gap-1.5 disabled:opacity-50"
+              className="px-5 py-2 text-xs font-extrabold text-white rounded-full flex items-center gap-1.5 disabled:opacity-50 shadow-sm"
+              style={{ background: 'linear-gradient(135deg, #C8A14A, #B8922E)' }}
             >
               <span>Ask AI</span>
               <Send className="w-3.5 h-3.5" />

@@ -99,90 +99,88 @@ const PlatformLogo: React.FC<{ platform: string; className?: string }> = ({ plat
     );
   }
   return (
-    <div className={`rounded-xl bg-[#0866FF] text-white flex items-center justify-center p-2 ${className}`}>
-      <Zap className="w-full h-full" />
+    <div className={`rounded-xl text-white flex items-center justify-center p-2 ${className}`} style={{ background: 'linear-gradient(135deg, #C8A14A, #B8922E)' }}>
+      <Globe className="w-full h-full" />
     </div>
   );
 };
 
 const SUPPORTED_PROVIDERS = [
-  { key: "instagram", name: "Instagram Business", desc: "Basic Info, Insights, Followers & Media" },
-  { key: "facebook", name: "Facebook Pages", desc: "Pages List, Reach, Engagement & Posts" },
-  { key: "threads", name: "Threads", desc: "Official Threads Graph API Metrics" },
-  { key: "linkedin", name: "LinkedIn Pages", desc: "Organization Social, Followers & Impressions" },
-  { key: "youtube", name: "YouTube Channel", desc: "Subscribers, Views, Videos & Analytics" },
-  { key: "twitter", name: "X (Twitter)", desc: "Tweets, Followers & User Profile" },
-  { key: "tiktok", name: "TikTok Business", desc: "Basic Info, Videos & Likes Count" },
-  { key: "pinterest", name: "Pinterest", desc: "Boards, Pins & Follower Analytics" },
+  { name: "Instagram", key: "instagram", desc: "Business profiles & creator accounts" },
+  { name: "Facebook", key: "facebook", desc: "Pages, insights & post publishing" },
+  { name: "LinkedIn", key: "linkedin", desc: "Company pages & personal profiles" },
+  { name: "Twitter / X", key: "twitter", desc: "Tweets, media & analytics" },
+  { name: "YouTube", key: "youtube", desc: "Channel statistics & video metadata" },
+  { name: "TikTok", key: "tiktok", desc: "Business accounts & video reach" },
+  { name: "Threads", key: "threads", desc: "Meta Threads profile integration" },
+  { name: "Pinterest", key: "pinterest", desc: "Pins, boards & impression metrics" },
 ];
 
 export const SocialAccountsView: React.FC = () => {
   const { socialAccounts, loadUserAccounts } = useAppStore();
-  const [activeSyncingId, setActiveSyncingId] = useState<string | null>(null);
   const [showConnectModal, setShowConnectModal] = useState(false);
-  const [userEmail, setUserEmail] = useState("saisrinivasreddy456@gmail.com");
-  const [selectedAnalyticsAccount, setSelectedAnalyticsAccount] = useState<any | null>(null);
+  const [selectedAnalyticsAccount, setSelectedAnalyticsAccount] = useState<any>(null);
+  const [activeSyncingId, setActiveSyncingId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string>("user@socialpulse.ai");
   const [diagnosticError, setDiagnosticError] = useState<string | null>(null);
 
   useEffect(() => {
     loadUserAccounts();
+
     if (typeof window !== "undefined") {
-      const email = localStorage.getItem("sp_user_email") || "saisrinivasreddy456@gmail.com";
+      const email = localStorage.getItem("sp_user_email") || "user@socialpulse.ai";
       setUserEmail(email);
+
       const params = new URLSearchParams(window.location.search);
-      const err = params.get("error_message") || params.get("error");
-      if (err) {
-        setDiagnosticError(decodeURIComponent(err));
-        toast.error(`OAuth Provider Error: ${decodeURIComponent(err)}`);
+      const connected = params.get("connected");
+      const err = params.get("error");
+
+      if (connected) {
+        toast.success(`Successfully connected ${connected.toUpperCase()} channel!`);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (err) {
+        setDiagnosticError(err);
+        toast.error(`Connection Notice: ${err}`);
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
     }
   }, []);
 
-  const handleOAuthConnect = async (providerKey: string) => {
-    toast.info(`Generating official ${providerKey.toUpperCase()} OAuth authorization link...`);
+  const handleOAuthConnect = (providerKey: string) => {
+    const apiBase =
+      process.env.NEXT_PUBLIC_API_URL || "https://socialpulse-ai-production.up.railway.app/api/v1";
+    toast.loading(`Redirecting to official ${providerKey.toUpperCase()} OAuth gateway...`, {
+      id: "oauth-redirect",
+    });
+    window.location.href = `${apiBase}/auth/${providerKey}/login`;
+  };
+
+  const handleDisconnect = async (id: string, platform: string) => {
     try {
-      const data = await socialPulseApi.getOAuthAuthorizeUrl(providerKey);
-      if (data?.authorization_url) {
-        window.location.href = data.authorization_url;
-      } else {
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-        const token = localStorage.getItem("sp_access_token") || "";
-        window.location.href = `${apiBase}/social-accounts/oauth/${providerKey}/login?token=${encodeURIComponent(token)}`;
-      }
+      await socialPulseApi.disconnectSocialAccount(id);
+      toast.success(`Disconnected ${platform} channel.`);
+      loadUserAccounts();
     } catch {
-      toast.error(`Failed to initiate ${providerKey.toUpperCase()} OAuth connection.`);
+      toast.error(`Failed to disconnect ${platform}.`);
     }
   };
 
   const handleSyncNow = async (id: string, platform: string) => {
     setActiveSyncingId(id);
-    toast.info(`Querying live API telemetry for ${platform}...`);
+    toast.info(`Syncing latest data for ${platform}...`);
     try {
       await socialPulseApi.syncSocialAccount(id);
       await loadUserAccounts();
-      toast.success(`${platform} telemetry synchronized successfully!`);
+      toast.success(`Sync completed for ${platform}!`);
     } catch {
-      toast.error(`Failed to sync ${platform} telemetry.`);
+      toast.error(`Failed to sync ${platform}.`);
     } finally {
       setActiveSyncingId(null);
     }
   };
 
-  const handleDisconnect = async (id: string, platform: string) => {
-    if (confirm(`Are you sure you want to disconnect ${platform}? OAuth tokens will be deleted while historical analytics remain preserved.`)) {
-      try {
-        await socialPulseApi.disconnectSocialAccount(id);
-        await loadUserAccounts();
-        toast.success(`Disconnected ${platform} channel.`);
-      } catch {
-        toast.error(`Failed to disconnect ${platform}.`);
-      }
-    }
-  };
-
-  const openAnalyticsModal = async (acc: any) => {
-    const data = await socialPulseApi.getSocialAccountAnalytics(acc.id);
-    setSelectedAnalyticsAccount(data || acc);
+  const openAnalyticsModal = (account: any) => {
+    setSelectedAnalyticsAccount(account);
   };
 
   return (
@@ -192,29 +190,31 @@ export const SocialAccountsView: React.FC = () => {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-black/[0.06] dark:border-white/[0.08] pb-6"
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6"
+        style={{ borderBottom: '1px solid var(--card-border)' }}
       >
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-extrabold uppercase tracking-widest text-[#0866FF]">
+            <span className="text-xs font-extrabold uppercase tracking-widest" style={{ color: '#C8A14A' }}>
               OAuth & Integration Hub
             </span>
-            <span className="bg-[#E7F0FF] text-[#0866FF] dark:bg-[#0866FF]/20 text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-              <ShieldCheck className="w-3 h-3 text-[#0866FF]" />
+            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1" style={{ background: 'var(--accent-light)', color: '#C8A14A' }}>
+              <ShieldCheck className="w-3 h-3" style={{ color: '#C8A14A' }} />
               Logged in as: {userEmail}
             </span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-[#111111] dark:text-white">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
             Connected Social Accounts
           </h1>
-          <p className="text-sm text-[#777777] dark:text-[#A0A0A0] mt-1">
+          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
             Real production OAuth connections & live channel metrics for <strong>{userEmail}</strong>.
           </p>
         </div>
 
         <button
           onClick={() => setShowConnectModal(true)}
-          className="px-5 py-2.5 rounded-full bg-[#0866FF] hover:bg-[#1877F2] text-white font-extrabold text-xs shadow-md flex items-center gap-2 transition-all"
+          className="px-5 py-2.5 rounded-full text-white font-extrabold text-xs shadow-md flex items-center gap-2 transition-all"
+          style={{ background: 'linear-gradient(135deg, #C8A14A, #B8922E)', boxShadow: '0 4px 12px rgba(200,161,74,0.25)' }}
         >
           <Plus className="w-4 h-4" />
           <span>Connect New Platform</span>
@@ -248,15 +248,16 @@ export const SocialAccountsView: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white dark:bg-[#18181B] rounded-[32px] border border-black/[0.06] dark:border-white/[0.08] p-8 md:p-12 text-center max-w-4xl mx-auto shadow-sm space-y-6"
+          className="rounded-[32px] p-8 md:p-12 text-center max-w-4xl mx-auto shadow-sm space-y-6"
+          style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
         >
-          <div className="w-16 h-16 rounded-2xl bg-[#E7F0FF] dark:bg-[#0866FF]/20 text-[#0866FF] mx-auto flex items-center justify-center">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto" style={{ background: 'var(--accent-light)', color: '#C8A14A' }}>
             <Globe className="w-8 h-8" />
           </div>
 
           <div>
-            <h2 className="text-2xl font-black text-[#111111] dark:text-white">No Connected Accounts Found</h2>
-            <p className="text-sm text-[#777777] dark:text-[#A0A0A0] max-w-md mx-auto mt-2">
+            <h2 className="text-2xl font-black" style={{ color: 'var(--text-primary)' }}>No Connected Accounts Found</h2>
+            <p className="text-sm max-w-md mx-auto mt-2" style={{ color: 'var(--text-secondary)' }}>
               Connect your official social accounts using provider OAuth to view real followers, reach, posts, and engagement telemetry.
             </p>
           </div>
@@ -266,10 +267,11 @@ export const SocialAccountsView: React.FC = () => {
               <button
                 key={prov.key}
                 onClick={() => handleOAuthConnect(prov.key)}
-                className="p-4 rounded-2xl border border-black/[0.06] dark:border-white/[0.08] bg-[#FAFBFD] dark:bg-[#121316] hover:border-[#0866FF] flex flex-col items-center justify-center space-y-3 transition-all group"
+                className="p-4 rounded-2xl border flex flex-col items-center justify-center space-y-3 transition-all group"
+                style={{ background: 'var(--bg-secondary)', borderColor: 'var(--card-border)' }}
               >
                 <PlatformLogo platform={prov.name} className="w-10 h-10 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold text-[#111111] dark:text-white">Connect {prov.name}</span>
+                <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>Connect {prov.name}</span>
               </button>
             ))}
           </div>
@@ -282,11 +284,11 @@ export const SocialAccountsView: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
-              className={`bg-white dark:bg-[#18181B] rounded-[28px] border p-6 flex flex-col justify-between h-full space-y-4 shadow-xs ${
-                account.connected
-                  ? "border-[#0866FF]/40 shadow-blue-500/10"
-                  : "border-black/[0.06] dark:border-white/[0.08] opacity-80"
-              }`}
+              className="rounded-[28px] border p-6 flex flex-col justify-between h-full space-y-4 shadow-xs"
+              style={{
+                background: 'var(--card-bg)',
+                borderColor: account.connected ? 'rgba(200, 161, 74, 0.4)' : 'var(--card-border)',
+              }}
             >
               <div>
                 <div className="flex items-center justify-between mb-4">
@@ -294,37 +296,39 @@ export const SocialAccountsView: React.FC = () => {
                     <img
                       src={account.avatar}
                       alt={account.username}
-                      className="w-10 h-10 rounded-full object-cover border border-black/10 dark:border-white/10 shrink-0"
+                      className="w-10 h-10 rounded-full object-cover shrink-0"
+                      style={{ border: '1px solid var(--card-border)' }}
                     />
                     <div>
-                      <h3 className="text-sm font-extrabold text-[#111111] dark:text-white flex items-center gap-1.5">
+                      <h3 className="text-sm font-extrabold flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
                         <span>{account.platform}</span>
                         <PlatformLogo platform={account.platform} className="w-4 h-4" />
                       </h3>
-                      <p className="text-xs text-[#777777] dark:text-[#A0A0A0] font-mono">
+                      <p className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>
                         {account.username}
                       </p>
                     </div>
                   </div>
 
                   <span
-                    className={`w-3 h-3 rounded-full border-2 border-white dark:border-[#18181B] ${
-                      account.connected ? "bg-[#31A24C]" : "bg-[#A0A0A0]"
+                    className={`w-3 h-3 rounded-full border-2 ${
+                      account.connected ? "bg-[#22C55E]" : "bg-[#A0A0A0]"
                     }`}
+                    style={{ borderColor: 'var(--card-bg)' }}
                     title={account.connected ? "Active OAuth Token" : "Disconnected"}
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 p-3 rounded-2xl bg-[#FAFBFD] dark:bg-[#121316] border border-black/[0.04] dark:border-white/[0.06] text-xs">
+                <div className="grid grid-cols-2 gap-2 p-3 rounded-2xl border text-xs" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--card-border)' }}>
                   <div>
-                    <span className="text-[10px] text-[#777777] dark:text-[#A0A0A0] block">Followers</span>
-                    <span className="font-extrabold text-[#111111] dark:text-white">
+                    <span className="text-[10px] block" style={{ color: 'var(--text-muted)' }}>Followers</span>
+                    <span className="font-extrabold" style={{ color: 'var(--text-primary)' }}>
                       {account.followers}
                     </span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-[#777777] dark:text-[#A0A0A0] block">Token Status</span>
-                    <span className="font-extrabold text-[#31A24C] flex items-center gap-1">
+                    <span className="text-[10px] block" style={{ color: 'var(--text-muted)' }}>Token Status</span>
+                    <span className="font-extrabold text-[#22C55E] flex items-center gap-1">
                       <Lock className="w-2.5 h-2.5" />
                       <span>Encrypted</span>
                     </span>
@@ -332,10 +336,10 @@ export const SocialAccountsView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="space-y-2 pt-2 border-t border-black/[0.06] dark:border-white/[0.08]">
-                <div className="flex items-center justify-between text-[11px] text-[#777777] dark:text-[#A0A0A0]">
+              <div className="space-y-2 pt-2" style={{ borderTop: '1px solid var(--card-border)' }}>
+                <div className="flex items-center justify-between text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                   <span>Last Sync:</span>
-                  <span className="font-semibold text-[#111111] dark:text-white">
+                  <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
                     {account.lastSynced}
                   </span>
                 </div>
@@ -345,25 +349,28 @@ export const SocialAccountsView: React.FC = () => {
                     <button
                       onClick={() => handleSyncNow(account.id, account.platform)}
                       disabled={activeSyncingId === account.id}
-                      className="flex-1 py-2 rounded-full border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs font-bold text-[#111111] dark:text-white hover:border-[#0866FF] flex items-center justify-center gap-1.5 transition-all"
+                      className="flex-1 py-2 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all"
+                      style={{ border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-primary)' }}
                     >
-                      <RefreshCw className={`w-3.5 h-3.5 text-[#0866FF] ${activeSyncingId === account.id ? "animate-spin" : ""}`} />
+                      <RefreshCw className={`w-3.5 h-3.5 ${activeSyncingId === account.id ? "animate-spin" : ""}`} style={{ color: '#C8A14A' }} />
                       <span>{activeSyncingId === account.id ? "Syncing..." : "Sync Now"}</span>
                     </button>
 
                     <button
                       onClick={() => openAnalyticsModal(account)}
-                      className="px-3.5 py-2 rounded-full border border-black/10 dark:border-white/10 text-xs font-bold hover:bg-black/5 flex items-center gap-1"
+                      className="px-3.5 py-2 rounded-full border text-xs font-bold hover:bg-black/5 flex items-center gap-1"
+                      style={{ borderColor: 'var(--card-border)' }}
                       title="View Analytics"
                     >
-                      <BarChart3 className="w-3.5 h-3.5 text-[#0866FF]" />
+                      <BarChart3 className="w-3.5 h-3.5" style={{ color: '#C8A14A' }} />
                     </button>
                   </div>
 
                   <div className="flex items-center justify-between text-[11px] pt-1">
                     <button
                       onClick={() => handleOAuthConnect(account.platform.toLowerCase())}
-                      className="text-[#0866FF] font-semibold hover:underline flex items-center gap-1"
+                      className="font-semibold hover:underline flex items-center gap-1"
+                      style={{ color: '#C8A14A' }}
                     >
                       <RefreshCw className="w-3 h-3" />
                       <span>Reconnect</span>
@@ -371,7 +378,7 @@ export const SocialAccountsView: React.FC = () => {
 
                     <button
                       onClick={() => handleDisconnect(account.id, account.platform)}
-                      className="text-[#FA383E] font-semibold hover:underline flex items-center gap-1"
+                      className="text-[#EF4444] font-semibold hover:underline flex items-center gap-1"
                     >
                       <Trash2 className="w-3 h-3" />
                       <span>Disconnect</span>
@@ -397,40 +404,44 @@ export const SocialAccountsView: React.FC = () => {
               initial={{ scale: 0.95, y: 10 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 10 }}
-              className="bg-white dark:bg-[#18181B] rounded-[32px] border border-black/[0.06] dark:border-white/[0.08] p-6 max-w-lg w-full shadow-2xl relative"
+              className="rounded-[32px] p-6 max-w-lg w-full shadow-2xl relative"
+              style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
             >
               <button
                 onClick={() => setShowConnectModal(false)}
-                className="absolute right-5 top-5 text-[#A0A0A0] hover:text-[#111111]"
+                className="absolute right-5 top-5"
+                style={{ color: 'var(--text-muted)' }}
               >
                 <X className="w-5 h-5" />
               </button>
 
               <div className="flex items-center gap-2 mb-2">
-                <ShieldCheck className="w-6 h-6 text-[#0866FF]" />
-                <h3 className="text-xl font-black text-[#111111] dark:text-white">OAuth Integration Hub</h3>
+                <ShieldCheck className="w-6 h-6" style={{ color: '#C8A14A' }} />
+                <h3 className="text-xl font-black" style={{ color: 'var(--text-primary)' }}>OAuth Integration Hub</h3>
               </div>
-              <p className="text-xs text-[#777777] dark:text-[#A0A0A0] mb-4">
-                Connect official channel using authenticated user account: <strong className="text-[#0866FF]">{userEmail}</strong>
+              <p className="text-xs mb-4" style={{ color: 'var(--text-secondary)' }}>
+                Connect official channel using authenticated user account: <strong style={{ color: '#C8A14A' }}>{userEmail}</strong>
               </p>
 
               <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
                 {SUPPORTED_PROVIDERS.map((prov) => (
                   <div
                     key={prov.key}
-                    className="p-3.5 rounded-2xl border border-black/[0.06] dark:border-white/[0.08] bg-[#FAFBFD] dark:bg-[#121316] flex items-center justify-between gap-3 hover:border-[#0866FF]/40 transition-all"
+                    className="p-3.5 rounded-2xl border flex items-center justify-between gap-3 transition-all"
+                    style={{ background: 'var(--bg-secondary)', borderColor: 'var(--card-border)' }}
                   >
                     <div className="flex items-center gap-3">
                       <PlatformLogo platform={prov.name} className="w-9 h-9 shrink-0" />
                       <div>
-                        <h4 className="text-xs font-bold text-[#111111] dark:text-white">{prov.name}</h4>
-                        <p className="text-[10px] text-[#777777] dark:text-[#A0A0A0]">{prov.desc}</p>
+                        <h4 className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>{prov.name}</h4>
+                        <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{prov.desc}</p>
                       </div>
                     </div>
 
                     <button
                       onClick={() => handleOAuthConnect(prov.key)}
-                      className="px-4 py-2 rounded-full bg-[#0866FF] hover:bg-[#1877F2] text-white text-xs font-extrabold shadow-xs transition-all flex items-center gap-1 shrink-0"
+                      className="px-4 py-2 rounded-full text-white text-xs font-extrabold shadow-xs transition-all flex items-center gap-1 shrink-0"
+                      style={{ background: 'linear-gradient(135deg, #C8A14A, #B8922E)' }}
                     >
                       <span>Connect</span>
                       <ExternalLink className="w-3 h-3" />
@@ -456,11 +467,13 @@ export const SocialAccountsView: React.FC = () => {
               initial={{ scale: 0.95, y: 10 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 10 }}
-              className="bg-white dark:bg-[#18181B] rounded-[32px] border border-black/[0.06] dark:border-white/[0.08] p-6 max-w-md w-full shadow-2xl relative space-y-4"
+              className="rounded-[32px] p-6 max-w-md w-full shadow-2xl relative space-y-4"
+              style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
             >
               <button
                 onClick={() => setSelectedAnalyticsAccount(null)}
-                className="absolute right-5 top-5 text-[#A0A0A0] hover:text-[#111111]"
+                className="absolute right-5 top-5"
+                style={{ color: 'var(--text-muted)' }}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -468,44 +481,44 @@ export const SocialAccountsView: React.FC = () => {
               <div className="flex items-center gap-3">
                 <PlatformLogo platform={selectedAnalyticsAccount.platform} className="w-10 h-10" />
                 <div>
-                  <h3 className="text-lg font-black text-[#111111] dark:text-white">
+                  <h3 className="text-lg font-black" style={{ color: 'var(--text-primary)' }}>
                     {selectedAnalyticsAccount.display_name || selectedAnalyticsAccount.platform} Analytics
                   </h3>
-                  <p className="text-xs text-[#777777] font-mono">{selectedAnalyticsAccount.username}</p>
+                  <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>{selectedAnalyticsAccount.username}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3 pt-2">
-                <div className="p-3 rounded-2xl bg-[#FAFBFD] dark:bg-[#121316] border border-black/5 dark:border-white/5">
-                  <span className="text-[10px] text-[#777777] block">Total Followers</span>
-                  <span className="text-lg font-extrabold text-[#111111] dark:text-white">
+                <div className="p-3 rounded-2xl border" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--card-border)' }}>
+                  <span className="text-[10px] block" style={{ color: 'var(--text-muted)' }}>Total Followers</span>
+                  <span className="text-lg font-extrabold" style={{ color: 'var(--text-primary)' }}>
                     {selectedAnalyticsAccount.followers || selectedAnalyticsAccount.follower_count || 0}
                   </span>
                 </div>
 
-                <div className="p-3 rounded-2xl bg-[#FAFBFD] dark:bg-[#121316] border border-black/5 dark:border-white/5">
-                  <span className="text-[10px] text-[#777777] block">Reach / Impressions</span>
-                  <span className="text-lg font-extrabold text-[#0866FF]">
+                <div className="p-3 rounded-2xl border" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--card-border)' }}>
+                  <span className="text-[10px] block" style={{ color: 'var(--text-muted)' }}>Reach / Impressions</span>
+                  <span className="text-lg font-extrabold" style={{ color: '#C8A14A' }}>
                     {(selectedAnalyticsAccount.reach || selectedAnalyticsAccount.reach_count || 0).toLocaleString()}
                   </span>
                 </div>
 
-                <div className="p-3 rounded-2xl bg-[#FAFBFD] dark:bg-[#121316] border border-black/5 dark:border-white/5">
-                  <span className="text-[10px] text-[#777777] block">Posts / Media</span>
-                  <span className="text-lg font-extrabold text-[#111111] dark:text-white">
+                <div className="p-3 rounded-2xl border" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--card-border)' }}>
+                  <span className="text-[10px] block" style={{ color: 'var(--text-muted)' }}>Posts / Media</span>
+                  <span className="text-lg font-extrabold" style={{ color: 'var(--text-primary)' }}>
                     {selectedAnalyticsAccount.posts || selectedAnalyticsAccount.posts_count || 0}
                   </span>
                 </div>
 
-                <div className="p-3 rounded-2xl bg-[#FAFBFD] dark:bg-[#121316] border border-black/5 dark:border-white/5">
-                  <span className="text-[10px] text-[#777777] block">Engagement Rate</span>
-                  <span className="text-lg font-extrabold text-[#31A24C]">
+                <div className="p-3 rounded-2xl border" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--card-border)' }}>
+                  <span className="text-[10px] block" style={{ color: 'var(--text-muted)' }}>Engagement Rate</span>
+                  <span className="text-lg font-extrabold text-[#22C55E]">
                     {typeof selectedAnalyticsAccount.engagement_rate === "number" ? `${selectedAnalyticsAccount.engagement_rate.toFixed(2)}%` : "Not available"}
                   </span>
                 </div>
               </div>
 
-              <div className="p-3 rounded-2xl bg-[#E7F0FF] dark:bg-[#0866FF]/10 text-xs text-[#0866FF] space-y-1">
+              <div className="p-3 rounded-2xl text-xs space-y-1" style={{ background: 'var(--accent-light)', color: '#C8A14A' }}>
                 <div className="font-bold flex items-center gap-1">
                   <Radio className="w-3.5 h-3.5 animate-pulse" />
                   <span>Real Platform API Telemetry Active</span>

@@ -130,7 +130,7 @@ export function SecurityCenterView() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 text-[#0866FF] animate-spin" />
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#C8A14A' }} />
       </div>
     );
   }
@@ -140,13 +140,13 @@ export function SecurityCenterView() {
   return (
     <div className="space-y-8 font-sans pb-12">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-black/5 dark:border-white/10 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6" style={{ borderBottom: '1px solid var(--card-border)' }}>
         <div>
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-7 h-7 text-[#0866FF]" />
-            <h1 className="text-2xl font-black text-[#050505] dark:text-[#E4E6EB] tracking-tight">Security & Identity Center</h1>
+            <ShieldCheck className="w-7 h-7" style={{ color: '#C8A14A' }} />
+            <h1 className="text-2xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>Security & Identity Center</h1>
           </div>
-          <p className="text-[14px] text-[#65676B] dark:text-[#B0B3B8] mt-1">
+          <p className="text-[14px] mt-1" style={{ color: 'var(--text-secondary)' }}>
             Manage single sign-on login providers (Google, GitHub, Microsoft, LinkedIn), active login devices, session revocation, and security policies.
           </p>
         </div>
@@ -154,7 +154,8 @@ export function SecurityCenterView() {
         <div className="flex items-center gap-3">
           <button
             onClick={loadSecurityData}
-            className="flex items-center gap-2 px-4 py-2 text-[13px] font-semibold text-[#65676B] dark:text-[#B0B3B8] bg-white dark:bg-[#242526] border border-black/5 dark:border-white/10 rounded-xl hover:bg-[#F0F2F5] transition"
+            className="flex items-center gap-2 px-4 py-2 text-[13px] font-semibold rounded-xl transition"
+            style={{ border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-secondary)' }}
           >
             <RefreshCw className="w-4 h-4" /> Refresh Status
           </button>
@@ -169,21 +170,21 @@ export function SecurityCenterView() {
 
       {/* Security Health Stats Banner */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-6 rounded-2xl bg-white dark:bg-[#242526] border border-black/5 dark:border-white/10 shadow-sm relative overflow-hidden">
+        <div className="p-6 rounded-2xl shadow-sm relative overflow-hidden" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
           <div className="flex items-center justify-between">
-            <span className="text-[12px] font-bold uppercase tracking-wider text-[#8A8D91]">Security Score</span>
+            <span className="text-[12px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Security Score</span>
             <ShieldCheck className="w-5 h-5 text-emerald-500" />
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-[#050505] dark:text-[#E4E6EB]">{overview?.security_score || 95}/100</span>
+            <span className="text-3xl font-black" style={{ color: 'var(--text-primary)' }}>{overview?.security_score || 95}/100</span>
             <span className="text-[12px] font-semibold text-emerald-600">Enterprise Grade</span>
           </div>
-          <p className="text-[12px] text-[#8A8D91] mt-2">Protected by JWT token rotation & PKCE OAuth validation.</p>
+          <p className="text-[12px] mt-2" style={{ color: 'var(--text-muted)' }}>Protected by JWT token rotation & PKCE OAuth validation.</p>
         </div>
 
-        <div className="p-6 rounded-2xl bg-white dark:bg-[#242526] border border-black/5 dark:border-white/10 shadow-sm">
+        <div className="p-6 rounded-2xl shadow-sm" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
           <div className="flex items-center justify-between">
-            <span className="text-[12px] font-bold uppercase tracking-wider text-[#8A8D91]">Email Verification</span>
+            <span className="text-[12px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Email Verification</span>
             {overview?.is_verified ? (
               <CheckCircle2 className="w-5 h-5 text-emerald-500" />
             ) : (
@@ -191,31 +192,31 @@ export function SecurityCenterView() {
             )}
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-2xl font-black text-[#050505] dark:text-[#E4E6EB]">
+            <span className="text-2xl font-black" style={{ color: 'var(--text-primary)' }}>
               {overview?.is_verified ? "Verified Account" : "Pending Verification"}
             </span>
           </div>
-          <p className="text-[12px] text-[#8A8D91] mt-2">{overview?.email}</p>
+          <p className="text-[12px] mt-2" style={{ color: 'var(--text-muted)' }}>{overview?.email}</p>
         </div>
 
-        <div className="p-6 rounded-2xl bg-white dark:bg-[#242526] border border-black/5 dark:border-white/10 shadow-sm">
+        <div className="p-6 rounded-2xl shadow-sm" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
           <div className="flex items-center justify-between">
-            <span className="text-[12px] font-bold uppercase tracking-wider text-[#8A8D91]">Active Sessions</span>
-            <Smartphone className="w-5 h-5 text-[#0866FF]" />
+            <span className="text-[12px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Active Sessions</span>
+            <Smartphone className="w-5 h-5" style={{ color: '#C8A14A' }} />
           </div>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-[#050505] dark:text-[#E4E6EB]">{sessions.length} Devices</span>
+            <span className="text-3xl font-black" style={{ color: 'var(--text-primary)' }}>{sessions.length} Devices</span>
           </div>
-          <p className="text-[12px] text-[#8A8D91] mt-2">Track real-time device telemetry & IP addresses.</p>
+          <p className="text-[12px] mt-2" style={{ color: 'var(--text-muted)' }}>Track real-time device telemetry & IP addresses.</p>
         </div>
       </div>
 
       {/* Connected Login Providers */}
-      <div className="p-6 rounded-2xl bg-white dark:bg-[#242526] border border-black/5 dark:border-white/10 shadow-sm space-y-4">
-        <h2 className="text-lg font-bold text-[#050505] dark:text-[#E4E6EB] flex items-center gap-2">
-          <UserCheck className="w-5 h-5 text-[#0866FF]" /> Connected SSO & OAuth Login Providers
+      <div className="p-6 rounded-2xl shadow-sm space-y-4" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+        <h2 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+          <UserCheck className="w-5 h-5" style={{ color: '#C8A14A' }} /> Connected SSO & OAuth Login Providers
         </h2>
-        <p className="text-[13px] text-[#65676B] dark:text-[#B0B3B8]">
+        <p className="text-[13px]" style={{ color: 'var(--text-secondary)' }}>
           Link multiple OAuth identity providers (Google, GitHub, Microsoft, LinkedIn) to your single user profile. Authenticate with any connected provider instantly.
         </p>
 
@@ -229,16 +230,16 @@ export function SecurityCenterView() {
             return (
               <div
                 key={provider.id}
-                className={`p-4 rounded-2xl border ${
-                  isConnected
-                    ? "border-emerald-500/30 bg-emerald-50/20 dark:bg-emerald-950/10"
-                    : "border-black/5 dark:border-white/10 bg-[#FAFBFD] dark:bg-[#121316]"
-                } flex items-center justify-between gap-3`}
+                className="p-4 rounded-2xl border flex items-center justify-between gap-3"
+                style={{
+                  borderColor: isConnected ? 'rgba(34,197,94,0.3)' : 'var(--card-border)',
+                  background: isConnected ? 'rgba(34,197,94,0.05)' : 'var(--bg-secondary)',
+                }}
               >
                 <div className="flex items-center gap-3">
                   <span className="text-3xl">{provider.icon}</span>
                   <div>
-                    <div className="text-sm font-extrabold text-[#050505] dark:text-[#E4E6EB] flex items-center gap-1.5">
+                    <div className="text-sm font-extrabold flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
                       <span>{provider.name}</span>
                       {isConnected && (
                         <span className="text-[10px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -246,7 +247,7 @@ export function SecurityCenterView() {
                         </span>
                       )}
                     </div>
-                    <div className="text-[11px] text-[#65676B] dark:text-[#B0B3B8]">
+                    <div className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                       {isConnected ? (
                         <span>Last Login: {linked?.last_login ? new Date(linked.last_login).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now"}</span>
                       ) : (
@@ -267,7 +268,8 @@ export function SecurityCenterView() {
                   ) : (
                     <a
                       href={`${apiBase}/auth/${provider.id}/login`}
-                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#0866FF] text-white hover:bg-[#1877F2] transition flex items-center gap-1 shadow-xs"
+                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white hover:opacity-90 transition flex items-center gap-1 shadow-xs"
+                      style={{ background: 'linear-gradient(135deg, #C8A14A, #B8922E)' }}
                     >
                       <span>Connect</span>
                       <ExternalLink className="w-3 h-3" />
@@ -281,24 +283,24 @@ export function SecurityCenterView() {
       </div>
 
       {/* Active Sessions & Devices */}
-      <div className="p-6 rounded-2xl bg-white dark:bg-[#242526] border border-black/5 dark:border-white/10 shadow-sm space-y-4">
+      <div className="p-6 rounded-2xl shadow-sm space-y-4" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-[#050505] dark:text-[#E4E6EB] flex items-center gap-2">
-            <Laptop className="w-5 h-5 text-[#0866FF]" /> Active Login Devices & Sessions
+          <h2 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+            <Laptop className="w-5 h-5" style={{ color: '#C8A14A' }} /> Active Login Devices & Sessions
           </h2>
-          <span className="text-[12px] font-semibold text-[#65676B]">{sessions.length} Active</span>
+          <span className="text-[12px] font-semibold" style={{ color: 'var(--text-secondary)' }}>{sessions.length} Active</span>
         </div>
 
-        <div className="divide-y divide-black/5 dark:divide-white/10 border border-black/5 dark:border-white/10 rounded-xl overflow-hidden">
+        <div className="divide-y rounded-xl overflow-hidden" style={{ border: '1px solid var(--card-border)', borderColor: 'var(--card-border)' }}>
           {sessions.map((sess) => (
-            <div key={sess.id} className="p-4 bg-white dark:bg-[#242526] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div key={sess.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4" style={{ background: 'var(--card-bg)' }}>
               <div className="flex items-start gap-3">
-                <div className="p-2.5 rounded-xl bg-[#FAFBFD] dark:bg-[#121316] border border-black/5 dark:border-white/10 text-[#0866FF]">
+                <div className="p-2.5 rounded-xl border" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--card-border)', color: '#C8A14A' }}>
                   {sess.device_type === "mobile" ? <Smartphone className="w-5 h-5" /> : <Laptop className="w-5 h-5" />}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[14px] font-bold text-[#050505] dark:text-[#E4E6EB]">
+                    <span className="text-[14px] font-bold" style={{ color: 'var(--text-primary)' }}>
                       {sess.browser_name || "Modern Browser"} on {sess.os_name || "Desktop"}
                     </span>
                     {sess.is_current && (
@@ -307,7 +309,7 @@ export function SecurityCenterView() {
                       </span>
                     )}
                   </div>
-                  <div className="text-[12px] text-[#65676B] dark:text-[#B0B3B8] mt-0.5 flex items-center gap-3">
+                  <div className="text-[12px] mt-0.5 flex items-center gap-3" style={{ color: 'var(--text-secondary)' }}>
                     <span>IP: {sess.ip_address || "127.0.0.1"}</span>
                     <span>•</span>
                     <span>Last active: {new Date(sess.last_active).toLocaleString()}</span>
@@ -329,17 +331,17 @@ export function SecurityCenterView() {
       </div>
 
       {/* Change Password Form */}
-      <div className="p-6 rounded-2xl bg-white dark:bg-[#242526] border border-black/5 dark:border-white/10 shadow-sm space-y-4">
-        <h2 className="text-lg font-bold text-[#050505] dark:text-[#E4E6EB] flex items-center gap-2">
-          <KeyRound className="w-5 h-5 text-[#0866FF]" /> Update Account Password
+      <div className="p-6 rounded-2xl shadow-sm space-y-4" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+        <h2 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+          <KeyRound className="w-5 h-5" style={{ color: '#C8A14A' }} /> Update Account Password
         </h2>
-        <p className="text-[13px] text-[#65676B] dark:text-[#B0B3B8]">
+        <p className="text-[13px]" style={{ color: 'var(--text-secondary)' }}>
           Ensure your password is at least 8 characters long and contains uppercase letters, numbers, and symbols.
         </p>
 
         <form onSubmit={handleChangePassword} className="max-w-xl space-y-4 pt-2">
           <div>
-            <label className="block text-[12px] font-bold text-[#65676B] uppercase tracking-wider mb-1.5">
+            <label className="block text-[12px] font-bold uppercase tracking-wider mb-1.5" style={{ color: 'var(--text-muted)' }}>
               Current Password
             </label>
             <input
@@ -347,14 +349,17 @@ export function SecurityCenterView() {
               required
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-[#FAFBFD] dark:bg-[#121316] text-[14px] text-[#050505] dark:text-[#E4E6EB] focus:outline-none focus:border-[#0866FF]"
+              className="w-full px-4 py-2.5 rounded-xl text-[14px] outline-none"
+              style={{ border: '1px solid var(--card-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
               placeholder="••••••••"
+              onFocus={(e) => e.currentTarget.style.borderColor = '#C8A14A'}
+              onBlur={(e) => e.currentTarget.style.borderColor = 'var(--card-border)'}
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[12px] font-bold text-[#65676B] uppercase tracking-wider mb-1.5">
+              <label className="block text-[12px] font-bold uppercase tracking-wider mb-1.5" style={{ color: 'var(--text-muted)' }}>
                 New Password
               </label>
               <input
@@ -362,13 +367,16 @@ export function SecurityCenterView() {
                 required
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-[#FAFBFD] dark:bg-[#121316] text-[14px] text-[#050505] dark:text-[#E4E6EB] focus:outline-none focus:border-[#0866FF]"
+                className="w-full px-4 py-2.5 rounded-xl text-[14px] outline-none"
+                style={{ border: '1px solid var(--card-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
                 placeholder="••••••••"
+                onFocus={(e) => e.currentTarget.style.borderColor = '#C8A14A'}
+                onBlur={(e) => e.currentTarget.style.borderColor = 'var(--card-border)'}
               />
             </div>
 
             <div>
-              <label className="block text-[12px] font-bold text-[#65676B] uppercase tracking-wider mb-1.5">
+              <label className="block text-[12px] font-bold uppercase tracking-wider mb-1.5" style={{ color: 'var(--text-muted)' }}>
                 Confirm New Password
               </label>
               <input
@@ -376,8 +384,11 @@ export function SecurityCenterView() {
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-[#FAFBFD] dark:bg-[#121316] text-[14px] text-[#050505] dark:text-[#E4E6EB] focus:outline-none focus:border-[#0866FF]"
+                className="w-full px-4 py-2.5 rounded-xl text-[14px] outline-none"
+                style={{ border: '1px solid var(--card-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
                 placeholder="••••••••"
+                onFocus={(e) => e.currentTarget.style.borderColor = '#C8A14A'}
+                onBlur={(e) => e.currentTarget.style.borderColor = 'var(--card-border)'}
               />
             </div>
           </div>
@@ -385,7 +396,8 @@ export function SecurityCenterView() {
           <button
             type="submit"
             disabled={updatingPassword}
-            className="px-6 py-2.5 bg-[#0866FF] text-white text-[13px] font-bold rounded-xl hover:bg-[#1877F2] transition flex items-center gap-2"
+            className="px-6 py-2.5 text-white text-[13px] font-bold rounded-xl transition flex items-center gap-2"
+            style={{ background: 'linear-gradient(135deg, #C8A14A, #B8922E)' }}
           >
             {updatingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
             Update Password

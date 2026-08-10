@@ -81,19 +81,19 @@ function LinkedinIcon() {
 function ReferenceGridBackground() {
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-      <div className="absolute inset-0 bg-[#FAFBFD] dark:bg-[#121316]" />
+      <div style={{ background: 'var(--background)' }} className="absolute inset-0" />
       <div
-        className="absolute -top-32 -right-32 w-[700px] h-[700px] rounded-full opacity-40 dark:opacity-20"
-        style={{ background: "radial-gradient(circle, rgba(245, 230, 200, 0.6) 0%, rgba(245, 230, 200, 0.15) 50%, transparent 75%)" }}
+        className="absolute -top-32 -right-32 w-[700px] h-[700px] rounded-full opacity-30"
+        style={{ background: "radial-gradient(circle, rgba(200, 161, 74, 0.25) 0%, rgba(200, 161, 74, 0.05) 50%, transparent 75%)" }}
       />
       <div
-        className="absolute -bottom-40 -left-40 w-[600px] h-[600px] rounded-full opacity-30 dark:opacity-15"
-        style={{ background: "radial-gradient(circle, rgba(230, 220, 255, 0.6) 0%, rgba(230, 220, 255, 0.1) 50%, transparent 75%)" }}
+        className="absolute -bottom-40 -left-40 w-[600px] h-[600px] rounded-full opacity-20"
+        style={{ background: "radial-gradient(circle, rgba(200, 161, 74, 0.2) 0%, rgba(200, 161, 74, 0.03) 50%, transparent 75%)" }}
       />
       <div
-        className="absolute inset-0 opacity-[0.045] dark:opacity-[0.06]"
+        className="absolute inset-0 opacity-[0.03]"
         style={{
-          backgroundImage: `linear-gradient(to right, #000000 1px, transparent 1px), linear-gradient(to bottom, #000000 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(to right, var(--text-muted) 1px, transparent 1px), linear-gradient(to bottom, var(--text-muted) 1px, transparent 1px)`,
           backgroundSize: "36px 36px",
         }}
       />
@@ -247,23 +247,32 @@ export default function LoginPage() {
         initial={{ opacity: 0, y: 24, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-md bg-white dark:bg-[#18181B] rounded-[32px] border border-black/[0.06] dark:border-white/[0.08] p-8 sm:p-10 shadow-[0_25px_70px_-15px_rgba(0,0,0,0.07)] relative z-10"
+        className="w-full max-w-md rounded-[32px] p-8 sm:p-10 relative z-10"
+        style={{
+          background: 'var(--card-bg)',
+          border: '1px solid var(--card-border)',
+          boxShadow: '0 25px 70px -15px rgba(0,0,0,0.07)',
+        }}
       >
         {/* Header: Logo & Demo pill */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-[#0866FF] text-white flex items-center justify-center shadow-xs">
+            <div
+              className="w-9 h-9 rounded-2xl text-white flex items-center justify-center shadow-xs"
+              style={{ background: 'linear-gradient(135deg, #C8A14A, #E8D5A3)' }}
+            >
               <Zap className="w-5 h-5 fill-white text-white" />
             </div>
-            <span className="font-extrabold text-[#111111] dark:text-white text-lg tracking-tight">
-              SocialPulse AI
+            <span className="font-extrabold text-lg tracking-tight" style={{ color: 'var(--text-primary)' }}>
+              SocialPulse <span style={{ color: '#C8A14A' }}>AI</span>
             </span>
           </div>
 
           <button
             onClick={handleDemoLogin}
             disabled={demoLoading}
-            className="flex items-center gap-1.5 bg-[#FAF3E6] border border-[#E9D7B8] text-[#855B14] text-xs font-semibold px-3 py-1.5 rounded-full hover:bg-[#F5E6CC] transition-colors"
+            className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors"
+            style={{ background: 'rgba(200,161,74,0.12)', border: '1px solid rgba(200,161,74,0.3)', color: '#C8A14A' }}
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>Use Demo Account</span>
@@ -271,19 +280,21 @@ export default function LoginPage() {
         </div>
 
         {/* Tab switcher pill */}
-        <div className="bg-[#F2F2F7] dark:bg-[#27272A] p-1 rounded-2xl flex items-center mb-8 relative">
+        <div className="p-1 rounded-2xl flex items-center mb-8 relative" style={{ background: 'var(--bg-secondary)' }}>
           <button
             onClick={() => setTab("signin")}
             className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all relative z-10 ${
               tab === "signin"
-                ? "text-[#111111] dark:text-white shadow-xs"
-                : "text-[#777777] dark:text-[#A0A0A0]"
+                ? "shadow-xs"
+                : ""
             }`}
+            style={{ color: tab === "signin" ? 'var(--text-primary)' : 'var(--text-muted)' }}
           >
             {tab === "signin" && (
               <motion.div
                 layoutId="activeTabPill"
-                className="absolute inset-0 bg-white dark:bg-[#1C1C1E] rounded-xl z-[-1]"
+                className="absolute inset-0 rounded-xl z-[-1]"
+                style={{ background: 'var(--card-bg)' }}
                 transition={{ type: "spring", stiffness: 400, damping: 30 }}
               />
             )}
@@ -293,14 +304,16 @@ export default function LoginPage() {
             onClick={() => setTab("signup")}
             className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all relative z-10 ${
               tab === "signup"
-                ? "text-[#111111] dark:text-white shadow-xs"
-                : "text-[#777777] dark:text-[#A0A0A0]"
+                ? "shadow-xs"
+                : ""
             }`}
+            style={{ color: tab === "signup" ? 'var(--text-primary)' : 'var(--text-muted)' }}
           >
             {tab === "signup" && (
               <motion.div
                 layoutId="activeTabPill"
-                className="absolute inset-0 bg-white dark:bg-[#1C1C1E] rounded-xl z-[-1]"
+                className="absolute inset-0 rounded-xl z-[-1]"
+                style={{ background: 'var(--card-bg)' }}
                 transition={{ type: "spring", stiffness: 400, damping: 30 }}
               />
             )}
@@ -315,11 +328,11 @@ export default function LoginPage() {
             animate={{ opacity: 1, scale: 1 }}
             className="text-center py-8 space-y-4"
           >
-            <div className="w-16 h-16 rounded-full bg-[#E7F8ED] border border-[#31A24C]/30 text-[#31A24C] flex items-center justify-center mx-auto">
+            <div className="w-16 h-16 rounded-full bg-[#E7F8ED] border border-[#22C55E]/30 text-[#22C55E] flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-9 h-9" />
             </div>
-            <h3 className="text-xl font-black text-[#111111] dark:text-white">Authentication Successful</h3>
-            <p className="text-xs text-[#777777] dark:text-[#A0A0A0]">Redirecting to workspace telemetry...</p>
+            <h3 className="text-xl font-black" style={{ color: 'var(--text-primary)' }}>Authentication Successful</h3>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Redirecting to workspace telemetry...</p>
           </motion.div>
         ) : (
           <>
@@ -327,7 +340,8 @@ export default function LoginPage() {
             <div className="space-y-2.5 mb-6">
               <button
                 onClick={() => handleOAuthClick("Google")}
-                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-full border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs font-bold text-[#111111] dark:text-white hover:bg-[#F9F9FB] dark:hover:bg-[#27272A] transition-all shadow-2xs"
+                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-full text-xs font-bold transition-all shadow-2xs"
+                style={{ border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-primary)' }}
               >
                 <GoogleIcon />
                 <span>Continue with Google</span>
@@ -336,7 +350,8 @@ export default function LoginPage() {
               <div className="grid grid-cols-3 gap-2">
                 <button
                   onClick={() => handleOAuthClick("GitHub")}
-                  className="flex items-center justify-center gap-1.5 py-2.5 px-2.5 rounded-full border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs font-bold text-[#111111] dark:text-white hover:bg-[#F9F9FB] dark:hover:bg-[#27272A] transition-all"
+                  className="flex items-center justify-center gap-1.5 py-2.5 px-2.5 rounded-full text-xs font-bold transition-all"
+                  style={{ border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-primary)' }}
                 >
                   <GithubIcon />
                   <span>GitHub</span>
@@ -344,7 +359,8 @@ export default function LoginPage() {
 
                 <button
                   onClick={() => handleOAuthClick("Microsoft")}
-                  className="flex items-center justify-center gap-1.5 py-2.5 px-2.5 rounded-full border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs font-bold text-[#111111] dark:text-white hover:bg-[#F9F9FB] dark:hover:bg-[#27272A] transition-all"
+                  className="flex items-center justify-center gap-1.5 py-2.5 px-2.5 rounded-full text-xs font-bold transition-all"
+                  style={{ border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-primary)' }}
                 >
                   <MicrosoftIcon />
                   <span>Microsoft</span>
@@ -352,7 +368,8 @@ export default function LoginPage() {
 
                 <button
                   onClick={() => handleOAuthClick("LinkedIn")}
-                  className="flex items-center justify-center gap-1.5 py-2.5 px-2.5 rounded-full border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs font-bold text-[#111111] dark:text-white hover:bg-[#F9F9FB] dark:hover:bg-[#27272A] transition-all"
+                  className="flex items-center justify-center gap-1.5 py-2.5 px-2.5 rounded-full text-xs font-bold transition-all"
+                  style={{ border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-primary)' }}
                 >
                   <LinkedinIcon />
                   <span>LinkedIn</span>
@@ -362,15 +379,15 @@ export default function LoginPage() {
 
             {/* Divider */}
             <div className="relative flex items-center justify-center mb-6">
-              <div className="border-t border-[#E5E5EA] dark:border-[#333336] w-full" />
-              <span className="bg-white dark:bg-[#18181B] px-3 text-[10px] uppercase font-bold text-[#A0A0A0] absolute">
+              <div style={{ borderTop: '1px solid var(--card-border)' }} className="w-full" />
+              <span className="px-3 text-[10px] uppercase font-bold absolute" style={{ background: 'var(--card-bg)', color: 'var(--text-muted)' }}>
                 OR
               </span>
             </div>
 
             {/* API Error Alert */}
             {apiError && (
-              <div className="mb-4 p-3 rounded-2xl bg-[#FEF2F2] border border-[#FA383E]/20 text-[#FA383E] text-xs font-semibold">
+              <div className="mb-4 p-3 rounded-2xl bg-[#FEF2F2] border border-[#EF4444]/20 text-[#EF4444] text-xs font-semibold">
                 {apiError}
               </div>
             )}
@@ -379,7 +396,7 @@ export default function LoginPage() {
             {tab === "signin" && (
               <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
                 <div>
-                  <label className="block text-[11px] font-bold text-[#666666] dark:text-[#A0A0A0] uppercase tracking-wider mb-1.5">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider mb-1.5" style={{ color: 'var(--text-muted)' }}>
                     EMAIL ADDRESS
                   </label>
                   <div className="relative">
@@ -387,11 +404,14 @@ export default function LoginPage() {
                       {...loginForm.register("email")}
                       type="email"
                       placeholder="alex@organization.com"
-                      className="w-full px-4 py-3 rounded-2xl border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs text-[#111111] dark:text-white outline-none focus:border-[#0866FF] transition-all"
+                      className="w-full px-4 py-3 rounded-2xl text-xs outline-none transition-all"
+                      style={{ border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-primary)' }}
+                      onFocus={(e) => e.currentTarget.style.borderColor = '#C8A14A'}
+                      onBlur={(e) => e.currentTarget.style.borderColor = 'var(--card-border)'}
                     />
                   </div>
                   {loginForm.formState.errors.email && (
-                    <p className="text-[11px] text-[#FA383E] mt-1 font-semibold">
+                    <p className="text-[11px] text-[#EF4444] mt-1 font-semibold">
                       {loginForm.formState.errors.email.message}
                     </p>
                   )}
@@ -399,13 +419,14 @@ export default function LoginPage() {
 
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="block text-[11px] font-bold text-[#666666] dark:text-[#A0A0A0] uppercase tracking-wider">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
                       PASSWORD
                     </label>
                     <button
                       type="button"
                       onClick={() => setShowForgotModal(true)}
-                      className="text-[11px] font-semibold text-[#0866FF] hover:underline"
+                      className="text-[11px] font-semibold hover:underline"
+                      style={{ color: '#C8A14A' }}
                     >
                       Forgot?
                     </button>
@@ -415,18 +436,22 @@ export default function LoginPage() {
                       {...loginForm.register("password")}
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••••••••"
-                      className="w-full px-4 py-3 rounded-2xl border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs text-[#111111] dark:text-white outline-none focus:border-[#0866FF] transition-all pr-10"
+                      className="w-full px-4 py-3 rounded-2xl text-xs outline-none transition-all pr-10"
+                      style={{ border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-primary)' }}
+                      onFocus={(e) => e.currentTarget.style.borderColor = '#C8A14A'}
+                      onBlur={(e) => e.currentTarget.style.borderColor = 'var(--card-border)'}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A0A0A0] hover:text-[#111111]"
+                      className="absolute right-3 top-1/2 -translate-y-1/2"
+                      style={{ color: 'var(--text-muted)' }}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   {loginForm.formState.errors.password && (
-                    <p className="text-[11px] text-[#FA383E] mt-1 font-semibold">
+                    <p className="text-[11px] text-[#EF4444] mt-1 font-semibold">
                       {loginForm.formState.errors.password.message}
                     </p>
                   )}
@@ -435,7 +460,8 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 bg-[#0866FF] hover:bg-[#1877F2] text-white font-extrabold rounded-full text-xs transition-all shadow-md flex items-center justify-center gap-2"
+                  className="w-full py-3.5 text-white font-extrabold rounded-full text-xs transition-all shadow-md flex items-center justify-center gap-2"
+                  style={{ background: 'linear-gradient(135deg, #C8A14A, #B8922E)', boxShadow: '0 4px 16px rgba(200,161,74,0.3)' }}
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sign In to Workspace"}
                 </button>
@@ -446,41 +472,47 @@ export default function LoginPage() {
             {tab === "signup" && (
               <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
                 <div>
-                  <label className="block text-[11px] font-bold text-[#666666] dark:text-[#A0A0A0] uppercase tracking-wider mb-1.5">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider mb-1.5" style={{ color: 'var(--text-muted)' }}>
                     FULL NAME
                   </label>
                   <input
                     {...registerForm.register("full_name")}
                     type="text"
                     placeholder="Alex Morgan"
-                    className="w-full px-4 py-3 rounded-2xl border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs text-[#111111] dark:text-white outline-none focus:border-[#0866FF] transition-all"
+                    className="w-full px-4 py-3 rounded-2xl text-xs outline-none transition-all"
+                    style={{ border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-primary)' }}
+                    onFocus={(e) => e.currentTarget.style.borderColor = '#C8A14A'}
+                    onBlur={(e) => e.currentTarget.style.borderColor = 'var(--card-border)'}
                   />
                   {registerForm.formState.errors.full_name && (
-                    <p className="text-[11px] text-[#FA383E] mt-1 font-semibold">
+                    <p className="text-[11px] text-[#EF4444] mt-1 font-semibold">
                       {registerForm.formState.errors.full_name.message}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-[#666666] dark:text-[#A0A0A0] uppercase tracking-wider mb-1.5">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider mb-1.5" style={{ color: 'var(--text-muted)' }}>
                     WORK EMAIL
                   </label>
                   <input
                     {...registerForm.register("email")}
                     type="email"
                     placeholder="alex@company.com"
-                    className="w-full px-4 py-3 rounded-2xl border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs text-[#111111] dark:text-white outline-none focus:border-[#0866FF] transition-all"
+                    className="w-full px-4 py-3 rounded-2xl text-xs outline-none transition-all"
+                    style={{ border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-primary)' }}
+                    onFocus={(e) => e.currentTarget.style.borderColor = '#C8A14A'}
+                    onBlur={(e) => e.currentTarget.style.borderColor = 'var(--card-border)'}
                   />
                   {registerForm.formState.errors.email && (
-                    <p className="text-[11px] text-[#FA383E] mt-1 font-semibold">
+                    <p className="text-[11px] text-[#EF4444] mt-1 font-semibold">
                       {registerForm.formState.errors.email.message}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-[#666666] dark:text-[#A0A0A0] uppercase tracking-wider mb-1.5">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider mb-1.5" style={{ color: 'var(--text-muted)' }}>
                     PASSWORD
                   </label>
                   <div className="relative">
@@ -488,18 +520,22 @@ export default function LoginPage() {
                       {...registerForm.register("password")}
                       type={showPassword ? "text" : "password"}
                       placeholder="At least 8 characters"
-                      className="w-full px-4 py-3 rounded-2xl border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs text-[#111111] dark:text-white outline-none focus:border-[#0866FF] transition-all pr-10"
+                      className="w-full px-4 py-3 rounded-2xl text-xs outline-none transition-all pr-10"
+                      style={{ border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-primary)' }}
+                      onFocus={(e) => e.currentTarget.style.borderColor = '#C8A14A'}
+                      onBlur={(e) => e.currentTarget.style.borderColor = 'var(--card-border)'}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A0A0A0] hover:text-[#111111]"
+                      className="absolute right-3 top-1/2 -translate-y-1/2"
+                      style={{ color: 'var(--text-muted)' }}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   {registerForm.formState.errors.password && (
-                    <p className="text-[11px] text-[#FA383E] mt-1 font-semibold">
+                    <p className="text-[11px] text-[#EF4444] mt-1 font-semibold">
                       {registerForm.formState.errors.password.message}
                     </p>
                   )}
@@ -508,7 +544,8 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 bg-[#0866FF] hover:bg-[#1877F2] text-white font-extrabold rounded-full text-xs transition-all shadow-md flex items-center justify-center gap-2"
+                  className="w-full py-3.5 text-white font-extrabold rounded-full text-xs transition-all shadow-md flex items-center justify-center gap-2"
+                  style={{ background: 'linear-gradient(135deg, #C8A14A, #B8922E)', boxShadow: '0 4px 16px rgba(200,161,74,0.3)' }}
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Account"}
                 </button>
@@ -531,22 +568,24 @@ export default function LoginPage() {
               initial={{ scale: 0.95, y: 10 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 10 }}
-              className="bg-white dark:bg-[#18181B] rounded-[32px] border border-black/[0.06] dark:border-white/[0.08] p-6 max-w-sm w-full shadow-2xl relative"
+              className="rounded-[32px] p-6 max-w-sm w-full shadow-2xl relative"
+              style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
             >
               <button
                 onClick={() => setActiveOAuthProvider(null)}
-                className="absolute right-4 top-4 text-[#A0A0A0] hover:text-[#111111]"
+                className="absolute right-4 top-4"
+                style={{ color: 'var(--text-muted)' }}
               >
                 <X className="w-4 h-4" />
               </button>
 
               <div className="flex items-center gap-2 mb-2">
-                <Globe className="w-5 h-5 text-[#0866FF]" />
-                <h3 className="text-lg font-black text-[#111111] dark:text-white">
+                <Globe className="w-5 h-5" style={{ color: '#C8A14A' }} />
+                <h3 className="text-lg font-black" style={{ color: 'var(--text-primary)' }}>
                   {activeOAuthProvider} OAuth 2.0 Auth
                 </h3>
               </div>
-              <p className="text-xs text-[#777777] dark:text-[#A0A0A0] mb-4">
+              <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
                 Enter your real <strong>{activeOAuthProvider}</strong> email address to link your workspace account and integrate social channels:
               </p>
 
@@ -557,11 +596,15 @@ export default function LoginPage() {
                   value={oauthAccountEmail}
                   onChange={(e) => setOauthAccountEmail(e.target.value)}
                   placeholder={`your.account@${activeOAuthProvider.toLowerCase() === "google" ? "gmail.com" : "domain.com"}`}
-                  className="w-full px-4 py-3 rounded-2xl border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs text-[#111111] dark:text-white outline-none focus:border-[#0866FF]"
+                  className="w-full px-4 py-3 rounded-2xl text-xs outline-none"
+                  style={{ border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-primary)' }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#C8A14A'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = 'var(--card-border)'}
                 />
                 <button
                   type="submit"
-                  className="w-full py-3 bg-[#0866FF] text-white font-extrabold rounded-full text-xs hover:bg-[#1877F2] transition shadow-xs"
+                  className="w-full py-3 text-white font-extrabold rounded-full text-xs transition shadow-xs"
+                  style={{ background: 'linear-gradient(135deg, #C8A14A, #B8922E)' }}
                 >
                   Authenticate & Launch Workspace
                 </button>
@@ -584,17 +627,19 @@ export default function LoginPage() {
               initial={{ scale: 0.95, y: 10 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 10 }}
-              className="bg-white dark:bg-[#18181B] rounded-[28px] border border-black/[0.06] dark:border-white/[0.08] p-6 max-w-sm w-full shadow-2xl relative"
+              className="rounded-[28px] p-6 max-w-sm w-full shadow-2xl relative"
+              style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
             >
               <button
                 onClick={() => setShowForgotModal(false)}
-                className="absolute right-4 top-4 text-[#A0A0A0] hover:text-[#111111]"
+                className="absolute right-4 top-4"
+                style={{ color: 'var(--text-muted)' }}
               >
                 <X className="w-4 h-4" />
               </button>
 
-              <h3 className="text-lg font-black text-[#111111] dark:text-white mb-2">Reset Password</h3>
-              <p className="text-xs text-[#777777] dark:text-[#A0A0A0] mb-4">
+              <h3 className="text-lg font-black mb-2" style={{ color: 'var(--text-primary)' }}>Reset Password</h3>
+              <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
                 Enter your account email and we'll send you instructions to reset your password.
               </p>
 
@@ -605,11 +650,15 @@ export default function LoginPage() {
                   value={forgotEmail}
                   onChange={(e) => setForgotEmail(e.target.value)}
                   placeholder="name@organization.com"
-                  className="w-full px-4 py-3 rounded-2xl border border-[#E5E5EA] dark:border-[#333336] bg-white dark:bg-[#1C1C1E] text-xs text-[#111111] dark:text-white outline-none focus:border-[#0866FF]"
+                  className="w-full px-4 py-3 rounded-2xl text-xs outline-none"
+                  style={{ border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-primary)' }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#C8A14A'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = 'var(--card-border)'}
                 />
                 <button
                   type="submit"
-                  className="w-full py-3 bg-[#0866FF] text-white font-extrabold rounded-full text-xs hover:bg-[#1877F2] transition"
+                  className="w-full py-3 text-white font-extrabold rounded-full text-xs transition"
+                  style={{ background: 'linear-gradient(135deg, #C8A14A, #B8922E)' }}
                 >
                   Send Reset Link
                 </button>

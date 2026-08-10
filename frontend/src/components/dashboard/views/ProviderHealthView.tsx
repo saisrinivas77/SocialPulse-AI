@@ -61,7 +61,7 @@ export const ProviderHealthView: React.FC = () => {
   const getStatusBadge = (ready: boolean, statusStr: string) => {
     if (ready) {
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/20">
           <CheckCircle2 className="w-3.5 h-3.5" />
           ✅ Ready
         </span>
@@ -69,7 +69,7 @@ export const ProviderHealthView: React.FC = () => {
     }
     if (statusStr === "MISSING_CREDENTIALS") {
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20">
           <AlertTriangle className="w-3.5 h-3.5" />
           ❌ Missing Secret
         </span>
@@ -77,14 +77,14 @@ export const ProviderHealthView: React.FC = () => {
     }
     if (statusStr === "REDIRECT_MISMATCH") {
       return (
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-500 border border-rose-500/20">
           <XCircle className="w-3.5 h-3.5" />
           ❌ Redirect Mismatch
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20">
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-500/10 text-red-500 border border-red-500/20">
         <XCircle className="w-3.5 h-3.5" />
         ❌ {statusStr.replace("_", " ")}
       </span>
@@ -92,15 +92,15 @@ export const ProviderHealthView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8 p-6 max-w-7xl mx-auto">
+    <div className="space-y-8 pb-12 font-sans">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900/60 backdrop-blur-xl border border-slate-800 p-6 rounded-2xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6" style={{ borderBottom: '1px solid var(--card-border)' }}>
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <ShieldCheck className="w-7 h-7 text-indigo-400" />
-            <h1 className="text-2xl font-bold text-white tracking-tight">OAuth Provider Health Check</h1>
+            <ShieldCheck className="w-7 h-7" style={{ color: '#C8A14A' }} />
+            <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>OAuth Provider Health Check</h1>
           </div>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
             Real-time diagnostic verification of production OAuth client keys, secrets, redirect URIs, and database readiness for all 8 supported social networks.
           </p>
         </div>
@@ -108,7 +108,8 @@ export const ProviderHealthView: React.FC = () => {
         <button
           onClick={fetchHealth}
           disabled={isLoading}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-600/20 active:scale-95 disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-extrabold text-white shadow-md transition-all active:scale-95 disabled:opacity-50"
+          style={{ background: 'linear-gradient(135deg, #C8A14A, #B8922E)', boxShadow: '0 4px 12px rgba(200,161,74,0.25)' }}
         >
           <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
           Re-Test Health
@@ -117,38 +118,38 @@ export const ProviderHealthView: React.FC = () => {
 
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-slate-900/40 border border-slate-800 p-5 rounded-2xl flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+        <div className="p-5 rounded-2xl flex items-center gap-4 shadow-xs" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'var(--accent-light)', border: '1px solid var(--accent-border)', color: '#C8A14A' }}>
             <Server className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-xs text-slate-400 uppercase font-semibold tracking-wider">Configured Providers</span>
-            <div className="text-2xl font-bold text-white mt-0.5">
+            <span className="text-xs uppercase font-semibold tracking-wider block" style={{ color: 'var(--text-muted)' }}>Configured Providers</span>
+            <div className="text-2xl font-bold mt-0.5" style={{ color: 'var(--text-primary)' }}>
               {healthData?.ready_providers ?? 0} / {healthData?.total_providers ?? 8} Ready
             </div>
           </div>
         </div>
 
-        <div className="bg-slate-900/40 border border-slate-800 p-5 rounded-2xl flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+        <div className="p-5 rounded-2xl flex items-center gap-4 shadow-xs" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
             <Database className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-xs text-slate-400 uppercase font-semibold tracking-wider">Database Status</span>
-            <div className="text-2xl font-bold text-white mt-0.5 capitalize flex items-center gap-2">
-              <span className={`w-2.5 h-2.5 rounded-full ${healthData?.database_status === "HEALTHY" ? "bg-emerald-400 animate-pulse" : "bg-rose-500"}`} />
+            <span className="text-xs uppercase font-semibold tracking-wider block" style={{ color: 'var(--text-muted)' }}>Database Status</span>
+            <div className="text-2xl font-bold mt-0.5 capitalize flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <span className={`w-2.5 h-2.5 rounded-full ${healthData?.database_status === "HEALTHY" ? "bg-emerald-500 animate-pulse" : "bg-rose-500"}`} />
               {healthData?.database_status ?? "Healthy"}
             </div>
           </div>
         </div>
 
-        <div className="bg-slate-900/40 border border-slate-800 p-5 rounded-2xl flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+        <div className="p-5 rounded-2xl flex items-center gap-4 shadow-xs" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'var(--accent-light)', border: '1px solid var(--accent-border)', color: '#C8A14A' }}>
             <ShieldCheck className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-xs text-slate-400 uppercase font-semibold tracking-wider">OAuth Diagnostic Engine</span>
-            <div className="text-2xl font-bold text-white mt-0.5">Active</div>
+            <span className="text-xs uppercase font-semibold tracking-wider block" style={{ color: 'var(--text-muted)' }}>OAuth Diagnostic Engine</span>
+            <div className="text-2xl font-bold mt-0.5" style={{ color: 'var(--text-primary)' }}>Active</div>
           </div>
         </div>
       </div>
@@ -161,44 +162,45 @@ export const ProviderHealthView: React.FC = () => {
               key={key}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-slate-900/50 backdrop-blur-md border border-slate-800 p-6 rounded-2xl space-y-4 hover:border-slate-700 transition-all"
+              className="p-6 rounded-2xl space-y-4 transition-all shadow-xs"
+              style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
             >
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-white capitalize">{provider.name}</h3>
+                <h3 className="text-lg font-semibold capitalize" style={{ color: 'var(--text-primary)' }}>{provider.name}</h3>
                 {getStatusBadge(provider.ready, provider.status)}
               </div>
 
               <div className="space-y-2.5 text-xs">
-                <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
-                  <span className="text-slate-400 flex items-center gap-1.5">
-                    <Key className="w-3.5 h-3.5 text-slate-500" /> Client ID Status:
+                <div className="flex items-center justify-between py-1 border-b" style={{ borderColor: 'var(--card-border)' }}>
+                  <span className="flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
+                    <Key className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} /> Client ID Status:
                   </span>
-                  <span className={provider.client_id_configured ? "text-emerald-400 font-medium" : "text-amber-400 font-medium"}>
+                  <span className={provider.client_id_configured ? "text-emerald-500 font-medium" : "text-amber-500 font-medium"}>
                     {provider.client_id_configured ? provider.client_id || "Configured" : "❌ Missing"}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between py-1 border-b border-slate-800/60">
-                  <span className="text-slate-400 flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-slate-500" /> Client Secret:
+                <div className="flex items-center justify-between py-1 border-b" style={{ borderColor: 'var(--card-border)' }}>
+                  <span className="flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
+                    <ShieldCheck className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} /> Client Secret:
                   </span>
-                  <span className={provider.secret_configured ? "text-emerald-400 font-medium" : "text-amber-400 font-medium"}>
+                  <span className={provider.secret_configured ? "text-emerald-500 font-medium" : "text-amber-500 font-medium"}>
                     {provider.secret_configured ? "✅ Configured (AES-256)" : "❌ Missing"}
                   </span>
                 </div>
 
                 <div className="flex flex-col gap-1 pt-1">
-                  <span className="text-slate-400 flex items-center gap-1.5">
-                    <Link2 className="w-3.5 h-3.5 text-slate-500" /> Redirect URI:
+                  <span className="flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
+                    <Link2 className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} /> Redirect URI:
                   </span>
-                  <code className="bg-slate-950/60 p-2 rounded border border-slate-800/80 text-slate-300 font-mono text-[11px] truncate">
+                  <code className="p-2 rounded border font-mono text-[11px] truncate" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--card-border)', color: 'var(--text-primary)' }}>
                     {provider.redirect_uri || "Not configured"}
                   </code>
                 </div>
 
                 {provider.error && (
-                  <div className="mt-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-300 text-xs flex items-start gap-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <div className="mt-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-500 text-xs flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                     <span>{provider.error}</span>
                   </div>
                 )}

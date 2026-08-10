@@ -1,6 +1,7 @@
 # tests/locustfile.py
 """Locust Load Test Script simulating high concurrency performance on SocialPulse AI backend."""
 
+# pyrefly: ignore [missing-import]
 from locust import HttpUser, between, task
 
 

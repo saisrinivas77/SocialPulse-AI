@@ -66,7 +66,7 @@ export default function DashboardPage() {
 
   if (!mounted || authed === null) {
     return (
-      <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -117,7 +117,8 @@ export default function DashboardPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="min-h-screen bg-[var(--background)] text-[var(--foreground)] relative selection:bg-[#C8A14A] selection:text-white transition-colors duration-300"
+          className="min-h-screen relative selection:bg-[#C8A14A] selection:text-white transition-colors duration-300"
+          style={{ background: 'var(--background)', color: 'var(--foreground)' }}
         >
           <motion.div
             initial={{ x: -40, opacity: 0 }}

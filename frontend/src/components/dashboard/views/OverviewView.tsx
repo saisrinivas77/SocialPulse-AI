@@ -267,16 +267,17 @@ export const OverviewView: React.FC = () => {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-black/[0.06] dark:border-white/[0.08] pb-6"
+        className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6"
+        style={{ borderBottom: '1px solid var(--card-border)' }}
       >
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-extrabold uppercase tracking-widest text-[#0866FF]">
+            <span className="text-xs font-extrabold uppercase tracking-widest" style={{ color: '#C8A14A' }}>
               Production Social Media Analytics
             </span>
             {connectedCount > 0 ? (
-              <span className="bg-[#31A24C]/10 text-[#31A24C] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#31A24C] animate-pulse" />
+              <span className="bg-[#22C55E]/10 text-[#22C55E] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-pulse" />
                 Live Sync Active
               </span>
             ) : (
@@ -286,10 +287,10 @@ export const OverviewView: React.FC = () => {
             )}
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-[#111111] dark:text-white">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
             Good day, {userName}.
           </h1>
-          <p className="text-sm text-[#777777] dark:text-[#A0A0A0] mt-1">
+          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
             {connectedCount > 0
               ? `Displaying latest synced data for ${
                   selectedAccount
@@ -308,7 +309,12 @@ export const OverviewView: React.FC = () => {
               <select
                 value={selectedAccountId}
                 onChange={(e) => setSelectedAccountId(e.target.value)}
-                className="appearance-none pl-10 pr-9 py-2.5 rounded-full border border-black/10 dark:border-white/15 bg-white dark:bg-[#242526] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C] text-[#111111] dark:text-white font-extrabold text-xs cursor-pointer shadow-xs transition-all focus:outline-none focus:ring-2 focus:ring-[#0866FF]"
+                className="appearance-none pl-10 pr-9 py-2.5 rounded-full text-xs font-extrabold cursor-pointer shadow-xs transition-all focus:outline-none"
+                style={{
+                  border: '1px solid var(--card-border)',
+                  background: 'var(--card-bg)',
+                  color: 'var(--text-primary)',
+                }}
               >
                 <option value="all">
                   🌐 All Accounts ({connectedCount} Connected)
@@ -319,7 +325,7 @@ export const OverviewView: React.FC = () => {
                   </option>
                 ))}
               </select>
-              <Layers className="w-4 h-4 text-[#0866FF] absolute left-3.5 top-3 pointer-events-none" />
+              <Layers className="w-4 h-4 absolute left-3.5 top-3 pointer-events-none" style={{ color: '#C8A14A' }} />
             </div>
           )}
 
@@ -327,13 +333,19 @@ export const OverviewView: React.FC = () => {
           <button
             onClick={handleSyncNow}
             disabled={isSyncing || connectedCount === 0}
-            className="px-4 py-2.5 rounded-full border border-black/10 dark:border-white/15 bg-white dark:bg-[#242526] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C] text-[#111111] dark:text-white font-extrabold text-xs shadow-xs flex items-center gap-2 transition-all disabled:opacity-50"
+            className="px-4 py-2.5 rounded-full text-xs font-extrabold shadow-xs flex items-center gap-2 transition-all disabled:opacity-50"
+            style={{
+              border: '1px solid var(--card-border)',
+              background: 'var(--card-bg)',
+              color: 'var(--text-primary)',
+            }}
             title="Sync Latest API Data"
           >
             <RefreshCw
-              className={`w-3.5 h-3.5 text-[#0866FF] ${
+              className={`w-3.5 h-3.5 ${
                 isSyncing ? "animate-spin" : ""
               }`}
+              style={{ color: '#C8A14A' }}
             />
             <span>{isSyncing ? "Syncing..." : "Sync Now"}</span>
           </button>
@@ -341,7 +353,8 @@ export const OverviewView: React.FC = () => {
           {/* Connect Account Button */}
           <button
             onClick={() => setCurrentView("social-accounts")}
-            className="px-5 py-2.5 rounded-full bg-[#0866FF] hover:bg-[#1877F2] text-white font-extrabold text-xs shadow-md flex items-center gap-2 transition-all"
+            className="px-5 py-2.5 rounded-full text-white font-extrabold text-xs shadow-md flex items-center gap-2 transition-all"
+            style={{ background: 'linear-gradient(135deg, #C8A14A, #B8922E)', boxShadow: '0 4px 12px rgba(200,161,74,0.25)' }}
           >
             <Plus className="w-4 h-4" />
             <span>Connect Channel</span>
@@ -354,16 +367,17 @@ export const OverviewView: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white dark:bg-[#18181B] border border-black/[0.06] dark:border-white/[0.08] rounded-[32px] p-8 md:p-12 text-center space-y-6 shadow-sm max-w-4xl mx-auto"
+          className="rounded-[32px] p-8 md:p-12 text-center space-y-6 shadow-sm max-w-4xl mx-auto"
+          style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
         >
-          <div className="w-16 h-16 rounded-2xl bg-[#0866FF]/10 text-[#0866FF] flex items-center justify-center mx-auto">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto" style={{ background: 'var(--accent-light)', color: '#C8A14A' }}>
             <Zap className="w-8 h-8" />
           </div>
           <div>
-            <h3 className="text-2xl font-black text-[#111111] dark:text-white">
+            <h3 className="text-2xl font-black" style={{ color: 'var(--text-primary)' }}>
               Connect Your First Social Account
             </h3>
-            <p className="text-sm text-[#777777] dark:text-[#A0A0A0] max-w-lg mx-auto mt-2 leading-relaxed">
+            <p className="text-sm max-w-lg mx-auto mt-2 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
               No social channels are connected to this workspace yet. Connect your Instagram Business, Facebook Page, LinkedIn, YouTube, or X channel to start fetching live telemetry and real analytics.
             </p>
           </div>
@@ -371,7 +385,8 @@ export const OverviewView: React.FC = () => {
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <button
               onClick={() => setCurrentView("social-accounts")}
-              className="px-7 py-3.5 rounded-full bg-[#0866FF] hover:bg-[#1877F2] text-white font-extrabold text-xs shadow-lg transition-all flex items-center gap-2"
+              className="px-7 py-3.5 rounded-full text-white font-extrabold text-xs shadow-lg transition-all flex items-center gap-2"
+              style={{ background: 'linear-gradient(135deg, #C8A14A, #B8922E)', boxShadow: '0 6px 16px rgba(200,161,74,0.3)' }}
             >
               <Plus className="w-4 h-4" />
               <span>Connect Social Accounts</span>
@@ -391,19 +406,20 @@ export const OverviewView: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.08 }}
-                className="bg-white dark:bg-[#18181B] rounded-[24px] border border-black/[0.06] dark:border-white/[0.08] p-5 flex flex-col justify-between h-full shadow-xs hover:border-[#0866FF]/40 transition-all"
+                className="rounded-[24px] p-5 flex flex-col justify-between h-full shadow-xs transition-all"
+                style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold text-[#777777] dark:text-[#A0A0A0]">
+                  <span className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
                     {kpi.title}
                   </span>
-                  <div className="w-8 h-8 rounded-xl bg-[#FAFBFD] dark:bg-[#121316] border border-black/5 dark:border-white/10 flex items-center justify-center text-[#0866FF]">
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', color: '#C8A14A' }}>
                     <Icon className="w-4 h-4" />
                   </div>
                 </div>
 
                 <div className="my-2">
-                  <div className="text-2xl sm:text-3xl font-black text-[#111111] dark:text-white tracking-tight">
+                  <div className="text-2xl sm:text-3xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
                     {kpi.isString ? (
                       <span>{kpi.value}</span>
                     ) : (
@@ -421,12 +437,12 @@ export const OverviewView: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between text-xs pt-2 border-t border-black/5 dark:border-white/10">
-                  <span className="font-extrabold text-[#31A24C] flex items-center gap-0.5 text-[11px]">
+                <div className="flex items-center justify-between text-xs pt-2" style={{ borderTop: '1px solid var(--card-border)' }}>
+                  <span className="font-extrabold text-[#22C55E] flex items-center gap-0.5 text-[11px]">
                     <Check className="w-3 h-3" />
                     {kpi.change}
                   </span>
-                  <span className="text-[#8A8D91] text-[10px] truncate max-w-[120px]">
+                  <span className="text-[10px] truncate max-w-[120px]" style={{ color: 'var(--text-muted)' }}>
                     {kpi.subtext}
                   </span>
                 </div>
@@ -444,33 +460,34 @@ export const OverviewView: React.FC = () => {
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4 }}
-            className="lg:col-span-2 bg-white dark:bg-[#18181B] rounded-[28px] border border-black/[0.06] dark:border-white/[0.08] p-6 space-y-4 shadow-xs"
+            className="lg:col-span-2 rounded-[28px] p-6 space-y-4 shadow-xs"
+            style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
           >
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-black text-[#111111] dark:text-white">
+                <h3 className="text-lg font-black" style={{ color: 'var(--text-primary)' }}>
                   Latest Synced Data
                 </h3>
-                <p className="text-xs text-[#777777] dark:text-[#A0A0A0]">
+                <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                   {selectedAccount
                     ? `Telemetry history for @${selectedAccount.username}`
                     : "Aggregated follower trajectory across connected platforms"}
                 </p>
               </div>
-              <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#31A24C]/10 text-[#31A24C]">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#22C55E]/10 text-[#22C55E]">
                 Synced Data
               </span>
             </div>
 
             <div className="h-64 w-full flex items-center justify-center text-center p-4">
               <div className="space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-[#0866FF]/10 text-[#0866FF] flex items-center justify-center mx-auto">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto" style={{ background: 'var(--accent-light)', color: '#C8A14A' }}>
                   <BarChart2 className="w-6 h-6" />
                 </div>
-                <h4 className="text-sm font-bold text-[#111111] dark:text-white">
+                <h4 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
                   Channel Followers: {metrics.followers.toLocaleString()}
                 </h4>
-                <p className="text-xs text-[#777777] dark:text-[#A0A0A0] max-w-sm mx-auto">
+                <p className="text-xs max-w-sm mx-auto" style={{ color: 'var(--text-secondary)' }}>
                   Telemetry is fetched periodically directly from official provider APIs. Click "Sync Now" to refresh immediately.
                 </p>
               </div>
@@ -482,16 +499,18 @@ export const OverviewView: React.FC = () => {
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="bg-white dark:bg-[#18181B] rounded-[28px] border border-black/[0.06] dark:border-white/[0.08] p-6 flex flex-col justify-between h-full space-y-4 shadow-xs"
+            className="rounded-[28px] p-6 flex flex-col justify-between h-full space-y-4 shadow-xs"
+            style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}
           >
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-black text-[#111111] dark:text-white">
+                <h3 className="text-base font-black" style={{ color: 'var(--text-primary)' }}>
                   Connected Channels ({connectedCount})
                 </h3>
                 <button
                   onClick={() => setCurrentView("social-accounts")}
-                  className="text-xs font-bold text-[#0866FF] hover:underline"
+                  className="text-xs font-bold hover:underline"
+                  style={{ color: '#C8A14A' }}
                 >
                   Manage →
                 </button>
@@ -502,33 +521,34 @@ export const OverviewView: React.FC = () => {
                   <div
                     key={acc.id}
                     onClick={() => setSelectedAccountId(acc.id)}
-                    className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
-                      selectedAccountId === acc.id
-                        ? "border-[#0866FF] bg-[#0866FF]/5"
-                        : "border-black/[0.06] dark:border-white/[0.08] bg-[#FAFBFD] dark:bg-[#121316] hover:border-[#0866FF]/40"
-                    }`}
+                    className="p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3"
+                    style={{
+                      borderColor: selectedAccountId === acc.id ? '#C8A14A' : 'var(--card-border)',
+                      background: selectedAccountId === acc.id ? 'var(--accent-light)' : 'var(--bg-secondary)',
+                    }}
                   >
                     <div className="flex items-center gap-3">
                       <img
                         src={acc.avatar}
                         alt={acc.username}
-                        className="w-9 h-9 rounded-full object-cover border border-black/10 dark:border-white/10"
+                        className="w-9 h-9 rounded-full object-cover"
+                        style={{ border: '1px solid var(--card-border)' }}
                       />
                       <div>
-                        <h4 className="text-xs font-extrabold text-[#111111] dark:text-white flex items-center gap-1">
+                        <h4 className="text-xs font-extrabold flex items-center gap-1" style={{ color: 'var(--text-primary)' }}>
                           <span>{acc.platform}</span>
                         </h4>
-                        <p className="text-[11px] text-[#777777] font-mono">
+                        <p className="text-[11px] font-mono" style={{ color: 'var(--text-muted)' }}>
                           @{acc.username}
                         </p>
                       </div>
                     </div>
 
                     <div className="text-right text-xs">
-                      <span className="font-extrabold text-[#111111] dark:text-white block">
+                      <span className="font-extrabold block" style={{ color: 'var(--text-primary)' }}>
                         {acc.followers}
                       </span>
-                      <span className="text-[10px] text-[#31A24C] font-semibold">
+                      <span className="text-[10px] text-[#22C55E] font-semibold">
                         ● Connected
                       </span>
                     </div>
@@ -539,9 +559,14 @@ export const OverviewView: React.FC = () => {
 
             <button
               onClick={() => setCurrentView("social-accounts")}
-              className="w-full rounded-full border border-black/10 dark:border-white/15 bg-white dark:bg-[#242526] hover:bg-[#F0F2F5] dark:hover:bg-[#3A3B3C] text-[#111111] dark:text-white py-2.5 text-xs flex items-center justify-center gap-2 font-extrabold transition-colors"
+              className="w-full rounded-full border py-2.5 text-xs flex items-center justify-center gap-2 font-extrabold transition-colors"
+              style={{
+                border: '1px solid var(--card-border)',
+                background: 'var(--card-bg)',
+                color: 'var(--text-primary)',
+              }}
             >
-              <Plus className="w-3.5 h-3.5 text-[#0866FF]" /> Connect Another Account
+              <Plus className="w-3.5 h-3.5" style={{ color: '#C8A14A' }} /> Connect Another Account
             </button>
           </motion.div>
         </div>

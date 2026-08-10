@@ -29,8 +29,8 @@ import { toast } from "sonner";
 import { socialPulseApi } from "@/lib/api";
 
 const ACCENT_COLORS = [
-  { name: "Pulse Blue", hex: "#0866FF" },
-  { name: "Emerald Pro", hex: "#10B981" },
+  { name: "Gold Enterprise", hex: "#C8A14A" },
+  { name: "Emerald Pro", hex: "#22C55E" },
   { name: "Violet Spark", hex: "#8B5CF6" },
   { name: "Amber Glow", hex: "#F59E0B" },
   { name: "Rose Crimson", hex: "#F43F5E" },
@@ -51,7 +51,7 @@ export const ProfileView: React.FC = () => {
     timezone: "UTC",
     language: "en",
     theme: "dark",
-    avatar_color: "#0866FF",
+    avatar_color: "#C8A14A",
   });
 
   const [loading, setLoading] = useState(true);
@@ -59,28 +59,25 @@ export const ProfileView: React.FC = () => {
   const [showCropperModal, setShowCropperModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-
-  // Cropper Controls
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const imageRef = useRef<HTMLImageElement | null>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
 
   const loadProfile = async () => {
     setLoading(true);
     try {
-      const data = await socialPulseApi.getUserProfile();
+      const data = await socialPulseApi.getProfile();
       if (data) {
-        setProfile(data);
-        if (typeof window !== "undefined" && data.profile_image) {
-          localStorage.setItem("sp_user_avatar", data.profile_image);
-          localStorage.setItem("sp_user_name", data.display_name || data.username);
-        }
+        setProfile((prev: any) => ({
+          ...prev,
+          ...data,
+          display_name: data.display_name || data.first_name || prev.display_name,
+          profile_image: data.profile_image || data.avatar_url || prev.profile_image,
+        }));
       }
     } catch {
-      toast.error("Failed to load profile details.");
+      // fallback
     } finally {
       setLoading(false);
     }
@@ -90,73 +87,84 @@ export const ProfileView: React.FC = () => {
     loadProfile();
   }, []);
 
-  const handleSaveProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      const updated = await socialPulseApi.updateUserProfile(profile);
-      if (updated) {
-        setProfile(updated);
-        if (typeof window !== "undefined") {
-          localStorage.setItem("sp_user_name", updated.display_name || updated.username);
-        }
-        toast.success("Profile details updated successfully!");
-      }
-    } catch {
-      toast.error("Failed to update profile.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const handleFileSelect = (file: File) => {
-    if (!file.type.match("image/(png|jpeg|jpg|webp)")) {
-      toast.error("Invalid file format. Please upload PNG, JPEG, JPG, or WEBP.");
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload a valid image file (JPEG, PNG, WebP).");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("File size exceeds 5MB limit.");
+      toast.error("Image file size must be less than 5MB.");
       return;
     }
+
     setSelectedFile(file);
-    const url = URL.createObjectURL(file);
-    setImagePreviewUrl(url);
-    setZoom(1);
-    setRotation(0);
-    setShowCropperModal(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImagePreviewUrl(reader.result as string);
+      setShowCropperModal(true);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleCropAndUpload = async () => {
     if (!selectedFile) return;
+
     setUploadingAvatar(true);
     try {
-      const res = await socialPulseApi.uploadAvatar(selectedFile);
-      if (res?.avatar_url) {
-        setProfile((prev: any) => ({ ...prev, profile_image: res.avatar_url }));
+      const uploadRes = await socialPulseApi.uploadAvatar(selectedFile);
+      if (uploadRes?.profile_image) {
+        setProfile((prev: any) => ({ ...prev, profile_image: uploadRes.profile_image }));
         if (typeof window !== "undefined") {
-          localStorage.setItem("sp_user_avatar", res.avatar_url);
+          localStorage.setItem("sp_user_avatar", uploadRes.profile_image);
         }
-        toast.success("Profile picture updated successfully!");
+        toast.success("Avatar image updated!");
         setShowCropperModal(false);
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.detail || "Avatar upload failed.");
+    } catch {
+      toast.error("Failed to upload avatar.");
     } finally {
       setUploadingAvatar(false);
     }
   };
 
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await socialPulseApi.updateUserProfile({
+        display_name: profile.display_name,
+        username: profile.username,
+        bio: profile.bio,
+        job_title: profile.job_title,
+        company: profile.company,
+        location: profile.location,
+        website: profile.website,
+        phone: profile.phone,
+        avatar_color: profile.avatar_color,
+      });
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("sp_user_name", profile.display_name);
+      }
+      toast.success("Profile details saved!");
+    } catch {
+      toast.error("Failed to save profile.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleRemoveAvatar = async () => {
-    if (confirm("Remove custom profile picture and restore default avatar?")) {
+    if (confirm("Are you sure you want to remove your profile picture?")) {
       try {
-        const res = await socialPulseApi.deleteAvatar();
-        if (res?.avatar_url) {
-          setProfile((prev: any) => ({ ...prev, profile_image: res.avatar_url }));
-          if (typeof window !== "undefined") {
-            localStorage.setItem("sp_user_avatar", res.avatar_url);
-          }
-          toast.success("Restored default profile picture.");
-        }
+        await socialPulseApi.deleteAvatar();
+        setProfile((prev: any) => ({
+          ...prev,
+          profile_image: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+            profile.display_name
+          )}&background=C8A14A&color=fff`,
+        }));
+        toast.success("Avatar removed.");
       } catch {
         toast.error("Failed to remove custom avatar.");
       }
@@ -166,7 +174,7 @@ export const ProfileView: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 text-[#0866FF] animate-spin" />
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: '#C8A14A' }} />
       </div>
     );
   }
@@ -179,15 +187,15 @@ export const ProfileView: React.FC = () => {
   return (
     <div className="space-y-8 font-sans pb-16">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-black/5 dark:border-white/10 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6" style={{ borderBottom: '1px solid var(--card-border)' }}>
         <div>
           <div className="flex items-center gap-2">
-            <User className="w-7 h-7 text-[#0866FF]" />
-            <h1 className="text-3xl font-black text-[#050505] dark:text-[#E4E6EB] tracking-tight">
+            <User className="w-7 h-7" style={{ color: '#C8A14A' }} />
+            <h1 className="text-3xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
               User Profile & Identity
             </h1>
           </div>
-          <p className="text-[14px] text-[#65676B] dark:text-[#B0B3B8] mt-1">
+          <p className="text-[14px] mt-1" style={{ color: 'var(--text-secondary)' }}>
             Manage your personal profile, 512x512 avatar picture, organization role, and account settings.
           </p>
         </div>
@@ -195,7 +203,8 @@ export const ProfileView: React.FC = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={loadProfile}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-[#65676B] dark:text-[#B0B3B8] bg-white dark:bg-[#242526] border border-black/5 dark:border-white/10 rounded-xl hover:bg-[#F0F2F5] transition"
+            className="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl transition"
+            style={{ border: '1px solid var(--card-border)', background: 'var(--card-bg)', color: 'var(--text-secondary)' }}
           >
             <RefreshCw className="w-4 h-4" /> Refresh Profile
           </button>
@@ -205,14 +214,14 @@ export const ProfileView: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Avatar & Quick Info */}
         <div className="space-y-6">
-          <div className="p-6 rounded-3xl bg-white dark:bg-[#242526] border border-black/5 dark:border-white/10 shadow-xs text-center space-y-5 relative overflow-hidden">
+          <div className="p-6 rounded-3xl shadow-xs text-center space-y-5 relative overflow-hidden" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
             {/* Avatar Container with Hover Camera Overlay */}
             <div className="relative w-32 h-32 mx-auto group">
               <img
                 src={avatarSrc}
                 alt={profile.display_name}
-                className="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-[#18181B] shadow-lg transition-transform duration-300 group-hover:scale-105"
-                style={{ outline: `3px solid ${profile.avatar_color || "#0866FF"}` }}
+                className="w-32 h-32 rounded-full object-cover shadow-lg transition-transform duration-300 group-hover:scale-105"
+                style={{ outline: `3px solid ${profile.avatar_color || "#C8A14A"}` }}
               />
 
               <label
@@ -233,15 +242,16 @@ export const ProfileView: React.FC = () => {
             </div>
 
             <div>
-              <h2 className="text-xl font-black text-[#050505] dark:text-[#E4E6EB]">{profile.display_name}</h2>
-              <p className="text-xs font-bold text-[#0866FF] mt-0.5">@{profile.username}</p>
-              <p className="text-xs text-[#65676B] dark:text-[#B0B3B8] mt-1">{profile.job_title} at {profile.company}</p>
+              <h2 className="text-xl font-black" style={{ color: 'var(--text-primary)' }}>{profile.display_name}</h2>
+              <p className="text-xs font-bold mt-0.5" style={{ color: '#C8A14A' }}>@{profile.username}</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>{profile.job_title} at {profile.company}</p>
             </div>
 
             <div className="flex items-center justify-center gap-2 pt-2">
               <button
                 onClick={() => document.getElementById("avatar-input")?.click()}
-                className="px-3.5 py-1.5 rounded-xl bg-[#0866FF] text-white text-xs font-bold hover:bg-[#1877F2] transition flex items-center gap-1.5 shadow-xs"
+                className="px-3.5 py-1.5 rounded-xl text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
+                style={{ background: 'linear-gradient(135deg, #C8A14A, #B8922E)' }}
               >
                 <Upload className="w-3.5 h-3.5" /> Upload Photo
               </button>
@@ -254,8 +264,8 @@ export const ProfileView: React.FC = () => {
             </div>
 
             {/* Accent Avatar Border Color Picker */}
-            <div className="pt-4 border-t border-black/5 dark:border-white/10 space-y-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#65676B]">Avatar Accent Color</span>
+            <div className="pt-4 border-t space-y-2" style={{ borderColor: 'var(--card-border)' }}>
+              <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Avatar Accent Color</span>
               <div className="flex items-center justify-center gap-2">
                 {ACCENT_COLORS.map((col) => (
                   <button
@@ -273,15 +283,15 @@ export const ProfileView: React.FC = () => {
           </div>
 
           {/* Account Badges */}
-          <div className="p-6 rounded-3xl bg-white dark:bg-[#242526] border border-black/5 dark:border-white/10 shadow-xs space-y-4">
-            <h3 className="text-sm font-extrabold text-[#050505] dark:text-[#E4E6EB] flex items-center gap-2">
+          <div className="p-6 rounded-3xl shadow-xs space-y-4" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+            <h3 className="text-sm font-extrabold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
               <Award className="w-4 h-4 text-amber-500" /> Account Achievements
             </h3>
             <div className="grid grid-cols-2 gap-3 text-center">
-              <div className="p-3 rounded-2xl bg-[#FAFBFD] dark:bg-[#121316] border border-black/5 text-xs font-bold text-[#050505] dark:text-[#E4E6EB]">
+              <div className="p-3 rounded-2xl border text-xs font-bold" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--card-border)', color: 'var(--text-primary)' }}>
                 <span className="text-lg block">🚀</span> Viral Maverick
               </div>
-              <div className="p-3 rounded-2xl bg-[#FAFBFD] dark:bg-[#121316] border border-black/5 text-xs font-bold text-[#050505] dark:text-[#E4E6EB]">
+              <div className="p-3 rounded-2xl border text-xs font-bold" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--card-border)', color: 'var(--text-primary)' }}>
                 <span className="text-lg block">✨</span> AI Creator
               </div>
             </div>
@@ -290,14 +300,14 @@ export const ProfileView: React.FC = () => {
 
         {/* Right Column: Editable Profile Form */}
         <div className="lg:col-span-2">
-          <form onSubmit={handleSaveProfile} className="p-6 md:p-8 rounded-3xl bg-white dark:bg-[#242526] border border-black/5 dark:border-white/10 shadow-xs space-y-6">
-            <h2 className="text-lg font-black text-[#050505] dark:text-[#E4E6EB] border-b border-black/5 dark:border-white/10 pb-4">
+          <form onSubmit={handleSaveProfile} className="p-6 md:p-8 rounded-3xl shadow-xs space-y-6" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)' }}>
+            <h2 className="text-lg font-black pb-4" style={{ color: 'var(--text-primary)', borderBottom: '1px solid var(--card-border)' }}>
               Edit Personal Details
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-bold text-[#65676B] uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: 'var(--text-muted)' }}>
                   Display Name
                 </label>
                 <input
@@ -305,12 +315,15 @@ export const ProfileView: React.FC = () => {
                   required
                   value={profile.display_name || ""}
                   onChange={(e) => setProfile({ ...profile, display_name: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-[#FAFBFD] dark:bg-[#121316] text-sm text-[#050505] dark:text-[#E4E6EB] focus:outline-none focus:border-[#0866FF]"
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                  style={{ border: '1px solid var(--card-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#C8A14A'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = 'var(--card-border)'}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#65676B] uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: 'var(--text-muted)' }}>
                   Username
                 </label>
                 <input
@@ -318,102 +331,125 @@ export const ProfileView: React.FC = () => {
                   required
                   value={profile.username || ""}
                   onChange={(e) => setProfile({ ...profile, username: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-[#FAFBFD] dark:bg-[#121316] text-sm text-[#050505] dark:text-[#E4E6EB] focus:outline-none focus:border-[#0866FF]"
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                  style={{ border: '1px solid var(--card-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#C8A14A'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = 'var(--card-border)'}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#65676B] uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
                   <Mail className="w-3.5 h-3.5" /> Email Address (Read Only)
                 </label>
                 <input
                   type="email"
                   disabled
                   value={profile.email || ""}
-                  className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-gray-100 dark:bg-white/5 text-sm text-gray-500 cursor-not-allowed font-semibold"
+                  className="w-full px-4 py-2.5 rounded-xl border text-sm cursor-not-allowed font-semibold opacity-70"
+                  style={{ borderColor: 'var(--card-border)', background: 'var(--bg-secondary)', color: 'var(--text-muted)' }}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#65676B] uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
                   <Phone className="w-3.5 h-3.5" /> Phone Number
                 </label>
                 <input
                   type="text"
                   value={profile.phone || ""}
                   onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-[#FAFBFD] dark:bg-[#121316] text-sm text-[#050505] dark:text-[#E4E6EB] focus:outline-none focus:border-[#0866FF]"
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                  style={{ border: '1px solid var(--card-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
                   placeholder="+1 (555) 000-0000"
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#C8A14A'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = 'var(--card-border)'}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#65676B] uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
                   <Briefcase className="w-3.5 h-3.5" /> Job Title
                 </label>
                 <input
                   type="text"
                   value={profile.job_title || ""}
                   onChange={(e) => setProfile({ ...profile, job_title: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-[#FAFBFD] dark:bg-[#121316] text-sm text-[#050505] dark:text-[#E4E6EB] focus:outline-none focus:border-[#0866FF]"
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                  style={{ border: '1px solid var(--card-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#C8A14A'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = 'var(--card-border)'}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#65676B] uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
                   <Building className="w-3.5 h-3.5" /> Company / Organization
                 </label>
                 <input
                   type="text"
                   value={profile.company || ""}
                   onChange={(e) => setProfile({ ...profile, company: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-[#FAFBFD] dark:bg-[#121316] text-sm text-[#050505] dark:text-[#E4E6EB] focus:outline-none focus:border-[#0866FF]"
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                  style={{ border: '1px solid var(--card-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#C8A14A'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = 'var(--card-border)'}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#65676B] uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
                   <MapPin className="w-3.5 h-3.5" /> Location
                 </label>
                 <input
                   type="text"
                   value={profile.location || ""}
                   onChange={(e) => setProfile({ ...profile, location: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-[#FAFBFD] dark:bg-[#121316] text-sm text-[#050505] dark:text-[#E4E6EB] focus:outline-none focus:border-[#0866FF]"
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                  style={{ border: '1px solid var(--card-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#C8A14A'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = 'var(--card-border)'}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#65676B] uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                <label className="block text-xs font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
                   <Globe className="w-3.5 h-3.5" /> Personal Website
                 </label>
                 <input
                   type="url"
                   value={profile.website || ""}
                   onChange={(e) => setProfile({ ...profile, website: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-[#FAFBFD] dark:bg-[#121316] text-sm text-[#050505] dark:text-[#E4E6EB] focus:outline-none focus:border-[#0866FF]"
+                  className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                  style={{ border: '1px solid var(--card-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
                   placeholder="https://yourwebsite.com"
+                  onFocus={(e) => e.currentTarget.style.borderColor = '#C8A14A'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = 'var(--card-border)'}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#65676B] uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: 'var(--text-muted)' }}>
                 Bio & Profile Summary
               </label>
               <textarea
                 rows={3}
                 value={profile.bio || ""}
                 onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-black/10 dark:border-white/15 bg-[#FAFBFD] dark:bg-[#121316] text-sm text-[#050505] dark:text-[#E4E6EB] focus:outline-none focus:border-[#0866FF]"
+                className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                style={{ border: '1px solid var(--card-border)', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+                onFocus={(e) => e.currentTarget.style.borderColor = '#C8A14A'}
+                onBlur={(e) => e.currentTarget.style.borderColor = 'var(--card-border)'}
               />
             </div>
 
-            <div className="pt-4 border-t border-black/5 dark:border-white/10 flex justify-end gap-3">
+            <div className="pt-4 border-t flex justify-end gap-3" style={{ borderColor: 'var(--card-border)' }}>
               <button
                 type="submit"
                 disabled={saving}
-                className="px-6 py-2.5 bg-[#0866FF] hover:bg-[#1877F2] text-white font-extrabold text-xs rounded-xl transition flex items-center gap-2 shadow-sm"
+                className="px-6 py-2.5 text-white font-extrabold text-xs rounded-xl transition flex items-center gap-2 shadow-sm"
+                style={{ background: 'linear-gradient(135deg, #C8A14A, #B8922E)' }}
               >
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                 Save Changes
@@ -436,22 +472,24 @@ export const ProfileView: React.FC = () => {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-[#18181B] rounded-3xl p-6 max-w-lg w-full border border-black/10 dark:border-white/15 shadow-2xl space-y-6"
+              className="rounded-3xl p-6 max-w-lg w-full border shadow-2xl space-y-6"
+              style={{ background: 'var(--card-bg)', borderColor: 'var(--card-border)' }}
             >
-              <div className="flex items-center justify-between border-b border-black/5 dark:border-white/10 pb-4">
-                <h3 className="text-lg font-black text-[#050505] dark:text-[#E4E6EB] flex items-center gap-2">
-                  <Camera className="w-5 h-5 text-[#0866FF]" /> 512x512 Avatar Cropper
+              <div className="flex items-center justify-between pb-4" style={{ borderBottom: '1px solid var(--card-border)' }}>
+                <h3 className="text-lg font-black flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                  <Camera className="w-5 h-5" style={{ color: '#C8A14A' }} /> 512x512 Avatar Cropper
                 </h3>
                 <button
                   onClick={() => setShowCropperModal(false)}
-                  className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-500"
+                  className="p-1.5 rounded-full"
+                  style={{ color: 'var(--text-muted)' }}
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               {/* Circle Crop Preview Canvas */}
-              <div className="relative w-64 h-64 mx-auto border-4 border-[#0866FF] rounded-full overflow-hidden shadow-inner bg-black/10 flex items-center justify-center">
+              <div className="relative w-64 h-64 mx-auto border-4 rounded-full overflow-hidden shadow-inner bg-black/10 flex items-center justify-center" style={{ borderColor: '#C8A14A' }}>
                 <img
                   ref={imageRef}
                   src={imagePreviewUrl}
@@ -467,7 +505,7 @@ export const ProfileView: React.FC = () => {
               {/* Controls */}
               <div className="space-y-4 pt-2">
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-xs font-bold text-[#65676B] flex items-center gap-1">
+                  <span className="text-xs font-bold flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
                     <ZoomIn className="w-4 h-4" /> Zoom Level ({zoom.toFixed(1)}x)
                   </span>
                   <input
@@ -477,34 +515,38 @@ export const ProfileView: React.FC = () => {
                     step="0.1"
                     value={zoom}
                     onChange={(e) => setZoom(parseFloat(e.target.value))}
-                    className="w-40 accent-[#0866FF]"
+                    className="w-40 cursor-pointer"
+                    style={{ accentColor: '#C8A14A' }}
                   />
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#65676B] flex items-center gap-1">
+                  <span className="text-xs font-bold flex items-center gap-1" style={{ color: 'var(--text-secondary)' }}>
                     <RotateCw className="w-4 h-4" /> Rotate Angle
                   </span>
                   <button
                     onClick={() => setRotation((r) => (r + 90) % 360)}
-                    className="px-3 py-1.5 rounded-xl border border-black/10 dark:border-white/15 text-xs font-bold hover:bg-black/5"
+                    className="px-3 py-1.5 rounded-xl border text-xs font-bold"
+                    style={{ borderColor: 'var(--card-border)', color: 'var(--text-primary)' }}
                   >
                     Rotate 90° ({rotation}°)
                   </button>
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-black/5 dark:border-white/10">
+              <div className="flex items-center justify-end gap-3 pt-4" style={{ borderTop: '1px solid var(--card-border)' }}>
                 <button
                   onClick={() => setShowCropperModal(false)}
-                  className="px-4 py-2 text-xs font-bold text-gray-500 hover:bg-black/5 rounded-xl"
+                  className="px-4 py-2 text-xs font-bold rounded-xl"
+                  style={{ color: 'var(--text-muted)' }}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleCropAndUpload}
                   disabled={uploadingAvatar}
-                  className="px-5 py-2.5 rounded-xl bg-[#0866FF] hover:bg-[#1877F2] text-white text-xs font-black transition flex items-center gap-2 shadow-md"
+                  className="px-5 py-2.5 rounded-xl text-white text-xs font-black transition flex items-center gap-2 shadow-md"
+                  style={{ background: 'linear-gradient(135deg, #C8A14A, #B8922E)' }}
                 >
                   {uploadingAvatar ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                   Crop & Save Avatar
